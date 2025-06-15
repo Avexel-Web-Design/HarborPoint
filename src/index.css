@@ -3,12 +3,26 @@
 @import 'tailwindcss/utilities';
 
 @layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
   html {
     font-family: 'Crimson Text', Georgia, 'Times New Roman', serif;
+    height: 100%;
   }
   
   body {
-    @apply bg-white text-primary-950 antialiased;
+    @apply text-primary-950 antialiased;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  #root {
+    height: 100%;
   }
 }
 

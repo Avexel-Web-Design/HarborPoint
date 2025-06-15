@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import BirchwoodLogo from '../ui/BirchwoodLogo'
+import logoSvg from '../../images/logo.svg'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -10,44 +10,43 @@ const Header = () => {
     { name: 'Golf', path: '/golf' },
     { name: 'Dining', path: '/dining' },
     { name: 'Events', path: '/events' },
-    { name: 'Membership', path: '/membership' },
-    { name: 'About', path: '/about' },
+    { name: 'Membership', path: '/membership' },    { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ]
-
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container-width section-padding">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <BirchwoodLogo className="h-12 w-12" />
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-primary-950 font-serif">
+    <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center h-20 relative">
+          {/* Logo - Centered */}
+          <Link to="/" className="flex items-center space-x-3 absolute left-0">
+            <img 
+              src={logoSvg} 
+              alt="Birchwood Farms Golf & Country Club" 
+              className="h-14 w-14"
+            />            <div className="hidden sm:flex flex-col">
+              <span className="text-xl font-bold text-white font-serif">
                 Birchwood Farms
               </span>
-              <span className="text-sm text-primary-700 font-sans tracking-wide">
-                GOLF & COUNTRY CLUB
+              <span className="text-xs text-white/80 font-sans tracking-wider uppercase">
+                Golf & Country Club
               </span>
             </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-8">
-            {navigationItems.map((item) => (
+          </Link>          {/* Desktop Navigation - Centered */}
+          <nav className="hidden lg:flex items-center space-x-1 backdrop-blur-sm rounded-full px-6 py-2 shadow-sm border border-white/20">
+            {navigationItems.map((item, index) => (
               <Link
                 key={item.name}
-                to={item.path}
-                className="text-primary-950 hover:text-primary-700 transition-colors duration-200 font-serif font-medium"
+                to={item.path}                className="px-4 py-2 text-sm font-medium text-white hover:text-white/80 hover:bg-white/10 rounded-full transition-all duration-200 relative group"
               >
                 {item.name}
+                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-white transition-all duration-200 group-hover:w-3/4"></span>
               </Link>
             ))}
           </nav>
 
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 text-primary-950 hover:text-primary-700 transition-colors"
+            className="lg:hidden absolute right-0 p-2 text-white hover:text-primary-200 hover:bg-white/10 rounded-full transition-all duration-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -67,17 +66,15 @@ const Header = () => {
               )}
             </svg>
           </button>
-        </div>
-
-        {/* Mobile Navigation */}
+        </div>        {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-4">
+          <div className="lg:hidden py-6 border-t border-white/20 backdrop-blur-sm">
+            <nav className="flex flex-col space-y-2">
               {navigationItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="text-primary-950 hover:text-primary-700 transition-colors duration-200 font-serif font-medium"
+                  className="px-4 py-3 text-white hover:text-primary-200 hover:bg-white/10 rounded-lg transition-all duration-200 font-medium border-l-4 border-transparent hover:border-white/50"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
