@@ -1,63 +1,17 @@
 import { Link } from 'react-router-dom'
-import weddingImg from '../../../images/wedding.jpg'
+import overheadImg from '../../../images/overhead.png'
 
 const CallToAction = () => {
   return (
     <>
-      {/* Events Section */}
-      <section className="py-20 bg-primary-50">
-        <div className="container-width section-padding">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
-                  Plan Your Special Day With Us
-                </h2>
-                <div className="w-24 h-1 bg-primary-700"></div>
-              </div>
-              
-              <p className="text-lg text-primary-700 leading-relaxed">
-                The expansive Birchwood property features a classic Lake Michigan backdrop, 
-                which makes for an exquisite setting for any wedding or special event. 
-                Create memories that will last a lifetime in our stunning venues.
-              </p>
-              
-              <Link to="/events" className="btn-primary inline-block">
-                We'd Love To Hear From You
-              </Link>
-            </div>
-              <div className="relative">
-              <div className="bg-white rounded-2xl p-8 shadow-lg">
-                <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
-                  <img 
-                    src={weddingImg} 
-                    alt="Weddings & Events"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* You Belong Here Section */}
       <section className="py-20 bg-primary-950 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full">
-            <svg className="w-full h-full" viewBox="0 0 100 100" fill="none">
-              <defs>
-                <pattern id="birch" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <rect x="8" y="0" width="4" height="20" fill="currentColor" />
-                  <line x1="8" y1="5" x2="12" y2="5" stroke="white" strokeWidth="0.5" />
-                  <line x1="8" y1="10" x2="12" y2="10" stroke="white" strokeWidth="0.5" />
-                  <line x1="8" y1="15" x2="12" y2="15" stroke="white" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="100" height="100" fill="url(#birch)" />
-            </svg>
-          </div>
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${overheadImg})` }}
+        >
+          <div className="absolute inset-0 bg-primary-950 bg-opacity-70"></div>
         </div>
 
         <div className="container-width section-padding relative z-10">

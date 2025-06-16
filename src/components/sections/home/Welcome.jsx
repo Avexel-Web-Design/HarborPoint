@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import communityImg from '../../../images/community.jpg'
 import homeImg from '../../../images/home.jpg'
+import weddingImg from '../../../images/wedding.jpg'
 
 const Welcome = () => {
   return (
@@ -41,7 +42,7 @@ const Welcome = () => {
         </div>
 
         {/* Welcome Home Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
           <div className="lg:order-2 space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
@@ -89,7 +90,41 @@ const Welcome = () => {
           </div>
         </div>
       </div>
+      <div className="container-width section-padding">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
+                  Plan Your Special Day With Us
+                </h2>
+                <div className="w-24 h-1 bg-primary-700"></div>
+              </div>
+              
+              <p className="text-lg text-primary-700 leading-relaxed">
+                The expansive Birchwood property features a classic Lake Michigan backdrop, 
+                which makes for an exquisite setting for any wedding or special event. 
+                Create memories that will last a lifetime in our stunning venues.
+              </p>
+              
+              <Link to="/events" className="btn-primary inline-block">
+                We'd Love To Hear From You
+              </Link>
+            </div>
+              <div className="relative">
+              <div className="bg-white rounded-2xl p-8 shadow-lg">
+                <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
+                  <img 
+                    src={weddingImg} 
+                    alt="Weddings & Events"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
     </section>
+    
   )
 }
 
