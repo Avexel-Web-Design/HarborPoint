@@ -1,33 +1,23 @@
 import { Link } from 'react-router-dom'
 
-const GolfCourses = () => {
-  const courses = [
+const GolfCourses = () => {  const courses = [
     {
       name: "The Woods",
-      description: "A challenging 9-hole course that winds through mature hardwood forests, offering dramatic elevation changes and breathtaking views of the surrounding wilderness.",
-      holes: 9,
-      par: 36,
-      yardage: "3,200",
-      features: ["Mature hardwood forest", "Elevation changes", "Scenic wilderness views", "Challenging layout"],
-      icon: "🌲"
+      description: "Experience breathtaking elevated tee boxes with stunning Lake Michigan views and dramatic 90-100 foot elevation drops. This course demands precision and strategic play through mature hardwood terrain.",
+      yardage: "3,450",
+      features: ["Lake Michigan views", "Dramatic elevation drops", "Elevated tee boxes", "Precision required"]
     },
     {
       name: "The Farms",
-      description: "Our signature 9-hole course featuring rolling farmland terrain with strategic water hazards and meticulously maintained fairways that provide both beauty and challenge.",
-      holes: 9,
-      par: 36,
-      yardage: "3,400",
-      features: ["Rolling farmland", "Strategic water hazards", "Open fairways", "Classic design"],
-      icon: "🚜"
+      description: "Classic farmland golf featuring strategic fairway bunkers and well-guarded greens where pin placement creates unique challenges. Every shot requires careful consideration of the course's traditional design.",
+      yardage: "3,420",
+      features: ["Strategic fairway bunkers", "Well-guarded greens", "Traditional farmland design", "Pin placement challenges"]
     },
     {
       name: "The Birches",
-      description: "Named after the iconic birch groves that line the fairways, this 9-hole course offers a more intimate golfing experience with technical shot-making requirements.",
-      holes: 9,
-      par: 35,
-      yardage: "3,100",
-      features: ["Birch-lined fairways", "Technical challenges", "Intimate setting", "Precision play"],
-      icon: "🌳"
+      description: "Navigate challenging dogleg holes with downhill tee shots and uphill approaches to bunker-protected greens. This course rewards strategic thinking and precise club selection through birch-lined fairways.",
+      yardage: "3,320",
+      features: ["Challenging doglegs", "Elevation changes", "Bunker-protected greens", "Strategic shot placement"]
     }
   ]
 
@@ -43,36 +33,21 @@ const GolfCourses = () => {
             Discover 27 holes of championship golf across three unique 9-hole courses, 
             each offering its own character and challenges amidst northern Michigan's natural beauty.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        </div>        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {courses.map((course, index) => (
             <div key={course.name} className="bg-primary-50 rounded-2xl p-8 space-y-6 hover:shadow-lg transition-shadow">
               <div className="text-center space-y-4">
-                <div className="text-5xl">{course.icon}</div>
                 <h3 className="text-2xl font-bold text-primary-950 font-serif">
                   {course.name}
                 </h3>
+                <p className="text-sm text-primary-600 font-medium">
+                  {course.yardage} yards
+                </p>
               </div>
               
               <p className="text-primary-700 leading-relaxed">
                 {course.description}
               </p>
-              
-              <div className="grid grid-cols-3 gap-4 text-center py-4 bg-white rounded-lg">
-                <div>
-                  <div className="text-2xl font-bold text-primary-950">{course.holes}</div>
-                  <div className="text-sm text-primary-700">Holes</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-primary-950">Par {course.par}</div>
-                  <div className="text-sm text-primary-700">Par</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-primary-950">{course.yardage}</div>
-                  <div className="text-sm text-primary-700">Yards</div>
-                </div>
-              </div>
               
               <div className="space-y-2">
                 {course.features.map((feature) => (
