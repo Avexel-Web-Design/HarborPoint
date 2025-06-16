@@ -1,41 +1,49 @@
 import { Link } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faGolfBallTee, 
+  faPersonSwimming, 
+  faPersonHiking, 
+  faTableTennisPaddleBall, 
+  faUtensils, 
+  faPersonSkiing 
+} from '@fortawesome/free-solid-svg-icons'
 
-const Lifestyle = () => {
-  const activities = [
+const Lifestyle = () => {  const activities = [
     {
       title: "Championship Golf",
       description: "27 holes across three distinct courses",
-      icon: "⛳",
+      icon: faGolfBallTee,
       link: "/golf"
     },
     {
       title: "Swimming Pool",
       description: "Heated outdoor pool for year-round enjoyment",
-      icon: "🏊‍♂️",
+      icon: faPersonSwimming,
       link: "/amenities"
     },
     {
       title: "Walking Trails",
       description: "Miles of scenic trails through northern Michigan beauty",
-      icon: "🥾",
+      icon: faPersonHiking,
       link: "/amenities"
     },
     {
       title: "Racquet Sports",
       description: "Tennis and pickleball courts for active members",
-      icon: "🎾",
+      icon: faTableTennisPaddleBall,
       link: "/amenities"
     },
     {
       title: "Fine Dining",
       description: "Award-winning cuisine with seasonal menus",
-      icon: "🍽️",
+      icon: faUtensils,
       link: "/dining"
     },
     {
       title: "Cross Country Skiing",
       description: "Winter trails for cross-country skiing adventures",
-      icon: "⛷️",
+      icon: faPersonSkiing,
       link: "/amenities"
     }
   ]
@@ -64,7 +72,9 @@ const Lifestyle = () => {
               to={activity.link}
               className="group bg-primary-50 rounded-2xl p-8 text-center space-y-4 hover:bg-primary-100 transition-all duration-300 hover:shadow-lg hover:scale-105"
             >
-              <div className="text-4xl mb-4">{activity.icon}</div>
+              <div className="text-4xl mb-4 text-primary-700">
+                <FontAwesomeIcon icon={activity.icon} />
+              </div>
               <h3 className="text-xl font-bold text-primary-950 font-serif group-hover:text-primary-700 transition-colors">
                 {activity.title}
               </h3>
