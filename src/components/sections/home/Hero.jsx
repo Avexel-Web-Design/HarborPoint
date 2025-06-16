@@ -37,7 +37,7 @@ const Hero = () => {
                 Explore Membership
               </Link>
               <Link to="/golf" className="btn-secondary text-center">
-                View Golf Course
+                View Courses
               </Link>
             </div>
           </div>
@@ -46,32 +46,31 @@ const Hero = () => {
           <div className="relative">
             <div className="bg-primary-950 rounded-3xl p-8 shadow-2xl">
               <div className="bg-white rounded-2xl p-8 text-center">
-                <div className="space-y-6">
-                  <div className="w-24 h-24 mx-auto bg-primary-100 rounded-full flex items-center justify-center">
+                <div className="space-y-6">                  <div className="w-24 h-24 mx-auto bg-primary-100 rounded-full flex items-center justify-center">
                     <svg className="w-12 h-12 text-primary-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-primary-950 font-serif mb-2">
-                      Championship Course
+                      Northern Michigan Paradise
                     </h3>
                     <p className="text-primary-700">
-                      18 holes of meticulously maintained fairways and greens
+                      1,600 acres of pristine beauty overlooking Little Traverse Bay
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold text-primary-950">Par</div>
-                      <div className="text-primary-700">72</div>
+                      <div className="text-2xl font-bold text-primary-950">3</div>
+                      <div className="text-primary-700">Golf Courses</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-primary-950">Yards</div>
-                      <div className="text-primary-700">7,200</div>
+                      <div className="text-2xl font-bold text-primary-950">400+</div>
+                      <div className="text-primary-700">Residences</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-primary-950">Rating</div>
-                      <div className="text-primary-700">4.8★</div>
+                      <div className="text-2xl font-bold text-primary-950">1,600</div>
+                      <div className="text-primary-700">Acres</div>
                     </div>
                   </div>
                 </div>

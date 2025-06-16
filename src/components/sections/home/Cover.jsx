@@ -4,7 +4,7 @@ const Cover = () => {
     if (heroSection) {
       const heroTop = heroSection.offsetTop;
       window.scrollTo({
-        top: heroTop - 80, // Adjust this value to fine-tune the scroll position
+        top: heroTop, // Adjust this value to fine-tune the scroll position
         behavior: 'smooth'
       });
     }
