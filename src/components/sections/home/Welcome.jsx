@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import communityImg from '../../../images/community.jpg'
+import homeImg from '../../../images/home.jpg'
 
 const Welcome = () => {
   return (
@@ -25,16 +27,14 @@ const Welcome = () => {
               Learn More About Membership
             </Link>
           </div>
-          
-          <div className="relative">
+            <div className="relative">
             <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="aspect-w-16 aspect-h-10 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="text-6xl opacity-50">🏡</div>
-                  <div className="text-primary-950 font-serif font-semibold text-lg">
-                    Resort-Style Community
-                  </div>
-                </div>
+              <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
+                <img 
+                  src={communityImg} 
+                  alt="Resort-Style Community"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -70,26 +70,20 @@ const Welcome = () => {
                 <div className="w-2 h-2 bg-primary-700 rounded-full"></div>
                 <span className="text-primary-800">Outdoor racquets facilities</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-primary-700 rounded-full"></div>
-                <span className="text-primary-800">Four seasons of recreation</span>
-              </div>
             </div>
             
             <Link to="/community" className="btn-secondary inline-block">
               Live Here
             </Link>
           </div>
-          
-          <div className="lg:order-1 relative">
+            <div className="lg:order-1 relative">
             <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="aspect-w-16 aspect-h-10 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="text-6xl opacity-50">🌊</div>
-                  <div className="text-primary-950 font-serif font-semibold text-lg">
-                    Little Traverse Bay Views
-                  </div>
-                </div>
+              <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
+                <img 
+                  src={homeImg} 
+                  alt="Little Traverse Bay Views"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>

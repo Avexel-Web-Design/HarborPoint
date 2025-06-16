@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import logoSvg from '../../images/logo.svg'
+import logoSvg from '../../images/logowhite.svg'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)

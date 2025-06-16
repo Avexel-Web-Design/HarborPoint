@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import weddingImg from '../../../images/wedding.jpg'
 
 const CallToAction = () => {
   return (
@@ -25,16 +26,14 @@ const CallToAction = () => {
                 We'd Love To Hear From You
               </Link>
             </div>
-            
-            <div className="relative">
+              <div className="relative">
               <div className="bg-white rounded-2xl p-8 shadow-lg">
-                <div className="aspect-w-16 aspect-h-10 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <div className="text-6xl opacity-50">💒</div>
-                    <div className="text-primary-950 font-serif font-semibold text-lg">
-                      Weddings & Events
-                    </div>
-                  </div>
+                <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
+                  <img 
+                    src={weddingImg} 
+                    alt="Weddings & Events"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>
