@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFacebookF, faInstagram, faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { faFacebookF, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 import logoWhite from '../../images/logowhite.svg'
 
 const Footer = () => {
@@ -33,13 +33,13 @@ const Footer = () => {
                 <span className="sr-only">Facebook</span>
                 <FontAwesomeIcon icon={faFacebookF} className="w-6 h-6" />
               </a>
-              <a href="https://www.birchwoodcc.com/default.aspx?p=TrackHyperlink&URL=https%3a%2f%2fwww.instagram.com%2fbirchwoodfarmsgcc%2f%3fhl%3den&ssid=11271504331&fid=14156826823" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/birchwoodfarmsgcc/" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
                 <span className="sr-only">Instagram</span>
                 <FontAwesomeIcon icon={faInstagram} className="w-6 h-6" />
               </a>
-              <a href="https://www.birchwoodcc.com/default.aspx?p=TrackHyperlink&URL=https%3a%2f%2ftwitter.com%2fbirchwoodcc&ssid=11271627910&fid=14156826823" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+              <a href="https://x.com/birchwoodcc" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
                 <span className="sr-only">Twitter</span>
-                <FontAwesomeIcon icon={faTwitter} className="w-6 h-6" />
+                <FontAwesomeIcon icon={faXTwitter} className="w-6 h-6" />
               </a>
             </div>
           </div>

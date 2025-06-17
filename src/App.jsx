@@ -5,16 +5,16 @@ import Golf from './pages/Golf'
 import Lifestyle from './pages/Lifestyle'
 import Events from './pages/Events'
 import Membership from './pages/Membership'
+import About from './pages/About'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
+    <Routes>      <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />        <Route path="/golf" element={<Golf />} />
         <Route path="/lifestyle" element={<Lifestyle />} />
         <Route path="/events" element={<Events />} />
         <Route path="/membership" element={<Membership />} />
-        {/* <Route path="/about" element={<About />} /> */}
+        <Route path="/about" element={<About />} />
         {/* <Route path="/contact" element={<Contact />} /> */}
       </Route>
     </Routes>
