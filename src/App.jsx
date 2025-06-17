@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Home from './pages/Home'
 import Golf from './pages/Golf'
+import Lifestyle from './pages/Lifestyle'
 
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/golf" element={<Golf />} />
-        {/* <Route path="/dining" element={<Dining />} /> */}
+        <Route path="/lifestyle" element={<Lifestyle />} />
         {/* <Route path="/events" element={<Events />} /> */}
         {/* <Route path="/membership" element={<Membership />} /> */}
         {/* <Route path="/about" element={<About />} /> */}

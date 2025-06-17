@@ -4,13 +4,13 @@ import logoSvg from '../../images/logowhite.svg'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-
   const navigationItems = [
     { name: 'Home', path: '/' },
     { name: 'Golf', path: '/golf' },
-    { name: 'Dining', path: '/dining' },
+    { name: 'Lifestyle', path: '/lifestyle' },
     { name: 'Events', path: '/events' },
-    { name: 'Membership', path: '/membership' },    { name: 'About', path: '/about' },
+    { name: 'Membership', path: '/membership' },
+    { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ]
   return (
