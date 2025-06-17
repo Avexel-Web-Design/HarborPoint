@@ -1,5 +1,5 @@
 import poolImage from '../../../images/pool.jpg'
-import gymImage from '../../../images/gym.png'
+import gymImage from '../../../images/gym.jpg'
 
 const PoolFitness = () => {
   return (
