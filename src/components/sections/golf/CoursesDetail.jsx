@@ -228,7 +228,7 @@ const CoursesDetail = () => {
     { color: 'bg-blue-600', label: 'Blue', style: { backgroundColor: '#2563eb' } },
     { color: 'bg-gray-100 border border-gray-400', label: 'White' },
     { color: 'bg-yellow-500', label: 'Gold', style: { backgroundColor: '#eab308' } },
-    { color: 'bg-red-500', label: 'Forward', style: { backgroundColor: '#ef4444' } }
+    { color: 'bg-gray-400', label: 'Silver', style: { backgroundColor: '#9ca3af' } }
   ]
   // Hole diagrams for each course
   const courseDiagrams = {
