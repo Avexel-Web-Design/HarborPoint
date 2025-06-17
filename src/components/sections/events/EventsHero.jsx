@@ -1,0 +1,83 @@
+import eventImage from '../../../images/event.jpg'
+
+const EventsHero = () => {
+  const scrollToNextSection = () => {
+    const nextSection = document.getElementById('events-overview');
+    if (nextSection) {
+      const nextTop = nextSection.offsetTop;
+      window.scrollTo({
+        top: nextTop,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <img 
+          src={eventImage} 
+          alt="Birchwood Events & Weddings" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center text-white container-width section-padding">
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight">
+            Weddings &
+            <span className="block text-primary-300">Special Events</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-200 font-serif italic">
+            Where Dreams Come to Life
+          </p>
+          <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
+            Create unforgettable memories in our spectacular lakeside setting. From intimate gatherings 
+            to grand celebrations, Birchwood Farms provides the perfect backdrop for life's most precious moments.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <button 
+              onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
+              className="btn-primary"
+            >
+              Plan Your Event
+            </button>            <button 
+              onClick={scrollToNextSection}
+              className="btn-secondary bg-white text-primary-950 hover:bg-gray-100"
+            >
+              Learn More
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <button
+          onClick={scrollToNextSection}
+          className="text-white hover:text-primary-300 transition-colors duration-300"
+          aria-label="Scroll to next section"
+        >
+          <svg 
+            className="w-6 h-6" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+            />
+          </svg>
+        </button>
+      </div>
+    </section>
+  );
+};
+
+export default EventsHero;
