@@ -5,45 +5,12 @@ import weddingImg from '../../../images/wedding.jpg'
 
 const Welcome = () => {
   return (
-    <section className="py-20 bg-primary-50">
+    <section id="welcome-section" className="py-20 bg-primary-50">
       <div className="container-width section-padding">
-        {/* Community Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
-                A Sense of Community and Friendship
-              </h2>
-              <div className="w-24 h-1 bg-primary-700"></div>
-            </div>
-            
-            <p className="text-lg text-primary-700 leading-relaxed">
-              If you're looking for your own private, resort-style community in the heart of 
-              northern Michigan, Birchwood is just the Club for you. Our 1,600 acre community 
-              includes some of the finest real estate in northern Michigan as well as an exceptional 
-              clubhouse and recreational campus.
-            </p>
-            
-            <Link to="/membership" className="btn-primary inline-block">
-              Learn More About Membership
-            </Link>
-          </div>
-            <div className="relative">
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
-                <img 
-                  src={communityImg} 
-                  alt="Resort-Style Community"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Welcome Home Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
-          <div className="lg:order-2 space-y-8">
+          <div className="lg:order-1 space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
                 Welcome Home
@@ -73,11 +40,11 @@ const Welcome = () => {
               </div>
             </div>
             
-            <Link to="/community" className="btn-secondary inline-block">
+            <Link to="/community" className="btn-primary inline-block">
               Live Here
             </Link>
           </div>
-            <div className="lg:order-1 relative">
+            <div className="lg:order-2 relative">
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
                 <img 
@@ -87,6 +54,39 @@ const Welcome = () => {
                 />
               </div>
             </div>
+          </div>
+        </div>
+        {/* Community Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+            <div className="relative">
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <div className="aspect-w-16 aspect-h-10 rounded-xl overflow-hidden">
+                <img 
+                  src={communityImg} 
+                  alt="Resort-Style Community"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
+                A Sense of Community and Friendship
+              </h2>
+              <div className="w-24 h-1 bg-primary-700"></div>
+            </div>
+            
+            <p className="text-lg text-primary-700 leading-relaxed">
+              If you're looking for your own private, resort-style community in the heart of 
+              northern Michigan, Birchwood is just the Club for you. Our 1,600 acre community 
+              includes some of the finest real estate in northern Michigan as well as an exceptional 
+              clubhouse and recreational campus.
+            </p>
+            
+            <Link to="/membership" className="btn-secondary inline-block">
+              Learn More About Membership
+            </Link>
           </div>
         </div>
       </div>
