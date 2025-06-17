@@ -5,7 +5,8 @@ import Golf from './pages/Golf'
 
 function App() {
   return (
-    <Routes>      <Route path="/" element={<Layout />}>
+    <Routes>
+      <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/golf" element={<Golf />} />
         {/* <Route path="/dining" element={<Dining />} /> */}
