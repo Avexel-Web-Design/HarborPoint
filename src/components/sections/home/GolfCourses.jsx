@@ -2,6 +2,12 @@ import { Link } from 'react-router-dom'
 
 const GolfCourses = () => {  const courses = [
     {
+      name: "The Birches",
+      description: "Navigate challenging dogleg holes with downhill tee shots and uphill approaches to bunker-protected greens. This course rewards strategic thinking and precise club selection through birch-lined fairways.",
+      yardage: "3,320",
+      features: ["Challenging doglegs", "Elevation changes", "Bunker-protected greens", "Strategic shot placement"]
+    },
+    {
       name: "The Woods",
       description: "Experience breathtaking elevated tee boxes with stunning Lake Michigan views and dramatic 90-100 foot elevation drops. This course demands precision and strategic play through mature hardwood terrain.",
       yardage: "3,450",
@@ -12,12 +18,6 @@ const GolfCourses = () => {  const courses = [
       description: "Classic farmland golf featuring strategic fairway bunkers and well-guarded greens where pin placement creates unique challenges. Every shot requires careful consideration of the course's traditional design.",
       yardage: "3,420",
       features: ["Strategic fairway bunkers", "Well-guarded greens", "Traditional farmland design", "Pin placement challenges"]
-    },
-    {
-      name: "The Birches",
-      description: "Navigate challenging dogleg holes with downhill tee shots and uphill approaches to bunker-protected greens. This course rewards strategic thinking and precise club selection through birch-lined fairways.",
-      yardage: "3,320",
-      features: ["Challenging doglegs", "Elevation changes", "Bunker-protected greens", "Strategic shot placement"]
     }
   ]
 
