@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ExternalLink, Briefcase, Users, MapPin } from 'lucide-react'
-import JobDetailModal from './JobDetailModal'
 
 const CareersApplications = () => {
-  const [selectedJob, setSelectedJob] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   
   const [currentJobs] = useState([
     {
@@ -68,20 +65,9 @@ const CareersApplications = () => {
       department: "Kitchen",
       location: "Harbor Springs, MI",
       type: "Seasonal",
-      id: "8a78879e974d4ce10197603e7deb6f1e"    }
-  ])
+      id: "8a78879e974d4ce10197603e7deb6f1e"    }  ])
 
-  const handleJobClick = (job) => {
-    setSelectedJob(job)
-    setIsModalOpen(true)
-  }
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedJob(null)
-  }
-
-  const handleApplyClick = (jobId = null) => {
+  const handleApplyClick = (jobId?: string | null) => {
     let url = 'https://recruitingbypaycor.com/career/CareerHome.action?clientId=8a7883d07ed6004a017f1cbf47b52a70';
     
     if (jobId) {
