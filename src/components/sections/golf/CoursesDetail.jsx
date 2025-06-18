@@ -277,18 +277,18 @@ const CoursesDetail = () => {
                   <p className="text-primary-700 text-sm">
                     Take an aerial journey through {course.name}
                   </p>
-                </div>
-                <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-200 aspect-video">
-                  {/* Placeholder for drone video */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-primary-600">
-                      <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-8V4a1 1 0 011-1h2a1 1 0 011 1v2m-4 0V4a1 1 0 00-1-1H9a1 1 0 00-1 1v2m0 0a2 2 0 00-2 2v1a2 2 0 002 2h8a2 2 0 002-2V8a2 2 0 00-2-2" />
-                      </svg>
-                      <p className="text-sm font-medium">Drone Flyover Video</p>
-                      <p className="text-xs opacity-75">Coming Soon</p>
-                    </div>
-                  </div>
+                </div>                <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-200 aspect-video">
+                  <video 
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src="/DJI_0168.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
               </div>              {/* Course Content Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
