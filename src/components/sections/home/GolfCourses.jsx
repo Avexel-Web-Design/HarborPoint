@@ -57,20 +57,12 @@ const GolfCourses = () => {  const courses = [
                   </div>
                 ))}
               </div>
-              
-              <Link 
-                to={`/golf/${course.name.toLowerCase().replace(' ', '-')}`}
-                className="block text-center bg-primary-950 text-white py-3 rounded-lg font-serif font-semibold hover:bg-primary-800 transition-colors"
-              >
-                Explore {course.name}
-              </Link>
             </div>
           ))}
         </div>
-        
-        <div className="text-center mt-12">
-          <Link to="/golf" className="btn-secondary">
-            View All Golf Information
+          <div className="text-center mt-12">
+          <Link to="/golf#courses" className="btn-secondary">
+            Explore the Courses
           </Link>
         </div>
       </div>

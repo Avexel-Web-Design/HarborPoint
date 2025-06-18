@@ -1,7 +1,4 @@
 import { useState } from 'react'
-import woodsImage from '../../../images/woods.png'
-import farmsImage from '../../../images/farms.png'
-import flagImage from '../../../images/flag.jpg'
 // Woods course hole diagrams
 import woods1 from '../../../images/diagrams/Woods1.png'
 import woods2 from '../../../images/diagrams/Woods2.png'
