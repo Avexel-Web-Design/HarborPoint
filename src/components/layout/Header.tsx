@@ -32,7 +32,7 @@ const Header = () => {
         <div className="flex items-center justify-center h-20 relative px-4 sm:px-6 lg:px-8">
           {/* Desktop Navigation - Centered */}
           <nav className="hidden lg:flex items-center space-x-1 backdrop-blur-sm rounded-full px-6 py-2 shadow-sm border border-white/20">
-            {navigationItems.map((item, index) => (
+            {navigationItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}                className="px-4 py-2 text-sm font-medium text-white hover:text-white/80 hover:bg-white/10 rounded-full transition-all duration-200 relative group"

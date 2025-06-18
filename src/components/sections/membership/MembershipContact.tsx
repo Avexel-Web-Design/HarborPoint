@@ -1,7 +1,30 @@
 import { useState } from 'react'
 
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  retired: string;
+  preferredCommunication: string;
+  membershipInterest: string;
+  hearAbout: string;
+  hearAboutOther: string;
+  golf: string;
+  dining: string;
+  pool: string;
+  fitness: string;
+  racquetSports: string;
+  clubEvents: string;
+  [key: string]: string;
+}
+
 const MembershipContact = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -24,8 +47,7 @@ const MembershipContact = () => {
   });
 
   const [showThankYou, setShowThankYou] = useState(false);
-
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -33,7 +55,7 @@ const MembershipContact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically send the data to your backend
     console.log('Form submitted:', formData);
