@@ -49,16 +49,28 @@ const CommunityHero = () => {
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-        <button 
+      {/* Scroll Down Arrow */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+        <button
           onClick={scrollToNextSection}
-          className="text-white hover:text-primary-300 transition-colors duration-300 animate-bounce"
-          aria-label="Scroll to next section"
+          className="group flex flex-col items-center space-y-2 text-white hover:text-primary-300 transition-colors duration-300 cursor-pointer"
+          aria-label="Scroll down to next section"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
+          <div className="animate-bounce">
+            <svg 
+              className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+              />
+            </svg>
+          </div>
         </button>
       </div>
     </section>

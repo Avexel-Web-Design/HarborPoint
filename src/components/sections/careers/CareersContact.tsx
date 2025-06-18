@@ -131,12 +131,12 @@ const CareersContact = () => {
                   </a>
                   <span className="text-gray-400">|</span>
                   <a 
-                    href="https://twitter.com/birchwoodcc"
+                    href="https://x.com/birchwoodcc"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:text-primary-700 transition-colors duration-300"
                   >
-                    Twitter
+                    X
                   </a>
                 </div>
               </div>

@@ -48,7 +48,9 @@ const GolfHero = () => {
             </a>
           </div>
         </div>
-      </div>      {/* Scroll Down Arrow */}
+      </div>
+      
+      {/* Scroll Down Arrow */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
         <button
           onClick={scrollToNextSection}
