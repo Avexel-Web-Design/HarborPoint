@@ -29,9 +29,9 @@ import farms8 from '../../../images/diagrams/Farms8.png'
 import farms9 from '../../../images/diagrams/Farms9.png'
 
 const CoursesDetail = () => {
-  const [activeHoles, setActiveHoles] = useState({ 0: 0, 1: 0, 2: 0 })
+  const [activeHoles, setActiveHoles] = useState<{ [key: number]: number }>({ 0: 0, 1: 0, 2: 0 })
 
-  const handleHoleChange = (courseIndex, holeIndex) => {
+  const handleHoleChange = (courseIndex: number, holeIndex: number) => {
     setActiveHoles(prev => ({
       ...prev,
       [courseIndex]: holeIndex
@@ -226,16 +226,14 @@ const CoursesDetail = () => {
     { color: 'bg-gray-100 border border-gray-400', label: 'White' },
     { color: 'bg-yellow-500', label: 'Gold', style: { backgroundColor: '#eab308' } },
     { color: 'bg-gray-400', label: 'Silver', style: { backgroundColor: '#9ca3af' } }
-  ]
-  // Hole diagrams for each course
-  const courseDiagrams = {
+  ]  // Hole diagrams for each course
+  const courseDiagrams: { [key: number]: string[] } = {
     0: [birches1, birches2, birches3, birches4, birches5, birches6, birches7, birches8, birches9],   // Birches Course
     1: [woods1, woods2, woods3, woods4, woods5, woods6, woods7, woods8, woods9], // Woods Course
     2: [farms1, farms2, farms3, farms4, farms5, farms6, farms7, farms8, farms9], // Farms Course
   }
-
   // Function to get current image based on active hole
-  const getCurrentImage = (courseIndex) => {
+  const getCurrentImage = (courseIndex: number) => {
     const activeHoleIndex = activeHoles[courseIndex]
     return courseDiagrams[courseIndex][activeHoleIndex]
   }

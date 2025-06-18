@@ -103,7 +103,7 @@ const MembershipTypes = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          {membershipTypes.map((membership, index) => (
+          {membershipTypes.map((membership) => (
             <div 
               key={membership.id}
               className={`

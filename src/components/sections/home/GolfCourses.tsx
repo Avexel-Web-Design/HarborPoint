@@ -34,7 +34,7 @@ const GolfCourses = () => {  const courses = [
             each offering its own character and challenges amidst northern Michigan's natural beauty.
           </p>
         </div>        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {courses.map((course, index) => (
+          {courses.map((course) => (
             <div key={course.name} className="bg-primary-50 rounded-2xl p-8 space-y-6 hover:shadow-lg transition-shadow">
               <div className="text-center space-y-4">
                 <h3 className="text-2xl font-bold text-primary-950 font-serif">

@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Clock, Users, Shield } from 'lucide-react'
+import { MapPin, Phone, Clock, Users, Shield } from 'lucide-react'
 
 const ContactInfo = () => {
   const contactSections = [

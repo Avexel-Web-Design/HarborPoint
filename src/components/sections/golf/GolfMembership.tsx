@@ -12,25 +12,6 @@ const GolfMembership = () => {
     "Guest privileges for friends and family",
     "Pro shop discounts on merchandise"
   ]
-
-  const membershipTypes = [
-    {
-      type: "Full Golf Membership",
-      description: "Complete access to all golf facilities and amenities",
-      highlights: ["Unlimited golf", "All course access", "Full club privileges"]
-    },
-    {
-      type: "Social Membership", 
-      description: "Limited golf privileges with full social club access",
-      highlights: ["Limited golf rounds", "Social club access", "Event participation"]
-    },
-    {
-      type: "Associate Membership",
-      description: "Perfect for seasonal residents and frequent visitors",
-      highlights: ["Seasonal access", "Flexible terms", "Reciprocal benefits"]
-    }
-  ]
-
   return (
     <section id="membership" className="py-20 bg-white">
       <div className="container-width section-padding">
