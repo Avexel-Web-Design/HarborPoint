@@ -7,10 +7,10 @@ import Events from './pages/Events'
 import Membership from './pages/Membership'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import Careers from './pages/Careers'
 
 function App() {
-  return (
-    <Routes>
+  return (    <Routes>
         <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/golf" element={<Golf />} />
@@ -19,6 +19,7 @@ function App() {
         <Route path="/membership" element={<Membership />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/careers" element={<Careers />} />
       </Route>
     </Routes>
   )

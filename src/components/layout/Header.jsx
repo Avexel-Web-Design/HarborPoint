@@ -11,9 +11,9 @@ const Header = () => {
     { name: 'Lifestyle', path: '/lifestyle' },
     { name: 'Events', path: '/events' },
     { name: 'Membership', path: '/membership' },
+    { name: 'Careers', path: '/careers' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
-    { name: 'Careers', path: '/careers' },
   ]
   return (    <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">
       {/* Logo - Absolute positioned to screen corner */}
