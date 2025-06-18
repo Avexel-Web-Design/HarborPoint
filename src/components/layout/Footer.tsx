@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFacebookF, faInstagram, faXTwitter } from '@fortawesome/free-brands-svg-icons'
 import logoWhite from '../../images/logowhite.svg'
+import wordmark from '../../images/name.png'
 
 const Footer = () => {
   return (
@@ -15,14 +16,11 @@ const Footer = () => {
                 alt="Birchwood Farms Logo" 
                 className="h-10 w-10" 
               />
-              <div className="flex flex-col">
-                <span className="text-xl font-bold font-serif">
-                  Birchwood Farms
-                </span>
-                <span className="text-sm text-primary-200 font-sans tracking-wide">
-                  GOLF & COUNTRY CLUB
-                </span>
-              </div>
+              <img 
+                src={wordmark} 
+                alt="Birchwood Farms Golf & Country Club" 
+                className="h-9" 
+              />
             </Link>
             <p className="text-primary-200 mb-6 max-w-md font-serif leading-relaxed">
               Experience the perfect blend of championship golf, fine dining, and 

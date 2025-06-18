@@ -37,12 +37,6 @@ const GolfMembership = () => {
                 className="w-full h-96 object-cover"
               />
             </div>
-            <div className="absolute -bottom-6 -right-6 bg-primary-950 text-white p-6 rounded-xl shadow-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold font-serif">You</div>
-                <div className="text-sm">Belong Here</div>
-              </div>
-            </div>
           </div>
 
           {/* Membership Benefits */}
