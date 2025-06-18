@@ -40,16 +40,15 @@ const Footer = () => {
                 <FontAwesomeIcon icon={faXTwitter} className="w-6 h-6" />
               </a>
             </div>
-          </div>
-
-          {/* Quick Links */}
+          </div>          {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold font-serif mb-4"> </h3>
+            <h3 className="text-lg font-semibold font-serif mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link to="/golf" className="text-primary-200 hover:text-white transition-colors"> </Link></li>
-              <li><Link to="/dining" className="text-primary-200 hover:text-white transition-colors"> </Link></li>
-              <li><Link to="/events" className="text-primary-200 hover:text-white transition-colors"> </Link></li>
-              <li><Link to="/membership" className="text-primary-200 hover:text-white transition-colors"> </Link></li>
+              <li><Link to="/golf" className="text-primary-200 hover:text-white transition-colors">Golf</Link></li>
+              <li><Link to="/lifestyle" className="text-primary-200 hover:text-white transition-colors">Lifestyle</Link></li>
+              <li><Link to="/events" className="text-primary-200 hover:text-white transition-colors">Events</Link></li>
+              <li><Link to="/membership" className="text-primary-200 hover:text-white transition-colors">Membership</Link></li>
+              <li><Link to="/members/login" className="text-primary-200 hover:text-white transition-colors">Member Portal</Link></li>
             </ul>
           </div>
 
@@ -62,10 +61,14 @@ const Footer = () => {
               <p>(231) 526-2166</p>
             </div>
           </div>
-        </div>
-
-        <div className="border-t border-primary-800 mt-12 pt-8 text-center text-primary-300">
+        </div>        <div className="border-t border-primary-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center text-primary-300">
           <p>&copy; 2025 Birchwood Farms Golf & Country Club. All rights reserved.</p>
+          <Link 
+            to="/admin/login" 
+            className="text-primary-400 hover:text-primary-200 text-sm transition-colors mt-2 sm:mt-0"
+          >
+            Admin Login
+          </Link>
         </div>
       </div>
     </footer>

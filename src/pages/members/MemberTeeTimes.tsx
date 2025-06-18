@@ -1,6 +1,194 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
+interface TeeTime {
+  id: string;
+  courseId: string;
+  courseName: string;
+  date: string;
+  time: string;
+  players: number;
+  maxPlayers: number;
+  price: number;
+  status: 'available' | 'booked' | 'pending';
+}
+
+interface TeeTimeBooking {
+  id: string;
+  teeTimeId: string;
+  date: string;
+  time: string;
+  courseName: string;
+  players: number;
+  status: 'confirmed' | 'pending' | 'cancelled';
+  createdAt: string;
+}
+
+interface Course {
+  id: string;
+  name: string;
+  description: string;
+}
+
 const MemberTeeTimes = () => {
+  const { } = useAuth(); // Auth context available if needed for user info
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [availableTeeTimes, setAvailableTeeTimes] = useState<TeeTime[]>([]);
+  const [myBookings, setMyBookings] = useState<TeeTimeBooking[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Initialize courses
+  useEffect(() => {
+    setCourses([
+      { id: 'birches', name: 'The Birches', description: 'Championship 18-hole course' },
+      { id: 'woods', name: 'The Woods', description: 'Executive 9-hole course' },
+      { id: 'farms', name: 'The Farms', description: 'Links-style 18-hole course' }
+    ]);
+    setSelectedCourse('birches');
+  }, []);
+
+  // Load available tee times when date or course changes
+  useEffect(() => {
+    if (selectedDate && selectedCourse) {
+      loadAvailableTeeTimes();
+    }
+  }, [selectedDate, selectedCourse]);
+
+  // Load user's bookings on component mount
+  useEffect(() => {
+    loadMyBookings();
+  }, []);
+
+  const loadAvailableTeeTimes = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch(`/api/tee-times/available?date=${selectedDate}&courseId=${selectedCourse}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to load available tee times');
+      }
+      
+      const data = await response.json();
+      setAvailableTeeTimes(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load tee times');
+      setAvailableTeeTimes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMyBookings = async () => {
+    try {
+      const response = await fetch('/api/tee-times', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setMyBookings(data);
+      }
+    } catch (err) {
+      console.error('Failed to load bookings:', err);
+    }
+  };
+
+  const bookTeeTime = async (teeTimeId: string, players: number) => {
+    setBookingLoading(teeTimeId);
+    setError('');
+    setSuccess('');
+    
+    try {
+      const response = await fetch('/api/tee-times', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ teeTimeId, players })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to book tee time');
+      }
+      
+      setSuccess('Tee time booked successfully!');
+      loadAvailableTeeTimes();
+      loadMyBookings();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to book tee time');
+    } finally {
+      setBookingLoading(null);
+    }
+  };
+
+  const cancelBooking = async (bookingId: string) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/tee-times/${bookingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to cancel booking');
+      }
+      
+      setSuccess('Booking cancelled successfully');
+      loadMyBookings();
+      loadAvailableTeeTimes();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel booking');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const getMinDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const getMaxDate = () => {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 30); // Allow booking up to 30 days in advance
+    return maxDate.toISOString().split('T')[0];
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -9,15 +197,15 @@ const MemberTeeTimes = () => {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Tee Time Reservations
+                Tee Time Booking
               </h1>
               <p className="text-gray-600">
-                Book your tee times on our championship courses
+                Book your tee times at Birchwood Country Club
               </p>
             </div>
             <Link 
-              to="/members/dashboard" 
-              className="text-primary-600 hover:text-primary-700 font-medium"
+              to="/members/dashboard"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium"
             >
               Back to Dashboard
             </Link>
@@ -26,89 +214,190 @@ const MemberTeeTimes = () => {
       </div>
 
       <div className="container-width section-padding py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Coming Soon Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <div className="flex items-center">
-              <div className="text-4xl mr-4">🏌️</div>
-              <div>
-                <h2 className="text-xl font-semibold text-blue-900 mb-2">
-                  Online Tee Time Booking Coming Soon!
-                </h2>
-                <p className="text-blue-700">
-                  We're working on bringing you the convenience of online tee time reservations. 
-                  In the meantime, please call the pro shop to book your tee times.
-                </p>
-              </div>
-            </div>
+        {/* Success/Error Messages */}
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+            {success}
           </div>
+        )}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
 
-          {/* Contact Information */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Book Your Tee Time
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-                <div>
-                  <p className="font-medium text-gray-900">Pro Shop</p>
-                  <p className="text-gray-600">(231) 526-2166</p>
-                </div>
-              </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Booking Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <h2 className="text-xl font-serif font-bold text-gray-900 mb-4">
+                Find Available Tee Times
+              </h2>
               
-              <div className="flex items-center space-x-3">
-                <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="font-medium text-gray-900">Pro Shop Hours</p>
-                  <p className="text-gray-600">7:00 AM - 7:00 PM (Seasonal)</p>
+                  <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    id="date"
+                    value={selectedDate}
+                    min={getMinDate()}
+                    max={getMaxDate()}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-2">
+                    Course
+                  </label>
+                  <select
+                    id="course"
+                    value={selectedCourse}
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    {courses.map(course => (
+                      <option key={course.id} value={course.id}>
+                        {course.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
+
+            {/* Available Tee Times */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Available Times for {formatDate(selectedDate)}
+              </h3>
+              
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <p className="mt-2 text-gray-600">Loading available times...</p>
+                </div>
+              ) : availableTeeTimes.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No available tee times for the selected date and course.
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {availableTeeTimes.map((teeTime) => (
+                    <div key={teeTime.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold text-lg">{formatTime(teeTime.time)}</p>
+                          <p className="text-sm text-gray-600">{teeTime.courseName}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-primary-600">${teeTime.price}</p>
+                          <p className="text-sm text-gray-500">per player</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          {teeTime.players}/{teeTime.maxPlayers} players
+                        </span>
+                        
+                        <div className="flex space-x-2">
+                          {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
+                            <button
+                              key={players}
+                              onClick={() => bookTeeTime(teeTime.id, players)}
+                              disabled={bookingLoading === teeTime.id}
+                              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm font-medium"
+                            >
+                              {bookingLoading === teeTime.id ? (
+                                <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                              ) : (
+                                `Book ${players}`
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Course Information */}
-          <div className="mt-8 grid md:grid-cols-3 gap-6">
+          {/* My Bookings Sidebar */}
+          <div>
             <div className="bg-white rounded-lg shadow p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                The Birches
-              </h4>
-              <p className="text-gray-600 mb-4">
-                Our signature 9-hole course featuring tree-lined fairways and challenging water hazards.
-              </p>
-              <div className="text-sm text-gray-500">
-                <p>Par: 36</p>
-                <p>Length: 3,200 yards</p>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                My Upcoming Bookings
+              </h3>
+              
+              {myBookings.length === 0 ? (
+                <p className="text-gray-500 text-sm">No upcoming bookings</p>
+              ) : (
+                <div className="space-y-4">
+                  {myBookings.slice(0, 5).map((booking) => (
+                    <div key={booking.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium">{formatTime(booking.time)}</p>
+                          <p className="text-sm text-gray-600">{formatDate(booking.date)}</p>
+                          <p className="text-sm text-gray-600">{booking.courseName}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {booking.status}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">
+                          {booking.players} player{booking.players !== 1 ? 's' : ''}
+                        </span>
+                        
+                        {booking.status === 'confirmed' && (
+                          <button
+                            onClick={() => cancelBooking(booking.id)}
+                            className="text-red-600 hover:text-red-700 text-sm font-medium"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                The Farms
-              </h4>
-              <p className="text-gray-600 mb-4">
-                Rolling farmland terrain with strategic bunkering and elevated greens.
-              </p>
-              <div className="text-sm text-gray-500">
-                <p>Par: 36</p>
-                <p>Length: 3,150 yards</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                The Woods
-              </h4>
-              <p className="text-gray-600 mb-4">
-                Forested course with natural beauty and challenging shot placement.
-              </p>
-              <div className="text-sm text-gray-500">
-                <p>Par: 36</p>
-                <p>Length: 3,100 yards</p>
+            {/* Course Information */}
+            <div className="bg-white rounded-lg shadow p-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Course Information
+              </h3>
+              
+              {courses.map(course => (
+                <div key={course.id} className={`mb-3 p-3 rounded ${selectedCourse === course.id ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50'}`}>
+                  <p className="font-medium">{course.name}</p>
+                  <p className="text-sm text-gray-600">{course.description}</p>
+                </div>
+              ))}
+              
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-2">Booking Policy</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Bookings can be made up to 30 days in advance</li>
+                  <li>• Cancellations must be made 24 hours in advance</li>
+                  <li>• Late cancellations may incur fees</li>
+                  <li>• Check-in is required 15 minutes before tee time</li>
+                </ul>
               </div>
             </div>
           </div>

@@ -18,49 +18,84 @@ import MemberDashboard from './pages/members/MemberDashboard'
 import MemberProfile from './pages/members/MemberProfile'
 import MemberEvents from './pages/members/MemberEvents'
 import MemberTeeTimes from './pages/members/MemberTeeTimes'
+import MemberDining from './pages/members/MemberDining'
+import MemberGuestPasses from './pages/members/MemberGuestPasses'
+
+// Admin components
+import AdminLogin from './pages/admin/AdminLogin'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminProtectedRoute from './components/admin/AdminProtectedRoute'
+
+// Auth Context Providers
+import { AuthProvider } from './contexts/AuthContext'
+import { AdminAuthProvider } from './contexts/AdminAuthContext'
 
 function App() {
   return (
-    <Routes>
-      {/* Public routes with main layout */}
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="/golf" element={<Golf />} />
-        <Route path="/lifestyle" element={<Lifestyle />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/membership" element={<Membership />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/careers" element={<Careers />} />
-        <Route path="/community" element={<Community />} />
-      </Route>
+    <AuthProvider>
+      <AdminAuthProvider>
+        <Routes>
+          {/* Public routes with main layout */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="/golf" element={<Golf />} />
+            <Route path="/lifestyle" element={<Lifestyle />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/membership" element={<Membership />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/community" element={<Community />} />
+          </Route>
 
-      {/* Member authentication routes (no layout) */}
-      <Route path="/members/login" element={<Login />} />
-      <Route path="/members/register" element={<Register />} />
+          {/* Member authentication routes (no layout) */}
+          <Route path="/members/login" element={<Login />} />
+          <Route path="/members/register" element={<Register />} />
 
-      {/* Protected member area routes */}
-      <Route path="/members/dashboard" element={
-        <ProtectedRoute>
-          <MemberDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/members/profile" element={
-        <ProtectedRoute>
-          <MemberProfile />
-        </ProtectedRoute>
-      } />
-      <Route path="/members/events" element={
-        <ProtectedRoute>
-          <MemberEvents />
-        </ProtectedRoute>
-      } />
-      <Route path="/members/tee-times" element={
-        <ProtectedRoute>
-          <MemberTeeTimes />
-        </ProtectedRoute>
-      } />
-    </Routes>
+          {/* Protected member area routes */}
+          <Route path="/members/dashboard" element={
+            <ProtectedRoute>
+              <MemberDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/members/profile" element={
+            <ProtectedRoute>
+              <MemberProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="/members/events" element={
+            <ProtectedRoute>
+              <MemberEvents />
+            </ProtectedRoute>
+          } />
+          <Route path="/members/tee-times" element={
+            <ProtectedRoute>
+              <MemberTeeTimes />
+            </ProtectedRoute>
+          } />
+          <Route path="/members/dining" element={
+            <ProtectedRoute>
+              <MemberDining />
+            </ProtectedRoute>
+          } />
+          <Route path="/members/guest-passes" element={
+            <ProtectedRoute>
+              <MemberGuestPasses />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin authentication routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          
+          {/* Protected admin routes */}
+          <Route path="/admin/dashboard" element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } />
+        </Routes>
+      </AdminAuthProvider>
+    </AuthProvider>
   )
 }
 

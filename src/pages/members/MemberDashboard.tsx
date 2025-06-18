@@ -21,11 +21,10 @@ const MemberDashboard = () => {
       link: '/members/events',
       icon: '📅',
       color: 'bg-blue-500'
-    },
-    {
+    },    {
       title: 'Dining Reservations',
       description: 'Make reservations at our clubhouse restaurant',
-      link: '#',
+      link: '/members/dining',
       icon: '🍽️',
       color: 'bg-orange-500'
     },
@@ -35,11 +34,10 @@ const MemberDashboard = () => {
       link: '/members/profile',
       icon: '⚙️',
       color: 'bg-gray-500'
-    },
-    {
+    },    {
       title: 'Guest Passes',
       description: 'Generate guest passes for friends and family',
-      link: '#',
+      link: '/members/guest-passes',
       icon: '🎫',
       color: 'bg-purple-500'
     },
@@ -162,29 +160,21 @@ const MemberDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Coming Soon Features */}
+        </div>        {/* Upcoming Events Preview */}
         <div className="mt-12 bg-white rounded-lg shadow p-6">
           <h3 className="text-xl font-serif font-bold text-gray-900 mb-4">
-            Coming Soon
+            Upcoming Club Events
           </h3>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-4">
-              <div className="text-4xl mb-2">🏌️‍♂️</div>
-              <h4 className="font-semibold text-gray-900 mb-1">Online Tee Times</h4>
-              <p className="text-sm text-gray-600">Book your tee times online</p>
-            </div>
-            <div className="text-center p-4">
-              <div className="text-4xl mb-2">🏆</div>
-              <h4 className="font-semibold text-gray-900 mb-1">Tournament Registration</h4>
-              <p className="text-sm text-gray-600">Sign up for member tournaments</p>
-            </div>
-            <div className="text-center p-4">
-              <div className="text-4xl mb-2">📱</div>
-              <h4 className="font-semibold text-gray-900 mb-1">Mobile App</h4>
-              <p className="text-sm text-gray-600">Access your account on the go</p>
-            </div>
+          <div className="text-center p-8">
+            <div className="text-4xl mb-2">📅</div>
+            <h4 className="font-semibold text-gray-900 mb-1">No upcoming events</h4>
+            <p className="text-sm text-gray-600 mb-4">Check back soon for new events and tournaments</p>
+            <Link 
+              to="/members/events"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium"
+            >
+              View All Events
+            </Link>
           </div>
         </div>
       </div>

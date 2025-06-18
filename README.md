@@ -104,7 +104,32 @@ To add a new page:
 
 ## Member System
 
-The website includes a complete member login and portal system. See [MEMBER_SYSTEM_SETUP.md](./MEMBER_SYSTEM_SETUP.md) for detailed setup instructions.
+The website includes a complete member login and portal system with online amenities:
+
+### 🔐 **Development Credentials**
+For testing and development, use these login credentials:
+
+**Member Login:** `/members/login`
+- Email: `member@birchwoodcc.com`
+- Password: `member123`
+
+**Admin Login:** `/admin/login`  
+- Username: `admin` OR `admin@birchwoodcc.com`
+- Password: `admin123`
+
+See [DEV_CREDENTIALS.md](./DEV_CREDENTIALS.md) for complete development setup information.
+
+### 🏌️ **Member Features**
+- **Tee Time Booking** - Online golf tee time reservations
+- **Dining Reservations** - Restaurant table bookings
+- **Guest Pass Management** - Generate QR code guest passes
+- **Event Registration** - Club event sign-ups
+- **Profile Management** - Account settings and preferences
+
+### 👔 **Admin Features**
+- **Member Management** - Full CRUD operations for member accounts
+- **System Administration** - User status and permissions
+- **Reporting** - Member statistics and activity reports
 
 ## Customization
 
