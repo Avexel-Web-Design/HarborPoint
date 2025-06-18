@@ -8,6 +8,7 @@ import Membership from './pages/Membership'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Careers from './pages/Careers'
+import Community from './pages/Community'
 
 function App() {
   return (    <Routes>
@@ -20,6 +21,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/careers" element={<Careers />} />
+        <Route path="/community" element={<Community />} />
       </Route>
     </Routes>
   )
