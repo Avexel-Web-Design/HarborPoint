@@ -1,7 +1,24 @@
-import { useState } from 'react'
 import { X, ExternalLink, Briefcase, MapPin, Users, Clock } from 'lucide-react'
 
-const JobDetailModal = ({ job, isOpen, onClose }) => {
+interface Job {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
+  benefits: string[];
+}
+
+interface JobDetailModalProps {
+  job: Job | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const JobDetailModal = ({ job, isOpen, onClose }: JobDetailModalProps) => {
   if (!isOpen || !job) return null
 
   const handleApplyClick = () => {
