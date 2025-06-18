@@ -10,6 +10,9 @@ A modern, elegant React website for Birchwood Farms Golf & Country Club built wi
 - 📱 Mobile-first responsive design
 - 🎯 Scalable architecture for multiple pages
 - 🚀 Optimized for performance
+- 🔐 **Member Login System** - Secure member portal with authentication
+- 🏌️ **Member Dashboard** - Exclusive member-only features and content
+- 💾 **Cloudflare Integration** - D1 database and Workers for backend functionality
 
 ## Tech Stack
 
@@ -18,6 +21,10 @@ A modern, elegant React website for Birchwood Farms Golf & Country Club built wi
 - **Tailwind CSS** - Utility-first CSS framework
 - **React Router** - Client-side routing
 - **Custom Logo** - SVG-based Birchwood logo
+- **Cloudflare Pages** - Static site hosting and deployment
+- **Cloudflare Workers** - Serverless functions for API endpoints
+- **Cloudflare D1** - SQLite-compatible database for member data
+- **JWT Authentication** - Secure member login system
 
 ## Design System
 
@@ -84,11 +91,20 @@ The application is structured to easily accommodate additional pages:
 - `/membership` - Membership information
 - `/about` - Club history and staff
 - `/contact` - Contact information and forms
+- `/members/login` ✅ - Member authentication
+- `/members/dashboard` ✅ - Member portal and dashboard
+- `/members/profile` ✅ - Member profile management
+- `/members/events` ✅ - Member events and activities
+- `/members/tee-times` ✅ - Golf tee time booking system
 
 To add a new page:
 1. Create the page component in `src/pages/`
 2. Add the route to `src/App.jsx`
 3. Update navigation in `src/components/layout/Header.jsx`
+
+## Member System
+
+The website includes a complete member login and portal system. See [MEMBER_SYSTEM_SETUP.md](./MEMBER_SYSTEM_SETUP.md) for detailed setup instructions.
 
 ## Customization
 

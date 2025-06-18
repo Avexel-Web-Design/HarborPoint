@@ -10,9 +10,20 @@ import Contact from './pages/Contact'
 import Careers from './pages/Careers'
 import Community from './pages/Community'
 
+// Member components
+import Login from './components/auth/Login'
+import Register from './components/auth/Register'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import MemberDashboard from './pages/members/MemberDashboard'
+import MemberProfile from './pages/members/MemberProfile'
+import MemberEvents from './pages/members/MemberEvents'
+import MemberTeeTimes from './pages/members/MemberTeeTimes'
+
 function App() {
-  return (    <Routes>
-        <Route path="/" element={<Layout />}>
+  return (
+    <Routes>
+      {/* Public routes with main layout */}
+      <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/golf" element={<Golf />} />
         <Route path="/lifestyle" element={<Lifestyle />} />
@@ -23,6 +34,32 @@ function App() {
         <Route path="/careers" element={<Careers />} />
         <Route path="/community" element={<Community />} />
       </Route>
+
+      {/* Member authentication routes (no layout) */}
+      <Route path="/members/login" element={<Login />} />
+      <Route path="/members/register" element={<Register />} />
+
+      {/* Protected member area routes */}
+      <Route path="/members/dashboard" element={
+        <ProtectedRoute>
+          <MemberDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/members/profile" element={
+        <ProtectedRoute>
+          <MemberProfile />
+        </ProtectedRoute>
+      } />
+      <Route path="/members/events" element={
+        <ProtectedRoute>
+          <MemberEvents />
+        </ProtectedRoute>
+      } />
+      <Route path="/members/tee-times" element={
+        <ProtectedRoute>
+          <MemberTeeTimes />
+        </ProtectedRoute>
+      } />
     </Routes>
   )
 }

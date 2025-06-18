@@ -1,0 +1,41 @@
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "deploy:build": "npm run build",
+    "deploy:pages": "wrangler pages deploy dist",
+    "deploy": "npm run deploy:build && npm run deploy:pages",
+    "dev:local": "wrangler pages dev dist --compatibility-date=2024-01-01",
+    "db:init": "wrangler d1 execute birchwood-members --file=./schema.sql",
+    "db:init-remote": "wrangler d1 execute birchwood-members --file=./schema.sql --remote",
+    "db:query": "wrangler d1 execute birchwood-members --command",
+    "db:query-remote": "wrangler d1 execute birchwood-members --command --remote"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.15",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "postcss": "^8.4.28",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "wrangler": "^3.0.0"
+  }
+}

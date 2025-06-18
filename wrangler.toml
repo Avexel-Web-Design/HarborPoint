@@ -1,0 +1,22 @@
+name = "birchwood-cc"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "birchwood-members"
+database_id = "9884a7ff-30a3-40bb-9806-d8e9120a4e85"
+
+[vars]
+JWT_SECRET = "AYYBt+TzmedVBrip8kafdi9FBDDjEs3W65PdVDwrrObGzRys05yo8Q5iknvkI8kEGM6kaJnIvuyf5pYif/YZ+A=="
+ENVIRONMENT = "production"
+
+[env.preview]
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "birchwood-members-preview"
+database_id = "your-preview-database-id-here"
+
+[env.preview.vars]
+JWT_SECRET = "Pe+8alSB2M89nZ0Mx4ec26bEA/bfhS7aBrTvtzcrQeI3wMLXiUAhk6hT07cUoa9xHGdG6SkfSAS3EpH8c2zSsg=="
+ENVIRONMENT = "preview"
