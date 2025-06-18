@@ -12,6 +12,7 @@ const Header = () => {
     { name: 'Events', path: '/events' },
     { name: 'Membership', path: '/membership' },
     { name: 'Careers', path: '/careers' },
+    { name: 'Community', path: '/community' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ]
@@ -25,7 +26,7 @@ const Header = () => {
         />        <img 
           src={nameLogo} 
           alt="Birchwood Farms Golf & Country Club" 
-          className="hidden sm:block lg:hidden xl:block h-8"
+          className="hidden sm:block lg:hidden [@media(min-width:1375px)]:block h-8"
         />
       </Link>
         <div className="max-w-7xl mx-auto relative">
