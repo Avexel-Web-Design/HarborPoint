@@ -6,10 +6,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (request.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 });
   }
-
   try {
     const url = new URL(request.url);
-    const course = url.searchParams.get('course');
+    const course = url.searchParams.get('course') || url.searchParams.get('courseId');
     const date = url.searchParams.get('date');
 
     if (!course || !date) {
@@ -27,23 +26,40 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     `);
     
     const result = await stmt.bind(course, date).all();
-    const bookedTimes = result.results?.map((row: any) => row.time) || [];
-
-    // Generate available time slots (every 10 minutes from 7:00 AM to 6:00 PM)
-    const availableTimes: string[] = [];
+    const bookedTimes = result.results?.map((row: any) => row.time) || [];    // Generate available time slots (every 10 minutes from 7:00 AM to 6:00 PM)
+    const availableTimes: any[] = [];
     const startHour = 7;
     const endHour = 18;
+    const maxPlayers = 4;
+    const basePrice = 85;
+
+    // Course name mapping
+    const courseNames = {
+      'birches': 'The Birches',
+      'woods': 'The Woods', 
+      'farms': 'The Farms'
+    };
 
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 10) {
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         if (!bookedTimes.includes(timeStr)) {
-          availableTimes.push(timeStr);
+          availableTimes.push({
+            id: `${course}-${date}-${timeStr}`,
+            courseId: course,
+            courseName: courseNames[course as keyof typeof courseNames] || course,
+            date: date,
+            time: timeStr,
+            players: 0,
+            maxPlayers: maxPlayers,
+            price: basePrice,
+            status: 'available'
+          });
         }
       }
     }
 
-    return new Response(JSON.stringify({ availableTimes }), {
+    return new Response(JSON.stringify(availableTimes), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
