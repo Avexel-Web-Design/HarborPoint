@@ -65,12 +65,6 @@ const GolfOverview = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-4 -right-4 bg-primary-950 text-white p-6 rounded-xl shadow-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold font-serif">Perfect</div>
-                <div className="text-sm">for Any Skill Level</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

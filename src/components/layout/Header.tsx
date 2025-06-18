@@ -65,12 +65,10 @@ const Header = () => {
               ) : (
                 <path d="M4 6h16M4 12h16M4 18h16" />
               )}        </svg>
-      </button>
-      
-      {/* Mobile Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {isMenuOpen && (
-          <div className="lg:hidden py-6 border-t border-white/20 backdrop-blur-sm">
+      </button>      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="lg:hidden absolute top-20 left-0 right-0 backdrop-blur-sm bg-white/10 border-t border-white/20 shadow-lg z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <nav className="flex flex-col space-y-2">
               {navigationItems.map((item) => (
                 <Link
@@ -84,8 +82,8 @@ const Header = () => {
               ))}
             </nav>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </header>
   )
 }
