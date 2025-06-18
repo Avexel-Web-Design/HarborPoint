@@ -273,17 +273,18 @@ const CoursesDetail = () => {
                     Take an aerial journey through {course.name}
                   </p>
                 </div>                <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-200 aspect-video">
-                  <video 
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  >
-                    <source src="/DJI_0168.mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
+                  {/* Video temporarily disabled due to file size - will be hosted externally */}
+                  <div className="flex items-center justify-center h-full bg-gradient-to-br from-green-100 to-green-200">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M8 5v10l7-5-7-5z" />
+                        </svg>
+                      </div>
+                      <p className="text-green-700 font-medium">Course Overview Video</p>
+                      <p className="text-green-600 text-sm">Coming Soon</p>
+                    </div>
+                  </div>
                 </div>
               </div>              {/* Course Content Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
