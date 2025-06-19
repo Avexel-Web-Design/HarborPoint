@@ -18,17 +18,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
   register: (data: RegisterData) => Promise<boolean>;
   checkAuth: () => Promise<void>;
-  updateProfile: (data: UpdateProfileData) => Promise<boolean>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
-export interface UpdateProfileData {
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
-
-export interface RegisterData {
+interface RegisterData {
   email: string;
   password: string;
   firstName: string;
@@ -123,6 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     }
   };
+
   const logout = async (): Promise<void> => {
     try {
       await fetch('/api/auth/logout', {
@@ -136,61 +129,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const updateProfile = async (data: UpdateProfileData): Promise<boolean> => {
-    try {
-      const response = await fetch('/api/members/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        setMember(responseData.member);
-        return true;
-      } else {
-        const errorData = await response.json();
-        console.error('Profile update failed:', errorData.error);
-        return false;
-      }
-    } catch (error) {
-      console.error('Profile update error:', error);
-      return false;
-    }
-  };
-
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    try {
-      const response = await fetch('/api/members/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-
-      if (response.ok) {
-        // Password changed successfully, user needs to log in again
-        setMember(null);
-        return true;
-      } else {
-        const errorData = await response.json();
-        console.error('Password change failed:', errorData.error);
-        return false;
-      }
-    } catch (error) {
-      console.error('Password change error:', error);
-      return false;
-    }
-  };
-
   useEffect(() => {
     checkAuth();
   }, []);
+
   const value: AuthContextType = {
     member,
     isLoading,
@@ -199,8 +141,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     register,
     checkAuth,
-    updateProfile,
-    changePassword,
   };
 
   return (

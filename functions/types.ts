@@ -41,17 +41,6 @@ export interface RegisterRequest {
   membershipType: string;
 }
 
-export interface UpdateProfileRequest {
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-}
-
 export interface MemberResponse {
   id: number;
   email: string;
