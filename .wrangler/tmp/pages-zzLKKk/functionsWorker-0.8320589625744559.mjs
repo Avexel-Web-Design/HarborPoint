@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-Vxh0sS/checked-fetch.js
+// ../.wrangler/tmp/bundle-I3ErY9/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -143,10 +143,18 @@ var onRequestPost = /* @__PURE__ */ __name(async (context) => {
       fullName: adminResult.full_name,
       role: adminResult.role
     };
+    const cookieOptions = [
+      `admin_session=${sessionToken}`,
+      "HttpOnly",
+      "SameSite=Lax",
+      // Changed to Lax for better local development compatibility
+      `Max-Age=${24 * 60 * 60}`,
+      "Path=/"
+    ].join("; ");
     const response = new Response(JSON.stringify({ admin: adminResponse }), {
       headers: { "Content-Type": "application/json" }
     });
-    response.headers.set("Set-Cookie", `admin_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/`);
+    response.headers.set("Set-Cookie", cookieOptions);
     return response;
   } catch (error) {
     console.error("Admin login error:", error);
@@ -1376,7 +1384,7 @@ async function handleDeleteTeeTime(request, env) {
 }
 __name(handleDeleteTeeTime, "handleDeleteTeeTime");
 
-// ../.wrangler/tmp/pages-Lm7874/functionsRoutes-0.5204434639309026.mjs
+// ../.wrangler/tmp/pages-zzLKKk/functionsRoutes-0.9537445307248344.mjs
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -1958,7 +1966,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-Vxh0sS/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-I3ErY9/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1990,7 +1998,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-Vxh0sS/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-I3ErY9/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -2090,4 +2098,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default as default
 };
-//# sourceMappingURL=functionsWorker-0.3346354679869685.mjs.map
+//# sourceMappingURL=functionsWorker-0.8320589625744559.mjs.map

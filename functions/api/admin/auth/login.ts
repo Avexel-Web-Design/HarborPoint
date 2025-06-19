@@ -57,14 +57,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       username: adminResult.username,
       fullName: adminResult.full_name,
       role: adminResult.role
-    };
+    };    // Set session cookie
+    // Note: Remove Secure flag for local development (HTTP)
+    const cookieOptions = [
+      `admin_session=${sessionToken}`,
+      'HttpOnly',
+      'SameSite=Lax', // Changed to Lax for better local development compatibility
+      `Max-Age=${24 * 60 * 60}`,
+      'Path=/'
+    ].join('; ');
 
-    // Set session cookie
     const response = new Response(JSON.stringify({ admin: adminResponse }), {
       headers: { 'Content-Type': 'application/json' }
     });
 
-    response.headers.set('Set-Cookie', `admin_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${24 * 60 * 60}; Path=/`);
+    response.headers.set('Set-Cookie', cookieOptions);
 
     return response;
   } catch (error) {

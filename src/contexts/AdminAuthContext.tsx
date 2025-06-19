@@ -33,17 +33,22 @@ interface AdminAuthProviderProps {
 export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   const checkAuth = async () => {
     try {
+      console.log('AdminAuthContext: Checking auth status...');
       const response = await fetch('/api/admin/auth/me', {
         credentials: 'include'
       });
 
+      console.log('AdminAuthContext: Auth check response status:', response.status);
+      console.log('AdminAuthContext: Auth check request headers:', document.cookie);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('AdminAuthContext: Auth check successful, admin data:', data.admin);
         setAdmin(data.admin);
       } else {
+        console.log('AdminAuthContext: Auth check failed, not authenticated');
         setAdmin(null);
       }
     } catch (error) {
@@ -52,8 +57,7 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     } finally {
       setIsLoading(false);
     }
-  };
-  const login = async (username: string, password: string): Promise<boolean> => {
+  };const login = async (username: string, password: string): Promise<boolean> => {
     try {
       console.log('AdminAuthContext: Attempting login for:', username);
       const response = await fetch('/api/admin/auth/login', {
@@ -66,11 +70,19 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
       });
 
       console.log('AdminAuthContext: Login response status:', response.status);
+      console.log('AdminAuthContext: Response headers:', Array.from(response.headers.entries()));
 
       if (response.ok) {
         const data = await response.json();
         console.log('AdminAuthContext: Login successful, admin data:', data.admin);
         setAdmin(data.admin);
+        
+        // Force a re-check of auth status after successful login
+        setTimeout(() => {
+          console.log('AdminAuthContext: Checking auth after login...');
+          checkAuth();
+        }, 100);
+        
         return true;
       } else {
         const errorData = await response.json();
