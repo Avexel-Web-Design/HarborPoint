@@ -85,6 +85,7 @@ function App() {
           } />
 
           {/* Admin authentication routes */}
+          <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           
           {/* Protected admin routes */}
