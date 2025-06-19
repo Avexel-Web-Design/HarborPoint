@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({
@@ -9,28 +10,25 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
+  const { login } = useAdminAuth();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/admin/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        navigate('/admin/dashboard');
+      console.log('Attempting admin login with:', credentials.username);
+      const success = await login(credentials.username, credentials.password);
+      
+      if (success) {
+        console.log('Admin login successful, navigating to dashboard');
+        // Small delay to ensure auth context is updated
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 100);
       } else {
-        setError(data.error || 'Login failed');
+        console.log('Admin login failed');
+        setError('Invalid credentials');
       }
     } catch (error) {
       console.error('Login error:', error);

@@ -53,9 +53,9 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
       setIsLoading(false);
     }
   };
-
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      console.log('AdminAuthContext: Attempting login for:', username);
       const response = await fetch('/api/admin/auth/login', {
         method: 'POST',
         headers: {
@@ -65,8 +65,11 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
         body: JSON.stringify({ username, password }),
       });
 
+      console.log('AdminAuthContext: Login response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('AdminAuthContext: Login successful, admin data:', data.admin);
         setAdmin(data.admin);
         return true;
       } else {
