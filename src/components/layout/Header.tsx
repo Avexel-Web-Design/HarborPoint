@@ -59,7 +59,7 @@ const Header = () => {
             ) : (
               <Link
                 to="/members/login"
-                className="bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/20 transition-all duration-200 text-sm font-medium border border-white/20"
+                className="bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-full hover:bg-white/20 transition-all duration-200 text-sm font-medium border border-white/20"
               >
                 Member Login
               </Link>
