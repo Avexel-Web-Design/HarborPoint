@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Authentication</title>
+</head>
+<body>
+    <h1>Test Authentication</h1>
+    <button onclick="login()">Login</button>
+    <button onclick="testAPI()">Test Tee Times API</button>
+    <div id="result"></div>
+
+    <script>
+        async function login() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'testpassword'
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `Login: ${JSON.stringify(data)}`;
+                console.log('Login response:', data);
+                console.log('Cookies after login:', document.cookie);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `Login error: ${error.message}`;
+            }
+        }
+
+        async function testAPI() {
+            try {
+                const response = await fetch('/api/tee-times', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        courseId: 'birches',
+                        date: '2025-06-22',
+                        time: '10:00',
+                        players: 2
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `API Test: ${JSON.stringify(data)}`;
+                console.log('API response:', data);
+                console.log('Current cookies:', document.cookie);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `API error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

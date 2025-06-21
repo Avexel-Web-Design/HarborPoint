@@ -65,12 +65,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
-    });
-
-    // Set HTTP-only cookie
-    response.headers.set('Set-Cookie', 
-      `session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/`
-    );
+    });    // Set HTTP-only cookie with more permissive settings for development
+    const cookieOptions = [
+      `session=${sessionToken}`,
+      'HttpOnly',
+      'SameSite=Lax',
+      `Max-Age=${7 * 24 * 60 * 60}`,
+      'Path=/'
+      // Removed Domain and Secure flags for localhost development
+    ].join('; ');
+    
+    console.log('Setting cookie:', cookieOptions); // Debug log
+    response.headers.set('Set-Cookie', cookieOptions);
 
     return response;
 
@@ -102,8 +108,15 @@ async function createSessionToken(memberId: number, secret: string): Promise<str
 
   // Simple JWT creation - in production, use a proper JWT library
   const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedPayload = btoa(JSON.stringify(payload));
+  // Use Base64URL encoding (no padding, URL-safe)
+  const encodedHeader = btoa(JSON.stringify(header))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  const encodedPayload = btoa(JSON.stringify(payload))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
   
   const signature = await createSignature(`${encodedHeader}.${encodedPayload}`, secret);
   
@@ -121,5 +134,9 @@ async function createSignature(data: string, secret: string): Promise<string> {
   );
   
   const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
-  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+  // Use Base64URL encoding (no padding, URL-safe)
+  return btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }

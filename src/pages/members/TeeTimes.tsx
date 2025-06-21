@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
 interface TeeTime {
@@ -32,7 +31,6 @@ interface Course {
 }
 
 const MemberTeeTimes = () => {
-  const { } = useAuth(); // Auth context available if needed for user info
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [availableTeeTimes, setAvailableTeeTimes] = useState<TeeTime[]>([]);
@@ -58,23 +56,15 @@ const MemberTeeTimes = () => {
     if (selectedDate && selectedCourse) {
       loadAvailableTeeTimes();
     }
-  }, [selectedDate, selectedCourse]);
-
-  // Load user's bookings on component mount
+  }, [selectedDate, selectedCourse]);  // Load user's bookings on component mount
   useEffect(() => {
     loadMyBookings();
-  }, []);
-
-  const loadAvailableTeeTimes = async () => {
+  }, []);  const loadAvailableTeeTimes = async () => {
     setLoading(true);
     setError('');
     
     try {
-      const response = await fetch(`/api/tee-times/available?date=${selectedDate}&courseId=${selectedCourse}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch(`/api/tee-times/available?date=${selectedDate}&courseId=${selectedCourse}`);
       
       if (!response.ok) {
         throw new Error('Failed to load available tee times');
@@ -93,22 +83,18 @@ const MemberTeeTimes = () => {
   const loadMyBookings = async () => {
     try {
       const response = await fetch('/api/tee-times', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        credentials: 'include'
       });
       
       if (response.ok) {
         const data = await response.json();
-        setMyBookings(data);
+        setMyBookings(data.teeTimes || []);
       }
     } catch (err) {
       console.error('Failed to load bookings:', err);
     }
-  };
-
-  const bookTeeTime = async (teeTimeId: string, players: number) => {
-    setBookingLoading(teeTimeId);
+  };  const bookTeeTime = async (teeTime: any, players: number) => {
+    setBookingLoading(teeTime.id);
     setError('');
     setSuccess('');
     
@@ -116,10 +102,15 @@ const MemberTeeTimes = () => {
       const response = await fetch('/api/tee-times', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ teeTimeId, players })
+        credentials: 'include',
+        body: JSON.stringify({ 
+          courseId: teeTime.courseId,
+          date: teeTime.date,
+          time: teeTime.time,
+          players: players
+        })
       });
       
       if (!response.ok) {
@@ -135,19 +126,15 @@ const MemberTeeTimes = () => {
     } finally {
       setBookingLoading(null);
     }
-  };
-
-  const cancelBooking = async (bookingId: string) => {
+  };  const cancelBooking = async (bookingId: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) {
       return;
     }
     
     try {
-      const response = await fetch(`/api/tee-times/${bookingId}`, {
+      const response = await fetch(`/api/tee-times?id=${bookingId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -210,8 +197,7 @@ const MemberTeeTimes = () => {
               Back to Dashboard
             </Link>
           </div>
-        </div>
-      </div>
+        </div>      </div>
 
       <div className="container-width section-padding py-8">
         {/* Success/Error Messages */}
@@ -224,9 +210,8 @@ const MemberTeeTimes = () => {
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             {error}
           </div>
-        )}
+        )}        <div className="grid lg:grid-cols-3 gap-8">
 
-        <div className="grid lg:grid-cols-3 gap-8">
           {/* Booking Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -309,7 +294,7 @@ const MemberTeeTimes = () => {
                           {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
                             <button
                               key={players}
-                              onClick={() => bookTeeTime(teeTime.id, players)}
+                              onClick={() => bookTeeTime(teeTime, players)}
                               disabled={bookingLoading === teeTime.id}
                               className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm font-medium"
                             >

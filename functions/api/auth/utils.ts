@@ -4,43 +4,56 @@ import { Env, Member } from '../../types';
 export async function verifyAuth(request: Request, env: Env): Promise<Member | null> {
   try {
     const cookieHeader = request.headers.get('Cookie');
+    console.log('Cookie header:', cookieHeader); // Debug log
+    
     if (!cookieHeader) {
+      console.log('No cookie header found');
       return null;
     }
 
     // Extract session token from cookies
     const cookies = parseCookies(cookieHeader);
     const sessionToken = cookies['session'];
+    console.log('Session token from cookie:', sessionToken); // Debug log
     
     if (!sessionToken) {
+      console.log('No session token found in cookies');
       return null;
     }
 
-    // Find active session
-    const sessionResult = await env.DB.prepare(`
-      SELECT ms.*, m.* FROM member_sessions ms
-      JOIN members m ON ms.member_id = m.id
-      WHERE ms.session_token = ? AND ms.expires_at > CURRENT_TIMESTAMP AND m.is_active = 1
-    `).bind(sessionToken).first();
+    // Check if it's a JWT token (contains dots)
+    if (sessionToken.includes('.')) {
+      console.log('Detected JWT token, verifying...');
+      return await verifyJWT(sessionToken, env);
+    } else {
+      console.log('Detected hash token, checking database...');
+      // Find active session in database
+      const sessionResult = await env.DB.prepare(`
+        SELECT ms.*, m.* FROM member_sessions ms
+        JOIN members m ON ms.member_id = m.id
+        WHERE ms.session_token = ? AND ms.expires_at > CURRENT_TIMESTAMP AND m.is_active = 1
+      `).bind(sessionToken).first();
 
-    if (!sessionResult) {
-      return null;
+      if (!sessionResult) {
+        console.log('No active session found in database');
+        return null;
+      }
+
+      return {
+        id: sessionResult.id,
+        email: sessionResult.email,
+        password_hash: sessionResult.password_hash,
+        first_name: sessionResult.first_name,
+        last_name: sessionResult.last_name,
+        membership_type: sessionResult.membership_type,
+        member_id: sessionResult.member_id,
+        is_active: sessionResult.is_active,
+        phone: sessionResult.phone,
+        created_at: sessionResult.created_at,
+        updated_at: sessionResult.updated_at,
+        last_login: sessionResult.last_login
+      };
     }
-
-    return {
-      id: sessionResult.id,
-      email: sessionResult.email,
-      password_hash: sessionResult.password_hash,
-      first_name: sessionResult.first_name,
-      last_name: sessionResult.last_name,
-      membership_type: sessionResult.membership_type,
-      member_id: sessionResult.member_id,
-      is_active: sessionResult.is_active,
-      phone: sessionResult.phone,
-      created_at: sessionResult.created_at,
-      updated_at: sessionResult.updated_at,
-      last_login: sessionResult.last_login
-    };
   } catch (error) {
     console.error('Auth verification error:', error);
     return null;
@@ -89,4 +102,91 @@ function parseCookies(cookieHeader: string): Record<string, string> {
     }
   });
   return cookies;
+}
+
+async function verifyJWT(token: string, env: Env): Promise<Member | null> {
+  try {
+    console.log('Verifying JWT token:', token.substring(0, 50) + '...');
+    
+    const [encodedHeader, encodedPayload, signature] = token.split('.');
+    if (!encodedHeader || !encodedPayload || !signature) {
+      console.log('Invalid JWT format');
+      return null;
+    }
+
+    console.log('JWT parts:');
+    console.log('  Header:', encodedHeader);
+    console.log('  Payload:', encodedPayload);
+    console.log('  Signature received:', signature);
+
+    // Verify signature
+    const data = `${encodedHeader}.${encodedPayload}`;
+    console.log('Data to sign:', data);
+    const expectedSignature = await createJWTSignature(data, env.JWT_SECRET);
+    console.log('Expected signature:', expectedSignature);
+    
+    if (signature !== expectedSignature) {
+      console.log('JWT signature verification failed');
+      console.log('Signature comparison:');
+      console.log('  Received: ', signature);
+      console.log('  Expected: ', expectedSignature);
+      console.log('  Match: ', signature === expectedSignature);
+      return null;
+    }    // Decode payload (convert Base64URL to Base64 first)
+    const payload = JSON.parse(atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/')));
+    console.log('JWT payload:', payload);
+    
+    // Check expiration
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      console.log('JWT token expired');
+      return null;
+    }
+
+    // Get member from database
+    const memberResult = await env.DB.prepare(
+      'SELECT * FROM members WHERE id = ? AND is_active = 1'
+    ).bind(payload.memberId).first();
+
+    if (!memberResult) {
+      console.log('Member not found or inactive');
+      return null;
+    }
+
+    console.log('JWT verification successful for member:', memberResult.id);
+    return {
+      id: memberResult.id,
+      email: memberResult.email,
+      password_hash: memberResult.password_hash,
+      first_name: memberResult.first_name,
+      last_name: memberResult.last_name,
+      membership_type: memberResult.membership_type,
+      member_id: memberResult.member_id,
+      is_active: memberResult.is_active,
+      phone: memberResult.phone,
+      created_at: memberResult.created_at,
+      updated_at: memberResult.updated_at,
+      last_login: memberResult.last_login
+    };
+  } catch (error) {
+    console.error('JWT verification error:', error);
+    return null;
+  }
+}
+
+async function createJWTSignature(data: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
+  // Convert to Base64URL (no padding, URL-safe characters)
+  return btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }

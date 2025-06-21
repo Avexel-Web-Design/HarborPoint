@@ -23,10 +23,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const response = new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
-    });
-
-    response.headers.set('Set-Cookie', 
-      'session=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/'
+    });    response.headers.set('Set-Cookie', 
+      'session=; HttpOnly; SameSite=Lax; Max-Age=0; Path=/'
     );
 
     return response;
