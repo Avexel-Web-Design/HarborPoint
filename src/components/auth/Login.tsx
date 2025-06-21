@@ -88,14 +88,6 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <Link to="/members/register" className="font-medium text-primary-600 hover:text-primary-500">
-                  Need to register?
-                </Link>
-              </div>
-            </div>
-
             <div>
               <button
                 type="submit"

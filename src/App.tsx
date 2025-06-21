@@ -12,7 +12,6 @@ import Community from './pages/Community'
 
 // Member components
 import Login from './components/auth/Login'
-import Register from './components/auth/Register'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import MemberDashboard from './pages/members/Dashboard'
 import MemberProfile from './pages/members/Profile'
@@ -50,7 +49,6 @@ function App() {
 
           {/* Member authentication routes (no layout) */}
           <Route path="/members/login" element={<Login />} />
-          <Route path="/members/register" element={<Register />} />
 
           {/* Protected member area routes */}
           <Route path="/members/dashboard" element={
