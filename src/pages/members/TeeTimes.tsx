@@ -20,7 +20,7 @@ interface TeeTimeBooking {
   time: string;
   courseName: string;
   players: number;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'active' | 'confirmed' | 'pending' | 'cancelled';
   createdAt: string;
 }
 
@@ -332,13 +332,12 @@ const MemberTeeTimes = () => {
                           <p className="font-medium">{formatTime(booking.time)}</p>
                           <p className="text-sm text-gray-600">{formatDate(booking.date)}</p>
                           <p className="text-sm text-gray-600">{booking.courseName}</p>
-                        </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        </div>                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          booking.status === 'active' || booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                           booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
                         }`}>
-                          {booking.status}
+                          {booking.status === 'active' ? 'confirmed' : booking.status}
                         </span>
                       </div>
                       
@@ -346,8 +345,7 @@ const MemberTeeTimes = () => {
                         <span className="text-sm text-gray-600">
                           {booking.players} player{booking.players !== 1 ? 's' : ''}
                         </span>
-                        
-                        {booking.status === 'confirmed' && (
+                          {(booking.status === 'active' || booking.status === 'confirmed') && (
                           <button
                             onClick={() => cancelBooking(booking.id)}
                             className="text-red-600 hover:text-red-700 text-sm font-medium"

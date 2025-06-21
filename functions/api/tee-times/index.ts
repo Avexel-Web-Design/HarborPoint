@@ -37,12 +37,11 @@ async function handleGetTeeTimes(request: Request, env: Env) {
   const url = new URL(request.url);
   const startDate = url.searchParams.get('startDate');
   const endDate = url.searchParams.get('endDate');
-
   let query = `
     SELECT * FROM tee_times 
     WHERE member_id = ? AND status = 'active'
   `;
-  let params = [member.id];
+  let params: any[] = [member.id];
 
   if (startDate && endDate) {
     query += ` AND date BETWEEN ? AND ?`;
@@ -54,7 +53,19 @@ async function handleGetTeeTimes(request: Request, env: Env) {
   const stmt = env.DB.prepare(query);
   const result = await stmt.bind(...params).all();
 
-  return new Response(JSON.stringify({ teeTimes: result.results }), {
+  // Map course names and format the response
+  const courseNames = {
+    'birches': 'The Birches',
+    'woods': 'The Woods',
+    'farms': 'The Farms'
+  };
+
+  const formattedTeeTimes = result.results?.map((teeTime: any) => ({
+    ...teeTime,
+    courseName: courseNames[teeTime.course_name as keyof typeof courseNames] || teeTime.course_name
+  })) || [];
+
+  return new Response(JSON.stringify({ teeTimes: formattedTeeTimes }), {
     headers: { 'Content-Type': 'application/json' }
   });
 }
