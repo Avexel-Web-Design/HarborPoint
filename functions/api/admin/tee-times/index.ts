@@ -221,10 +221,9 @@ async function handleCreateTeeTime(request: Request, env: Env) {
   `);
   const memberResult = await memberQuery.bind(...memberIds).all();
   const memberNames = memberResult.results?.map((m: any) => `${m.first_name} ${m.last_name}`).join(', ') || '';
-
   const stmt = env.DB.prepare(`
-    INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, created_by_admin)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+    INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, allow_additional_players, created_by_admin)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1)
   `);
 
   try {

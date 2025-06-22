@@ -107,10 +107,11 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
   };  const openBookingModal = (teeTime: TeeTime, players: number) => {
     setSelectedTeeTime(teeTime);
     setSelectedPlayers(players);
-    setAllowOthersToJoin(false);
+    // Default to allowing others to join unless this booking will fill up the tee time completely
+    const willFillCompletely = (teeTime.players || 0) + players >= teeTime.maxPlayers;
+    setAllowOthersToJoin(!willFillCompletely);
     setShowBookingModal(true);
   };
-
   const closeBookingModal = () => {
     setShowBookingModal(false);
     setSelectedTeeTime(null);
@@ -417,26 +418,49 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
             
             {/* Modal */}
             <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3 relative z-10">
-              <h2 className="text-xl font-semibold mb-4">Confirm Booking</h2>
-              <p className="mb-4">
+              <h2 className="text-xl font-semibold mb-4">Confirm Booking</h2>              <p className="mb-4">
                 You are about to book {selectedPlayers} spot{selectedPlayers !== 1 ? 's' : ''} for the tee time on {formatDate(selectedTeeTime?.date || '')} at {formatTime(selectedTeeTime?.time || '')}.
               </p>
-              <div className="flex items-center mb-4">
-                <input
-                  type="checkbox"
-                  id="allow-others-to-join"
-                  checked={allowOthersToJoin}
-                  onChange={(e) => setAllowOthersToJoin(e.target.checked)}
-                  className="mr-2"
-                />
-                <label htmlFor="allow-others-to-join" className="text-sm text-gray-700">
-                  Allow others to join my booking
-                </label>
-              </div>
-              {allowOthersToJoin && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-sm text-blue-700">
-                    When enabled, other members will be able to book the remaining spots for this tee time.
+              
+              {/* Show "Allow others to join" checkbox unless this booking fills up the tee time completely */}
+              {selectedTeeTime && ((selectedTeeTime.players || 0) + selectedPlayers) < selectedTeeTime.maxPlayers && (
+                <>
+                  <div className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      id="allow-others-to-join"
+                      checked={allowOthersToJoin}
+                      onChange={(e) => setAllowOthersToJoin(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="allow-others-to-join" className="text-sm text-gray-700">
+                      Allow others to join my booking
+                    </label>
+                  </div>
+                  {allowOthersToJoin && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-sm text-blue-700">
+                        When enabled, other members will be able to book the remaining spots for this tee time.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {/* Show informational message when joining existing tee time */}
+              {selectedTeeTime?.status === 'partial' && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-700">
+                    You are joining an existing tee time with {selectedTeeTime.bookedBy?.firstName} {selectedTeeTime.bookedBy?.lastName}.
+                  </p>
+                </div>
+              )}
+              
+              {/* Show message when this booking will fill up the tee time */}
+              {selectedTeeTime && ((selectedTeeTime.players || 0) + selectedPlayers) >= selectedTeeTime.maxPlayers && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-700">
+                    This booking will fill up the tee time completely.
                   </p>
                 </div>
               )}

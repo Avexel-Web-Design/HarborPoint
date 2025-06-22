@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS tee_times (
     player_names TEXT,
     notes TEXT,
     status TEXT DEFAULT 'active',
+    allow_additional_players BOOLEAN DEFAULT 1,
     created_by_admin BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

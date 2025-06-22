@@ -22,6 +22,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         tt.time, 
         tt.players, 
         tt.player_names,
+        tt.allow_additional_players,
         m.first_name,
         m.last_name,
         m.member_id as member_display_id
@@ -52,11 +53,17 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         
         // Check if this time slot is booked
-        const bookedTeeTime = bookedTeeTimes.find((bt: any) => bt.time === timeStr);
-          if (bookedTeeTime) {
+        const bookedTeeTime = bookedTeeTimes.find((bt: any) => bt.time === timeStr);        if (bookedTeeTime) {
           // This time slot has some bookings
           const currentPlayers = bookedTeeTime.players || 1;
           const remainingSpots = maxPlayers - currentPlayers;
+          const allowsAdditional = bookedTeeTime.allow_additional_players;
+          
+          // Status logic: if no remaining spots OR additional players not allowed, mark as booked
+          let status = 'booked';
+          if (remainingSpots > 0 && allowsAdditional) {
+            status = 'partial';
+          }
           
           allTimes.push({
             id: `${course}-${date}-${timeStr}`,
@@ -67,8 +74,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             players: currentPlayers,
             maxPlayers: maxPlayers,
             price: basePrice,
-            status: remainingSpots > 0 ? 'partial' : 'booked',
-            availableSpots: remainingSpots,
+            status: status,
+            availableSpots: allowsAdditional ? remainingSpots : 0,
             bookedBy: {
               firstName: bookedTeeTime.first_name,
               lastName: bookedTeeTime.last_name,
