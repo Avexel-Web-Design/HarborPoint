@@ -45,6 +45,7 @@ const Calendar: React.FC<CalendarProps> = ({
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
+    // Create date object for first day of month at start of day
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
@@ -76,19 +77,23 @@ const Calendar: React.FC<CalendarProps> = ({
   }, [currentDate, events]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    if (direction === 'prev') {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setCurrentDate(newDate);
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), 1);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      return newDate;
+    });
   };
 
   const formatDateKey = (day: number) => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    return new Date(year, month, day).toISOString().split('T')[0];
+    // Ensure we create date at start of day in local timezone
+    const date = new Date(year, month, day);
+    return date.toISOString().split('T')[0];
   };
 
   const isToday = (day: number) => {
@@ -101,6 +106,7 @@ const Calendar: React.FC<CalendarProps> = ({
       today.getDate() === day
     );
   };
+
   const isSelected = (day: number) => {
     if (!selectedDate) return false;
     return selectedDate === formatDateKey(day);
@@ -184,7 +190,9 @@ const Calendar: React.FC<CalendarProps> = ({
         {calendarDays.map((day, index) => {
           if (day === null) {
             return <div key={index} className="h-24 border-r border-b border-gray-100"></div>;
-          }          const dateKey = formatDateKey(day);
+          }
+
+          const dateKey = formatDateKey(day);
           const dayEvents = eventsMap[dateKey] || [];
           const isCurrentDay = isToday(day);
           const isSelectedDay = isSelected(day);
@@ -197,7 +205,7 @@ const Calendar: React.FC<CalendarProps> = ({
                 isSelectedDay ? 'bg-blue-50' : ''
               } ${isDragOver ? 'bg-yellow-50 border-yellow-300' : ''}`}
               onClick={() => onDateClick?.(dateKey)}
-              onDoubleClick={() => handleDateDoubleClick(dateKey)}
+              onDoubleClick={() => handleDateDoubleClick?.(dateKey)}
               onDragOver={(e) => handleDateDragOver(e, dateKey)}
               onDragLeave={handleDateDragLeave}
               onDrop={(e) => handleDateDrop(e, dateKey)}
@@ -211,7 +219,9 @@ const Calendar: React.FC<CalendarProps> = ({
                   }`}
                 >
                   {day}
-                </span>                <div className="flex-1 overflow-hidden">
+                </span>
+
+                <div className="flex-1 overflow-hidden">
                   {dayEvents.slice(0, 2).map((event) => (
                     <div
                       key={event.id}

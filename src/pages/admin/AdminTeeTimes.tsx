@@ -18,15 +18,19 @@ interface TeeTime {
   phone?: string;
   member_id_display: string;
   created_at: string;
+  players?: number;
+  course_name?: string;
 }
 
 const AdminTeeTimesPage = () => {
-  const { } = useAdminAuth();  const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
+  useAdminAuth();
+  const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);  const [message, setMessage] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     loadTeeTimes();
@@ -62,8 +66,8 @@ const AdminTeeTimesPage = () => {
     setShowCreateModal(true);
   };
 
-  const handleTeeTimeClick = (teeTime: any) => {
-    const fullTeeTime = teeTimes.find(tt => tt.id === teeTime.id);
+  const handleTeeTimeClick = (event: any) => {
+    const fullTeeTime = teeTimes.find(tt => tt.id === event.id);
     if (fullTeeTime) {
       setSelectedTeeTime(fullTeeTime);
       setShowEditModal(true);
@@ -72,12 +76,16 @@ const AdminTeeTimesPage = () => {
 
   const handleEventDrop = async (event: any, newDate: string) => {
     try {
+      const fullTeeTime = teeTimes.find(tt => tt.id.toString() === event.id.toString());
+      if (!fullTeeTime) return;
+
       const updatedData = {
         id: event.id,
         date: newDate,
         time: event.time,
-        memberIds: [event.member_id], // Maintain current member assignment
-        notes: event.notes
+        courseId: fullTeeTime.course_name,
+        memberIds: [fullTeeTime.member_id],
+        notes: fullTeeTime.notes
       };
       
       await handleUpdateTeeTime(updatedData);
@@ -85,7 +93,9 @@ const AdminTeeTimesPage = () => {
       console.error('Error moving tee time:', error);
       setMessage('Failed to move tee time');
     }
-  };  const handleCreateTeeTime = async (data: any) => {
+  };
+
+  const handleCreateTeeTime = async (data: any) => {
     try {
       console.log('Creating tee time with data:', data);
       const response = await fetch('/api/admin/tee-times', {
@@ -112,6 +122,7 @@ const AdminTeeTimesPage = () => {
       throw error;
     }
   };
+
   const handleUpdateTeeTime = async (data: any) => {
     try {
       const response = await fetch('/api/admin/tee-times', {
@@ -144,9 +155,10 @@ const AdminTeeTimesPage = () => {
     date: teeTime.date,
     time: teeTime.time,
     title: `${teeTime.first_name} ${teeTime.last_name}`,
-    subtitle: `${teeTime.guests} guests`,
+    subtitle: `${teeTime.players || 1} player${(teeTime.players || 1) !== 1 ? 's' : ''}`,
     type: 'tee-time' as const,
     member_id: teeTime.member_id,
+    course_name: teeTime.course_name,
     notes: teeTime.notes
   }));
 
@@ -173,7 +185,8 @@ const AdminTeeTimesPage = () => {
               <p className="text-gray-600">
                 Manage and overview tee time reservations
               </p>
-            </div>            <div className="flex items-center space-x-4">
+            </div>
+            <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
                 Total reservations: {teeTimes.length}
               </div>
@@ -205,7 +218,8 @@ const AdminTeeTimesPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Calendar */}
-          <div className="lg:col-span-2">            <Calendar
+          <div className="lg:col-span-2">
+            <Calendar
               events={calendarEvents}
               onDateClick={handleDateClick}
               onEventClick={handleTeeTimeClick}
@@ -214,7 +228,8 @@ const AdminTeeTimesPage = () => {
               selectedDate={selectedDate}
               enableDragDrop={true}
             />
-          </div>          {/* Sidebar */}
+          </div>
+          {/* Sidebar */}
           <div className="space-y-6">
             {/* Instructions */}
             {!selectedDate && (
@@ -266,7 +281,8 @@ const AdminTeeTimesPage = () => {
                         </div>
                       </div>
                     ))}
-                  </div>                ) : (
+                  </div>
+                ) : (
                   <div className="text-gray-500 text-sm">
                     <p>No tee times scheduled for this date.</p>
                     <p className="mt-2 text-xs">Double-click on a calendar date to create a tee time.</p>
@@ -313,7 +329,8 @@ const AdminTeeTimesPage = () => {
             </div>
           </div>
         </div>
-      </div>      {/* Create Modal */}
+      </div>
+      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}

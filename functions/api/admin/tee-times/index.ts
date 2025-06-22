@@ -45,7 +45,7 @@ async function handleGetAllTeeTimes(request: Request, env: Env) {
       m.last_name,
       m.email,
       m.phone,
-      m.member_id
+      m.member_id as member_id_display
     FROM tee_times tt
     JOIN members m ON tt.member_id = m.id
     WHERE tt.status = 'active'
@@ -62,9 +62,29 @@ async function handleGetAllTeeTimes(request: Request, env: Env) {
   const stmt = env.DB.prepare(query);
   const result = await stmt.bind(...params).all();
 
+  // Format the response with proper field mapping
+  const formattedTeeTimes = result.results?.map((teeTime: any) => ({
+    id: teeTime.id,
+    member_id: teeTime.member_id,
+    member_id_display: teeTime.member_id_display,
+    date: teeTime.date,
+    time: teeTime.time,
+    course_name: teeTime.course_name,
+    players: teeTime.players || 1,
+    player_names: teeTime.player_names,
+    notes: teeTime.notes,
+    status: teeTime.status,
+    first_name: teeTime.first_name,
+    last_name: teeTime.last_name,
+    email: teeTime.email,
+    phone: teeTime.phone,
+    created_at: teeTime.created_at,
+    updated_at: teeTime.updated_at
+  })) || [];
+
   return new Response(JSON.stringify({ 
-    teeTimes: result.results,
-    total: result.results?.length || 0
+    teeTimes: formattedTeeTimes,
+    total: formattedTeeTimes.length
   }), {
     headers: { 'Content-Type': 'application/json' }
   });
@@ -102,7 +122,7 @@ async function handleDeleteTeeTime(request: Request, env: Env) {
 }
 
 async function handleUpdateTeeTime(request: Request, env: Env) {
-  const { id, memberIds, date, time, notes } = await request.json();
+  const { id, memberIds, courseId, date, time, notes } = await request.json();
 
   if (!id) {
     return new Response(JSON.stringify({ error: 'Tee time ID required' }), {
@@ -121,12 +141,12 @@ async function handleUpdateTeeTime(request: Request, env: Env) {
     
     const stmt = env.DB.prepare(`
       UPDATE tee_times 
-      SET member_id = ?, date = ?, time = ?, players = ?, player_names = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      SET member_id = ?, course_name = ?, date = ?, time = ?, players = ?, player_names = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
 
     try {
-      await stmt.bind(memberIds[0], date, time, memberIds.length, memberNames, notes, id).run();
+      await stmt.bind(memberIds[0], courseId || 'birches', date, time, memberIds.length, memberNames, notes, id).run();
       return new Response(JSON.stringify({ success: true }), {
         headers: { 'Content-Type': 'application/json' }
       });
@@ -141,12 +161,12 @@ async function handleUpdateTeeTime(request: Request, env: Env) {
     // Legacy update without member changes
     const stmt = env.DB.prepare(`
       UPDATE tee_times 
-      SET date = ?, time = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      SET course_name = ?, date = ?, time = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
 
     try {
-      await stmt.bind(date, time, notes, id).run();
+      await stmt.bind(courseId || 'birches', date, time, notes, id).run();
       return new Response(JSON.stringify({ success: true }), {
         headers: { 'Content-Type': 'application/json' }
       });

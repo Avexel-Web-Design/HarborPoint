@@ -57,6 +57,11 @@ const EditModal: React.FC<EditModalProps> = ({
         return;
       }
 
+      // Ensure courseId is included for tee times
+      if (type === 'tee-time') {
+        formData.courseId = formData.courseId || 'birches';
+      }
+
       await onUpdate(formData);
       onClose();
     } catch (err) {

@@ -51,8 +51,29 @@ const CreateModal: React.FC<CreateModalProps> = ({
         return;
       }
 
+      // Ensure courseId is included for tee times
+      if (type === 'tee-time') {
+        formData.courseId = formData.courseId || 'birches';
+      }
+
       await onCreate(formData);
       onClose();
+      
+      // Reset form after successful creation
+      setFormData({
+        date: selectedDate,
+        time: '',
+        memberIds: [],
+        courseId: 'birches',
+        notes: '',
+        title: '',
+        description: '',
+        location: '',
+        max_capacity: '',
+        price: 0,
+        party_size: 1,
+        special_requests: ''
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create');
     } finally {
