@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { Calendar, User, Car, UtensilsCrossed, Home } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faGolfBallTee, 
+  faHome, 
+  faCalendarDays, 
+  faUtensils, 
+  faUser 
+} from '@fortawesome/free-solid-svg-icons';
 import MemberProfile from './Profile';
 import MemberEvents from './Events';
 import MemberTeeTimes from './TeeTimes';
@@ -9,6 +16,26 @@ import MemberDining from './Dining';
 import MemberOverview from './Overview';
 
 type TabType = 'overview' | 'profile' | 'tee-times' | 'events' | 'dining';
+
+const HomeIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faHome} className={className} />
+);
+
+const GolfBallTeeIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faGolfBallTee} className={className} />
+);
+
+const CalendarIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faCalendarDays} className={className} />
+);
+
+const DiningIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faUtensils} className={className} />
+);
+
+const UserIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faUser} className={className} />
+);
 
 const MemberDashboard = () => {
   const { member, logout } = useAuth();
@@ -21,14 +48,12 @@ const MemberDashboard = () => {
 
     window.addEventListener('switchTab', handleTabSwitch);
     return () => window.removeEventListener('switchTab', handleTabSwitch);
-  }, []);
-
-  const tabs = [
-    { id: 'overview' as TabType, name: 'Overview', icon: Home },
-    { id: 'tee-times' as TabType, name: 'Tee Times', icon: Car },
-    { id: 'events' as TabType, name: 'Events', icon: Calendar },
-    { id: 'dining' as TabType, name: 'Dining', icon: UtensilsCrossed },
-    { id: 'profile' as TabType, name: 'Profile', icon: User },
+  }, []);  const tabs = [
+    { id: 'overview' as TabType, name: 'Overview', icon: HomeIcon },
+    { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
+    { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
+    { id: 'dining' as TabType, name: 'Dining', icon: DiningIcon },
+    { id: 'profile' as TabType, name: 'Profile', icon: UserIcon },
   ];
 
   const renderTabContent = () => {

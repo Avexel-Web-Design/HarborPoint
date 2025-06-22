@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import { Calendar, Users, Car, UtensilsCrossed } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faGolfBallTee, 
+  faUsers, 
+  faCalendarDays, 
+  faUtensils 
+} from '@fortawesome/free-solid-svg-icons';
 import AdminTeeTimes from './AdminTeeTimes';
 import AdminEvents from './AdminEvents';
 import AdminDining from './AdminDining';
@@ -8,15 +14,29 @@ import AdminMembers from './AdminMembers';
 
 type TabType = 'members' | 'tee-times' | 'events' | 'dining';
 
+const UsersIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faUsers} className={className} />
+);
+
+const GolfBallTeeIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faGolfBallTee} className={className} />
+);
+
+const CalendarIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faCalendarDays} className={className} />
+);
+
+const DiningIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faUtensils} className={className} />
+);
+
 const AdminDashboard = () => {
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('members');
-
-  const tabs = [
-    { id: 'members' as TabType, name: 'Members', icon: Users },
-    { id: 'tee-times' as TabType, name: 'Tee Times', icon: Car },
-    { id: 'events' as TabType, name: 'Events', icon: Calendar },
-    { id: 'dining' as TabType, name: 'Dining', icon: UtensilsCrossed },
+  const [activeTab, setActiveTab] = useState<TabType>('members');  const tabs = [
+    { id: 'members' as TabType, name: 'Members', icon: UsersIcon },
+    { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
+    { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
+    { id: 'dining' as TabType, name: 'Dining', icon: DiningIcon },
   ];
 
   const renderTabContent = () => {
