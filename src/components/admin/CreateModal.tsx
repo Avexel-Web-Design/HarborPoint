@@ -8,6 +8,7 @@ interface CreateModalProps {
   type: 'tee-time' | 'event' | 'reservation';
   selectedDate: string;
   onCreate: (data: any) => void;
+  defaultCourse?: string;
 }
 
 const CreateModal: React.FC<CreateModalProps> = ({
@@ -15,14 +16,14 @@ const CreateModal: React.FC<CreateModalProps> = ({
   onClose,
   type,
   selectedDate,
-  onCreate
-}) => {
-  const [formData, setFormData] = useState<any>({
+  onCreate,
+  defaultCourse = 'birches'
+}) => {  const [formData, setFormData] = useState<any>({
     date: selectedDate,
     time: '',
     memberIds: [],
     // Tee time specific
-    courseId: 'birches',
+    courseId: defaultCourse,
     notes: '',
     // Event specific
     title: '',
@@ -49,11 +50,9 @@ const CreateModal: React.FC<CreateModalProps> = ({
       if (type !== 'event' && formData.memberIds.length === 0) {
         setError('Please select at least one member');
         return;
-      }
-
-      // Ensure courseId is included for tee times
+      }      // Ensure courseId is included for tee times
       if (type === 'tee-time') {
-        formData.courseId = formData.courseId || 'birches';
+        formData.courseId = formData.courseId || defaultCourse;
       }
 
       await onCreate(formData);
@@ -64,7 +63,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
         date: selectedDate,
         time: '',
         memberIds: [],
-        courseId: 'birches',
+        courseId: defaultCourse,
         notes: '',
         title: '',
         description: '',

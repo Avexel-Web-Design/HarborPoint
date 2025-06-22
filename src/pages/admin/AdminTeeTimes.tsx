@@ -22,6 +22,14 @@ interface TeeTime {
   course_name?: string;
 }
 
+type CourseType = 'birches' | 'woods' | 'farms';
+
+const courseNames = {
+  birches: 'The Birches',
+  woods: 'The Woods', 
+  farms: 'The Farms'
+};
+
 const AdminTeeTimesPage = () => {
   useAdminAuth();
   const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
@@ -31,10 +39,16 @@ const AdminTeeTimesPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState('');
-
+  const [activeCourse, setActiveCourse] = useState<CourseType>('birches');
   useEffect(() => {
     loadTeeTimes();
   }, []);
+
+  // Reset state when course changes
+  useEffect(() => {
+    setSelectedDate('');
+    setMessage('');
+  }, [activeCourse]);
 
   const loadTeeTimes = async () => {
     try {
@@ -148,20 +162,22 @@ const AdminTeeTimesPage = () => {
       setMessage('Error updating tee time');
       throw error;
     }
-  };
-  const calendarEvents = useMemo(() => teeTimes.map(teeTime => ({
-    id: teeTime.id,
-    date: teeTime.date,
-    time: teeTime.time,
-    title: `${teeTime.first_name} ${teeTime.last_name}`,
-    subtitle: `${teeTime.players || 1} player${(teeTime.players || 1) !== 1 ? 's' : ''}`,
-    type: 'tee-time' as const,
-    member_id: teeTime.member_id,
-    course_name: teeTime.course_name,
-    notes: teeTime.notes
-  })), [teeTimes]);
+  };  const calendarEvents = useMemo(() => {
+    const filteredTeeTimes = teeTimes.filter(teeTime => teeTime.course_name === activeCourse);
+    return filteredTeeTimes.map(teeTime => ({
+      id: teeTime.id,
+      date: teeTime.date,
+      time: teeTime.time,
+      title: `${teeTime.first_name} ${teeTime.last_name}`,
+      subtitle: `${teeTime.players || 1} player${(teeTime.players || 1) !== 1 ? 's' : ''}`,
+      type: 'tee-time' as const,
+      member_id: teeTime.member_id,
+      course_name: teeTime.course_name,
+      notes: teeTime.notes
+    }));
+  }, [teeTimes, activeCourse]);
 
-  const selectedDateTeeTimes = teeTimes.filter(tt => tt.date === selectedDate);
+  const selectedDateTeeTimes = teeTimes.filter(tt => tt.date === selectedDate && tt.course_name === activeCourse);
 
   if (loading) {
     return (
@@ -176,20 +192,18 @@ const AdminTeeTimesPage = () => {
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
+          <div className="flex justify-between items-center py-6">            <div>
               <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Tee Times Management
+                Tee Times Management - {courseNames[activeCourse]}
               </h1>
               <p className="text-gray-600">
-                Manage and overview tee time reservations
+                Manage and overview tee time reservations for {courseNames[activeCourse]}
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
-                Total reservations: {teeTimes.length}
-              </div>
-              <button
+                {courseNames[activeCourse]} reservations: {teeTimes.filter(tt => tt.course_name === activeCourse).length}
+              </div><button
                 onClick={() => {
                   setSelectedTeeTime(null);
                   setSelectedDate('');
@@ -197,10 +211,33 @@ const AdminTeeTimesPage = () => {
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Create Tee Time
-              </button>
+                Create Tee Time              </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Course Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="-mb-px flex space-x-8">
+            {Object.entries(courseNames).map(([courseId, courseName]) => (
+              <button
+                key={courseId}
+                onClick={() => {
+                  setActiveCourse(courseId as CourseType);
+                  setSelectedDate(''); // Reset selected date when changing course
+                }}
+                className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeCourse === courseId
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {courseName}
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 
@@ -290,19 +327,23 @@ const AdminTeeTimesPage = () => {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Stats */}
+            )}            {/* Stats */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                {courseNames[activeCourse]} Statistics
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Reservations</span>
-                  <span className="font-medium">{teeTimes.length}</span>
-                </div>                <div className="flex justify-between">
+                  <span className="font-medium">
+                    {teeTimes.filter(tt => tt.course_name === activeCourse).length}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-600">This Week</span>
                   <span className="font-medium">
                     {teeTimes.filter(tt => {
+                      if (tt.course_name !== activeCourse) return false;
                       const [year, month, day] = tt.date.split('-').map(Number);
                       const teeTimeDate = new Date(year, month - 1, day);
                       const today = new Date();
@@ -316,6 +357,7 @@ const AdminTeeTimesPage = () => {
                   <span className="text-gray-600">This Month</span>
                   <span className="font-medium">
                     {teeTimes.filter(tt => {
+                      if (tt.course_name !== activeCourse) return false;
                       const [year, month, day] = tt.date.split('-').map(Number);
                       const teeTimeDate = new Date(year, month - 1, day);
                       const today = new Date();
@@ -330,14 +372,14 @@ const AdminTeeTimesPage = () => {
             </div>
           </div>
         </div>
-      </div>
-      {/* Create Modal */}
+      </div>      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         type="tee-time"
         selectedDate={selectedDate}
         onCreate={handleCreateTeeTime}
+        defaultCourse={activeCourse}
       />
 
       {/* Edit Modal */}
