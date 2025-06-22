@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -32,7 +32,62 @@ const DiningIcon = ({ className }: { className?: string }) => (
 
 const AdminDashboard = () => {
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('members');  const tabs = [
+  
+  // Initialize active tab from localStorage or URL params, fallback to 'members'
+  const getInitialTab = (): TabType => {
+    // Check URL params first
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTab = urlParams.get('tab') as TabType;
+    if (urlTab && ['members', 'tee-times', 'events', 'dining'].includes(urlTab)) {
+      return urlTab;
+    }
+    
+    // Check localStorage
+    const savedTab = localStorage.getItem('adminDashboardTab') as TabType;
+    if (savedTab && ['members', 'tee-times', 'events', 'dining'].includes(savedTab)) {
+      return savedTab;
+    }
+    
+    return 'members';
+  };
+
+  const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
+
+  // Save tab to localStorage and update URL when tab changes
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    localStorage.setItem('adminDashboardTab', tabId);
+    
+    // Update URL without refreshing the page
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabId);
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  // Clean up invalid values in localStorage
+  useEffect(() => {
+    const savedTab = localStorage.getItem('adminDashboardTab');
+    if (savedTab && !['members', 'tee-times', 'events', 'dining'].includes(savedTab)) {
+      localStorage.removeItem('adminDashboardTab');
+    }
+  }, []);
+
+  // Handle URL parameter changes on initial load and browser navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTab = urlParams.get('tab') as TabType;
+      if (urlTab && ['members', 'tee-times', 'events', 'dining'].includes(urlTab)) {
+        setActiveTab(urlTab);
+        localStorage.setItem('adminDashboardTab', urlTab);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const tabs = [
     { id: 'members' as TabType, name: 'Members', icon: UsersIcon },
     { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
     { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
@@ -84,10 +139,9 @@ const AdminDashboard = () => {
           <nav className="-mb-px flex space-x-8">
             {tabs.map((tab) => {
               const Icon = tab.icon;
-              return (
-                <button
+              return (                <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'

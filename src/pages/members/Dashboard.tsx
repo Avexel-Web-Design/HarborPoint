@@ -39,16 +39,72 @@ const UserIcon = ({ className }: { className?: string }) => (
 
 const MemberDashboard = () => {
   const { member, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  
+  // Initialize active tab from localStorage or URL params, fallback to 'overview'
+  const getInitialTab = (): TabType => {
+    // Check URL params first
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTab = urlParams.get('tab') as TabType;
+    if (urlTab && ['overview', 'profile', 'tee-times', 'events', 'dining'].includes(urlTab)) {
+      return urlTab;
+    }
+    
+    // Check localStorage
+    const savedTab = localStorage.getItem('memberDashboardTab') as TabType;
+    if (savedTab && ['overview', 'profile', 'tee-times', 'events', 'dining'].includes(savedTab)) {
+      return savedTab;
+    }
+    
+    return 'overview';
+  };
+
+  const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
+
+  // Save tab to localStorage and update URL when tab changes
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    localStorage.setItem('memberDashboardTab', tabId);
+    
+    // Update URL without refreshing the page
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabId);
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  // Clean up invalid values in localStorage
+  useEffect(() => {
+    const savedTab = localStorage.getItem('memberDashboardTab');
+    if (savedTab && !['overview', 'profile', 'tee-times', 'events', 'dining'].includes(savedTab)) {
+      localStorage.removeItem('memberDashboardTab');
+    }
+  }, []);
+
+  // Handle URL parameter changes on initial load and browser navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTab = urlParams.get('tab') as TabType;
+      if (urlTab && ['overview', 'profile', 'tee-times', 'events', 'dining'].includes(urlTab)) {
+        setActiveTab(urlTab);
+        localStorage.setItem('memberDashboardTab', urlTab);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Listen for tab switch events from Overview component
   useEffect(() => {
     const handleTabSwitch = (event: any) => {
-      setActiveTab(event.detail);
+      handleTabChange(event.detail);
     };
 
     window.addEventListener('switchTab', handleTabSwitch);
     return () => window.removeEventListener('switchTab', handleTabSwitch);
-  }, []);  const tabs = [
+  }, []);
+
+  const tabs = [
     { id: 'overview' as TabType, name: 'Overview', icon: HomeIcon },
     { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
     { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
@@ -115,10 +171,9 @@ const MemberDashboard = () => {
           <nav className="-mb-px flex space-x-8">
             {tabs.map((tab) => {
               const Icon = tab.icon;
-              return (
-                <button
+              return (                <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-primary-500 text-primary-600'
