@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 import Calendar from '../../components/admin/Calendar';
 import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
@@ -98,6 +99,29 @@ const AdminDiningPage = () => {
       throw error;
     }
   };
+  const handleDelete = async (reservationId: number) => {
+    try {
+      const response = await fetch(`/api/admin/dining?id=${reservationId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setMessage('Reservation deleted successfully!');
+        setShowEditModal(false);
+        setSelectedReservation(null);
+        loadReservations();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error deleting reservation');
+      }
+    } catch (error) {
+      console.error('Error deleting reservation:', error);
+      setMessage('Error deleting reservation');
+      throw error;
+    }
+  };
+
   const handleDateClick = (date: string) => {
     setSelectedDate(date);
   };
@@ -213,10 +237,10 @@ const AdminDiningPage = () => {
             {/* Instructions */}
             {!selectedDate && (
               <div className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>
-                <div className="text-sm text-blue-700 space-y-1">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>                <div className="text-sm text-blue-700 space-y-1">
                   <p>• Double-click any date to create a reservation</p>
-                  <p>• Click a reservation to view details</p>
+                  <p>• Click a reservation to edit details</p>
+                  <p>• Use the trash icon to delete reservations</p>
                   <p>• Drag reservations to reschedule them</p>
                 </div>
               </div>
@@ -241,15 +265,16 @@ const AdminDiningPage = () => {
                       .map(([time, timeReservations]) => (
                         <div key={time} className="border-l-4 border-blue-500 pl-4">
                           <div className="font-medium text-gray-900 mb-2">{time}</div>
-                          <div className="space-y-2">
-                            {timeReservations.map(reservation => (
+                          <div className="space-y-2">                            {timeReservations.map(reservation => (
                               <div
                                 key={reservation.id}
-                                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleReservationClick(reservation)}
+                                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                               >
                                 <div className="flex justify-between items-start">
-                                  <div>
+                                  <div 
+                                    className="flex-1 cursor-pointer"
+                                    onClick={() => handleReservationClick(reservation)}
+                                  >
                                     <div className="font-medium text-gray-900">
                                       {reservation.first_name} {reservation.last_name}
                                     </div>
@@ -265,6 +290,16 @@ const AdminDiningPage = () => {
                                       </div>
                                     )}
                                   </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(reservation.id);
+                                    }}
+                                    className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                                    title="Delete reservation"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -341,6 +376,7 @@ const AdminDiningPage = () => {
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           onUpdate={handleUpdate}
+          onDelete={handleDelete}
           item={selectedReservation}
         />
       )}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Trash2 } from 'lucide-react';
 import Calendar from '../../components/admin/Calendar';
 import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
@@ -162,7 +163,32 @@ const AdminTeeTimesPage = () => {
       setMessage('Error updating tee time');
       throw error;
     }
-  };  const calendarEvents = useMemo(() => {
+  };  
+
+  const handleDeleteTeeTime = async (teeTimeId: number) => {
+    try {
+      const response = await fetch(`/api/admin/tee-times?id=${teeTimeId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setMessage('Tee time deleted successfully!');
+        setShowEditModal(false);
+        setSelectedTeeTime(null);
+        loadTeeTimes();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error deleting tee time');
+      }
+    } catch (error) {
+      console.error('Error deleting tee time:', error);
+      setMessage('Error deleting tee time');
+      throw error;
+    }
+  };
+
+  const calendarEvents = useMemo(() => {
     const filteredTeeTimes = teeTimes.filter(teeTime => teeTime.course_name === activeCourse);
     return filteredTeeTimes.map(teeTime => ({
       id: teeTime.id,
@@ -270,10 +296,10 @@ const AdminTeeTimesPage = () => {
             {/* Instructions */}
             {!selectedDate && (
               <div className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>
-                <div className="text-sm text-blue-700 space-y-1">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>                <div className="text-sm text-blue-700 space-y-1">
                   <p>• Double-click any date to create a tee time</p>
-                  <p>• Click a tee time to view details</p>
+                  <p>• Click a tee time to edit details</p>
+                  <p>• Use the trash icon to delete tee times</p>
                   <p>• Drag tee times to reschedule them</p>
                 </div>
               </div>
@@ -294,15 +320,16 @@ const AdminTeeTimesPage = () => {
                 </h3>
                 
                 {selectedDateTeeTimes.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedDateTeeTimes.map(teeTime => (
+                  <div className="space-y-3">                    {selectedDateTeeTimes.map(teeTime => (
                       <div
                         key={teeTime.id}
-                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleTeeTimeClick(teeTime)}
+                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
                       >
                         <div className="flex justify-between items-start">
-                          <div>
+                          <div 
+                            className="flex-1 cursor-pointer"
+                            onClick={() => handleTeeTimeClick(teeTime)}
+                          >
                             <div className="font-medium text-gray-900">
                               {teeTime.time}
                             </div>
@@ -313,8 +340,20 @@ const AdminTeeTimesPage = () => {
                               {teeTime.guests} guests
                             </div>
                           </div>
-                          <div className="text-xs text-gray-400">
-                            #{teeTime.member_id_display}
+                          <div className="flex items-center space-x-2">
+                            <div className="text-xs text-gray-400">
+                              #{teeTime.member_id_display}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTeeTime(teeTime.id);
+                              }}
+                              className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                              title="Delete tee time"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -389,6 +428,7 @@ const AdminTeeTimesPage = () => {
         type="tee-time"
         item={selectedTeeTime}
         onUpdate={handleUpdateTeeTime}
+        onDelete={handleDeleteTeeTime}
       />
     </div>
   );

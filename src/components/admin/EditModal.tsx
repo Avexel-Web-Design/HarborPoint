@@ -8,6 +8,7 @@ interface EditModalProps {
   type: 'tee-time' | 'event' | 'reservation';
   item: any;
   onUpdate: (data: any) => void;
+  onDelete?: (id: any) => void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -15,11 +16,12 @@ const EditModal: React.FC<EditModalProps> = ({
   onClose,
   type,
   item,
-  onUpdate
-}) => {
-  const [formData, setFormData] = useState<any>({});
+  onUpdate,
+  onDelete
+}) => {  const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (item && isOpen) {
@@ -70,9 +72,25 @@ const EditModal: React.FC<EditModalProps> = ({
       setLoading(false);
     }
   };
-
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    
+    setLoading(true);
+    setError('');
+
+    try {
+      await onDelete(item.id);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete');
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   const getTitle = () => {
@@ -286,9 +304,7 @@ const EditModal: React.FC<EditModalProps> = ({
                   />
                 </div>
               </>
-            )}
-
-            <div className="flex space-x-3 pt-4">
+            )}            <div className="flex space-x-3 pt-4">
               <button
                 type="submit"
                 disabled={loading}
@@ -296,6 +312,18 @@ const EditModal: React.FC<EditModalProps> = ({
               >
                 {loading ? 'Updating...' : 'Update'}
               </button>
+              
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={loading}
+                  className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                >
+                  Delete
+                </button>
+              )}
+              
               <button
                 type="button"
                 onClick={onClose}
@@ -305,6 +333,36 @@ const EditModal: React.FC<EditModalProps> = ({
               </button>
             </div>
           </form>
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-60">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Confirm Deletion
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to delete this {type.replace('-', ' ')}? This action cannot be undone.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleDelete}
+                    disabled={loading}
+                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                  >
+                    {loading ? 'Deleting...' : 'Delete'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={loading}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

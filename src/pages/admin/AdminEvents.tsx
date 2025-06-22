@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Trash2 } from 'lucide-react';
 import Calendar from '../../components/admin/Calendar';
 import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
@@ -73,8 +74,7 @@ const AdminEventsPage = () => {
       setMessage('Error creating event');
       throw error;
     }
-  };
-  const handleUpdate = async (data: any) => {
+  };  const handleUpdate = async (data: any) => {
     try {
       const response = await fetch('/api/admin/events', {
         method: 'PUT',
@@ -93,6 +93,29 @@ const AdminEventsPage = () => {
     } catch (error) {
       console.error('Error updating event:', error);
       setMessage('Error updating event');
+      throw error;
+    }
+  };
+
+  const handleDelete = async (eventId: number) => {
+    try {
+      const response = await fetch(`/api/admin/events?id=${eventId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setMessage('Event deleted successfully!');
+        fetchEvents();
+        setShowEditModal(false);
+        setSelectedEvent(null);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error deleting event');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      setMessage('Error deleting event');
       throw error;
     }
   };
@@ -200,10 +223,10 @@ const AdminEventsPage = () => {
             {/* Instructions */}
             {!selectedDate && (
               <div className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>
-                <div className="text-sm text-blue-700 space-y-1">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>                <div className="text-sm text-blue-700 space-y-1">
                   <p>• Double-click any date to create an event</p>
-                  <p>• Click an event to view details</p>
+                  <p>• Click an event to edit details</p>
+                  <p>• Use the trash icon to delete events</p>
                   <p>• Drag events to reschedule them</p>
                 </div>
               </div>
@@ -222,15 +245,16 @@ const AdminEventsPage = () => {
                 </h3>
                 
                 {selectedDateEvents.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedDateEvents.map(event => (
+                  <div className="space-y-3">                    {selectedDateEvents.map(event => (
                       <div
                         key={event.id}
-                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleEventClick(event)}
+                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
                       >
                         <div className="flex justify-between items-start">
-                          <div>
+                          <div 
+                            className="flex-1 cursor-pointer"
+                            onClick={() => handleEventClick(event)}
+                          >
                             <div className="font-medium text-gray-900">
                               {event.title}
                             </div>
@@ -245,7 +269,17 @@ const AdminEventsPage = () => {
                                 ${event.price}
                               </div>
                             )}
-                          </div>
+                          </div>                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedEvent(event);
+                              handleDelete(event.id);
+                            }}
+                            className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                            title="Delete event"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -312,15 +346,14 @@ const AdminEventsPage = () => {
           onCreate={handleCreate}
           selectedDate={selectedDate}
         />
-      )}
-
-      {/* Edit Modal */}
+      )}      {/* Edit Modal */}
       {showEditModal && selectedEvent && (
         <EditModal
           type="event"
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           onUpdate={handleUpdate}
+          onDelete={handleDelete}
           item={selectedEvent}
         />
       )}
