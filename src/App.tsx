@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Home from './pages/Home'
 import Golf from './pages/Golf'
@@ -14,10 +14,6 @@ import Community from './pages/Community'
 import Login from './components/auth/Login'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import MemberDashboard from './pages/members/Dashboard'
-import MemberProfile from './pages/members/Profile'
-import MemberEvents from './pages/members/Events'
-import MemberTeeTimes from './pages/members/TeeTimes'
-import MemberDining from './pages/members/Dining'
 
 // Admin components
 import AdminLogin from './pages/admin/AdminLogin'
@@ -47,33 +43,18 @@ function App() {
           </Route>
 
           {/* Member authentication routes (no layout) */}
-          <Route path="/members/login" element={<Login />} />
-
-          {/* Protected member area routes */}
+          <Route path="/members/login" element={<Login />} />          {/* Protected member area routes */}
           <Route path="/members/dashboard" element={
             <ProtectedRoute>
               <MemberDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/members/profile" element={
-            <ProtectedRoute>
-              <MemberProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/members/events" element={
-            <ProtectedRoute>
-              <MemberEvents />
-            </ProtectedRoute>
-          } />
-          <Route path="/members/tee-times" element={
-            <ProtectedRoute>
-              <MemberTeeTimes />
-            </ProtectedRoute>
-          } />
-          <Route path="/members/dining" element={
-            <ProtectedRoute>
-              <MemberDining />
-            </ProtectedRoute>          } />
+          
+          {/* Legacy member routes - redirect to dashboard */}
+          <Route path="/members/profile" element={<Navigate to="/members/dashboard" replace />} />
+          <Route path="/members/events" element={<Navigate to="/members/dashboard" replace />} />
+          <Route path="/members/tee-times" element={<Navigate to="/members/dashboard" replace />} />
+          <Route path="/members/dining" element={<Navigate to="/members/dashboard" replace />} />
 
           {/* Admin authentication routes */}
           <Route path="/admin" element={<AdminLogin />} />

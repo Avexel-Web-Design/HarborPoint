@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 const MemberEvents = () => {
   const upcomingEvents = [
     {
@@ -27,34 +25,9 @@ const MemberEvents = () => {
       status: 'Save the Date'
     }
   ];
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="container-width section-padding">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Member Events
-              </h1>
-              <p className="text-gray-600">
-                Stay up to date with club tournaments and social events
-              </p>
-            </div>
-            <Link 
-              to="/members/dashboard" 
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="container-width section-padding py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Coming Soon Notice */}
+    <div className="container-width section-padding py-8">
+      <div className="max-w-4xl mx-auto">{/* Coming Soon Notice */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
             <div className="flex items-center">
               <div className="text-4xl mr-4">📅</div>
@@ -132,16 +105,13 @@ const MemberEvents = () => {
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
                 <div>
-                  <p className="font-medium text-gray-900">Events Coordinator</p>
-                  <p className="text-gray-600">events@birchwoodcc.com</p>
+                  <p className="font-medium text-gray-900">Events Coordinator</p>                  <p className="text-gray-600">events@birchwoodcc.com</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
+        </div>      </div>
+    );
 };
 
 export default MemberEvents;

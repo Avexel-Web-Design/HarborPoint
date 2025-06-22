@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 
 interface DiningReservation {
   id: number;
@@ -137,34 +136,9 @@ const MemberDining = () => {
 
   const minDate = new Date().toISOString().split('T')[0];
   const maxDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 2 weeks ahead
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="container-width section-padding">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Dining Reservations
-              </h1>
-              <p className="text-gray-600">
-                Reserve your table at our clubhouse restaurant
-              </p>
-            </div>
-            <Link 
-              to="/members/dashboard" 
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="container-width section-padding py-8">
-        <div className="max-w-6xl mx-auto">
-          {message && (
+    <div className="container-width section-padding py-8">
+      <div className="max-w-6xl mx-auto">{message && (
             <div className={`mb-6 p-4 rounded-lg ${message.includes('successfully') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
               {message}
             </div>
@@ -372,11 +346,8 @@ const MemberDining = () => {
                 seating and a beautiful outdoor terrace overlooking the 18th green.
               </p>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+          </div>        </div>
+      </div>    );
 };
 
 export default MemberDining;
