@@ -27,12 +27,14 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "lucide-react": "^0.517.0",
     "react": "^18.2.0",
+    "react-calendar": "^6.0.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1"
   },
   "devDependencies": {
     "@types/node": "^24.0.3",
     "@types/react": "^18.2.43",
+    "@types/react-calendar": "^3.9.0",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
