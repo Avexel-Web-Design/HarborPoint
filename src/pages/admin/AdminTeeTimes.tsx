@@ -293,17 +293,7 @@ const AdminTeeTimesPage = () => {
           </div>
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Instructions */}
-            {!selectedDate && (
-              <div className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>                <div className="text-sm text-blue-700 space-y-1">
-                  <p>• Double-click any date to create a tee time</p>
-                  <p>• Click a tee time to edit details</p>
-                  <p>• Use the trash icon to delete tee times</p>
-                  <p>• Drag tee times to reschedule them</p>
-                </div>
-              </div>
-            )}            {/* Selected Date Details */}
+            {/* Selected Date Details */}
             {selectedDate && (
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
