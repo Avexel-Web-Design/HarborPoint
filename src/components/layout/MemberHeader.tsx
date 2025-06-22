@@ -1,0 +1,123 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import logoSvg from '../../images/logo.svg'
+import nameLogo from '../../images/name.png'
+
+const MemberHeader = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { member, logout } = useAuth()
+  
+  const handleLogout = async () => {
+    await logout()
+  }
+  
+  return (
+    <header className="bg-primary-950 shadow-lg relative z-50">
+      {/* Logo and Title Section */}
+      <div className="container-width section-padding">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <Link to="/members/dashboard" className="flex items-center space-x-3">
+            <img 
+              src={logoSvg} 
+              alt="Birchwood Farms Golf & Country Club" 
+              className="h-12 w-12"
+            />
+            <div className="flex flex-col">
+              <img 
+                src={nameLogo} 
+                alt="Birchwood Farms Golf & Country Club" 
+                className="h-6 hidden sm:block"
+              />
+              <span className="text-primary-300 text-sm font-serif font-medium">
+                Member Portal
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            <div className="text-white">
+              <span className="text-sm text-primary-200">Welcome,</span>
+              <span className="ml-1 font-serif font-semibold">{member?.firstName}</span>
+              <div className="text-xs text-primary-300 mt-0.5">
+                {member?.membershipType} • ID: {member?.memberId}
+              </div>
+            </div>
+            <Link
+              to="/"
+              className="text-primary-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            >
+              Main Site
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-primary-800 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200"
+            >
+              Logout
+            </button>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2 text-white hover:text-primary-200 hover:bg-primary-800 rounded-md transition-colors duration-200"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              {isMenuOpen ? (
+                <path d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-primary-900 border-t border-primary-800">
+          <div className="container-width section-padding py-4">
+            <div className="flex flex-col space-y-3">
+              <div className="text-white pb-3 border-b border-primary-800">
+                <span className="text-sm text-primary-200">Welcome,</span>
+                <span className="ml-1 font-serif font-semibold">{member?.firstName}</span>
+                <div className="text-xs text-primary-300 mt-0.5">
+                  {member?.membershipType} • ID: {member?.memberId}
+                </div>
+              </div>
+              <Link
+                to="/"
+                className="text-primary-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Main Site
+              </Link>
+              <button
+                onClick={() => {
+                  handleLogout()
+                  setIsMenuOpen(false)
+                }}
+                className="bg-primary-800 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 text-left"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  )
+}
+
+export default MemberHeader

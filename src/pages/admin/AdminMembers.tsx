@@ -218,104 +218,114 @@ const AdminMembers = () => {
       </div>
     );
   }
-
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen">
+      <div className="container-width section-padding py-12">
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.includes('successfully') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          <div className={`mb-8 p-4 rounded-lg shadow-sm ${message.includes('successfully') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
             {message}
           </div>
         )}
 
         {/* Members Management */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Members Management
-              </h3>
+        <div className="bg-white/80 backdrop-blur-sm shadow-xl rounded-lg border border-primary-200">
+          <div className="px-6 py-8 sm:p-8">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h3 className="text-2xl font-serif font-bold text-primary-950">
+                  Members Management
+                </h3>
+                <p className="text-primary-700 mt-1">
+                  Manage club member accounts and memberships
+                </p>
+              </div>
               <button
                 onClick={() => setIsCreating(true)}
-                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium"
+                className="btn-primary"
               >
                 Add New Member
               </button>
             </div>
 
             {/* Search */}
-            <div className="mb-6">
-              <input
-                type="text"
-                placeholder="Search members by name, email, or member ID..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
+            <div className="mb-8">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search members by name, email, or member ID..."                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Create/Edit Form */}
             {(isCreating || editingMember) && (
-              <div className="mb-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
-                <h4 className="text-lg font-medium text-gray-900 mb-4">
+              <div className="mb-8 p-6 border border-primary-200 rounded-lg bg-gradient-to-r from-primary-50 to-white">
+                <h4 className="text-xl font-serif font-bold text-primary-950 mb-6">
                   {isCreating ? 'Create New Member' : 'Edit Member'}
                 </h4>
-                <form onSubmit={isCreating ? handleCreateMember : handleUpdateMember} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={isCreating ? handleCreateMember : handleUpdateMember} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <label className="block text-sm font-medium text-primary-900 mb-2">Email</label>
                       <input
                         type="email"
                         value={memberForm.email}
                         onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                         required
                       />
                     </div>
                     
                     {isCreating && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <label className="block text-sm font-medium text-primary-900 mb-2">Password</label>
                         <input
                           type="password"
                           value={memberForm.password}
                           onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                           required
                         />
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                      <label className="block text-sm font-medium text-primary-900 mb-2">First Name</label>
                       <input
-                        type="text"
-                        value={memberForm.firstName}
+                        type="text"                        value={memberForm.firstName}
                         onChange={(e) => setMemberForm({ ...memberForm, firstName: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                      <label className="block text-sm font-medium text-primary-900 mb-2">Last Name</label>
                       <input
                         type="text"
                         value={memberForm.lastName}
                         onChange={(e) => setMemberForm({ ...memberForm, lastName: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Membership Type</label>                      <select
+                      <label className="block text-sm font-medium text-primary-900 mb-2">Membership Type</label>
+                      <select
                         value={memberForm.membershipType}
                         onChange={(e) => setMemberForm({ ...memberForm, membershipType: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                       >
                         <option value="general">General</option>
                         <option value="property">Property</option>
@@ -327,33 +337,32 @@ const AdminMembers = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                      <label className="block text-sm font-medium text-primary-900 mb-2">Phone</label>
                       <input
                         type="tel"
                         value={memberForm.phone}
                         onChange={(e) => setMemberForm({ ...memberForm, phone: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                       />
                     </div>
 
                     <div className="flex items-center">
-                      <input
-                        type="checkbox"
+                      <input                        type="checkbox"
                         id="isActive"
                         checked={memberForm.isActive}
                         onChange={(e) => setMemberForm({ ...memberForm, isActive: e.target.checked })}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        className="h-5 w-5 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
                       />
-                      <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
+                      <label htmlFor="isActive" className="ml-3 block text-sm text-primary-900 font-medium">
                         Active Member
                       </label>
                     </div>
                   </div>
 
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-4 pt-4">
                     <button
                       type="submit"
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md font-medium"
+                      className="btn-primary"
                     >
                       {isCreating ? 'Create Member' : 'Update Member'}
                     </button>
@@ -364,7 +373,7 @@ const AdminMembers = () => {
                         setEditingMember(null);
                         resetForm();
                       }}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium"
+                      className="btn-secondary"
                     >
                       Cancel
                     </button>
@@ -376,59 +385,58 @@ const AdminMembers = () => {
             {/* Members List */}
             {!loading && (
               <>
-                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-50">
+                <div className="overflow-hidden shadow-xl ring-1 ring-primary-200 ring-opacity-50 rounded-lg">
+                  <table className="min-w-full divide-y divide-primary-200">
+                    <thead className="bg-gradient-to-r from-primary-950 to-primary-900 text-white">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider font-serif">
                           Name
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider font-serif">
                           Member ID
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Membership
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider font-serif">
+                          Membership                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider font-serif">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider font-serif">
                           Last Login
                         </th>
-                        <th className="relative px-6 py-3">
+                        <th className="relative px-6 py-4">
                           <span className="sr-only">Actions</span>
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white/80 backdrop-blur-sm divide-y divide-primary-200">
                       {members.map((member) => (
-                        <tr key={member.id}>
+                        <tr key={member.id} className="hover:bg-primary-50/50 transition-colors duration-200">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-sm font-medium text-primary-900 font-serif">
                                   {member.first_name} {member.last_name}
                                 </div>
-                                <div className="text-sm text-gray-500">{member.email}</div>
+                                <div className="text-sm text-primary-600">{member.email}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-900 font-medium">
                             {member.member_id}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-900 capitalize">
                             {member.membership_type}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                               member.is_active 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                : 'bg-red-100 text-red-800 border border-red-200'
                             }`}>
                               {member.is_active ? 'Active' : 'Inactive'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-700">
                             {member.last_login 
                               ? new Date(member.last_login).toLocaleDateString()
                               : 'Never'
@@ -437,14 +445,13 @@ const AdminMembers = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
                               onClick={() => startEdit(member)}
-                              className="text-primary-600 hover:text-primary-900 mr-3"
-                            >
-                              Edit
+                              className="text-primary-600 hover:text-primary-800 mr-4 px-3 py-1 rounded-md hover:bg-primary-100 transition-colors duration-200"
+                            >                              Edit
                             </button>
                             {member.is_active && (
                               <button
                                 onClick={() => handleDeactivateMember(member.id)}
-                                className="text-red-600 hover:text-red-900"
+                                className="text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-100 transition-colors duration-200"
                               >
                                 Deactivate
                               </button>
@@ -458,25 +465,25 @@ const AdminMembers = () => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-6 flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
+                  <div className="mt-8 flex items-center justify-between bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-primary-200">
+                    <div className="text-sm text-primary-700 font-medium">
                       Showing {(currentPage - 1) * membersPerPage + 1} to {Math.min(currentPage * membersPerPage, totalMembers)} of {totalMembers} members
                     </div>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm border border-primary-300 rounded-lg hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-primary-900 transition-colors duration-200"
                       >
                         Previous
                       </button>
-                      <span className="px-3 py-2 text-sm text-gray-700">
+                      <span className="px-4 py-2 text-sm text-primary-900 font-serif font-medium">
                         Page {currentPage} of {totalPages}
                       </span>
                       <button
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm border border-primary-300 rounded-lg hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-primary-900 transition-colors duration-200"
                       >
                         Next
                       </button>

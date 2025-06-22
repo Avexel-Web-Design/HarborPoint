@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faGolfBallTee, 
@@ -38,7 +37,7 @@ const UserIcon = ({ className }: { className?: string }) => (
 );
 
 const MemberDashboard = () => {
-  const { member, logout } = useAuth();
+  const { member } = useAuth();
   
   // Initialize active tab from localStorage or URL params, fallback to 'overview'
   const getInitialTab = (): TabType => {
@@ -123,80 +122,68 @@ const MemberDashboard = () => {
       case 'events':
         return <MemberEvents />;
       case 'dining':
-        return <MemberDining />;
-      default:
+        return <MemberDining />;      default:
         return <MemberOverview />;
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="container-width section-padding">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Welcome, {member?.firstName}!
-              </h1>
-              <p className="text-gray-600">
-                {member?.membershipType} Member • ID: {member?.memberId}
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link 
-                to="/" 
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Main Site
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium"
-              >
-                Logout
-              </button>
+    <div className="min-h-screen">
+      {/* Hero Section with Navigation */}
+      <section className="relative bg-gradient-to-r from-primary-900 via-primary-950 to-primary-900 text-white">
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div className="relative z-10 container-width section-padding py-12">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl md:text-5xl font-serif font-bold">
+              Welcome, {member?.firstName}!
+            </h1>
+            <p className="text-xl text-primary-200 font-serif italic">
+              Your Birchwood Farms Experience
+            </p>
+            <p className="text-primary-300 max-w-2xl mx-auto">
+              {member?.membershipType} Member • ID: {member?.memberId}
+            </p>
+            <p className="text-primary-300 max-w-2xl mx-auto">
+              Access your personalized dashboard to manage tee times, view upcoming events, 
+              make dining reservations, and stay connected with your club community.
+            </p>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="mt-12">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2">
+              <nav className="flex flex-wrap justify-center gap-2">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={`group inline-flex items-center px-6 py-3 rounded-md font-medium text-sm transition-all duration-300 ${
+                        activeTab === tab.id
+                          ? 'bg-white text-primary-950 shadow-lg'
+                          : 'text-white hover:bg-white/20 hover:text-primary-200'
+                      }`}
+                    >
+                      <Icon
+                        className={`-ml-0.5 mr-2 h-5 w-5 ${
+                          activeTab === tab.id
+                            ? 'text-primary-950'
+                            : 'text-primary-300 group-hover:text-primary-200'
+                        }`}
+                      />
+                      {tab.name}
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container-width section-padding">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon
-                    className={`-ml-0.5 mr-2 h-5 w-5 ${
-                      activeTab === tab.id
-                        ? 'text-primary-500'
-                        : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
-                  />
-                  {tab.name}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
+      </section>
 
       {/* Tab Content */}
-      <div className="flex-1">
+      <div className="flex-1 bg-gradient-to-br from-primary-50 to-primary-100 min-h-screen">
         {renderTabContent()}
       </div>
     </div>
