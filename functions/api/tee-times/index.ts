@@ -88,22 +88,60 @@ async function handleCreateTeeTime(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
-  // Check if the tee time slot is available
-  const conflictCheck = env.DB.prepare(`
-    SELECT id FROM tee_times 
+  // Check if the tee time slot is available or has space for additional players
+  const existingCheck = env.DB.prepare(`
+    SELECT id, players FROM tee_times 
     WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
   `);
-  const existing = await conflictCheck.bind(body.courseId, body.date, body.time).first();
+  const existing = await existingCheck.bind(body.courseId, body.date, body.time).first();
 
   if (existing) {
-    return new Response(JSON.stringify({ error: 'Tee time slot is already booked' }), {
-      status: 409,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+    const currentPlayers = existing.players || 1;
+    const maxPlayers = 4;
+    
+    // If we allow others to join and there's space, we can add to the existing booking
+    if (body.allowOthersToJoin && currentPlayers + body.players <= maxPlayers) {
+      // Update the existing tee time to add more players
+      const updateStmt = env.DB.prepare(`
+        UPDATE tee_times 
+        SET players = players + ?, 
+            player_names = CASE 
+              WHEN player_names IS NULL THEN ? 
+              ELSE player_names || ', ' || ? 
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+      
+      const memberName = `${member.first_name} ${member.last_name}`;
+      const result = await updateStmt.bind(
+        body.players,
+        memberName,
+        memberName,
+        existing.id
+      ).run();
 
+      if (result.success) {
+        return new Response(JSON.stringify({ 
+          success: true, 
+          id: existing.id,
+          message: 'Successfully joined the tee time'
+        }), {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      return new Response(JSON.stringify({ error: 'Tee time slot is already booked or no space available' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
   // Create the tee time
+  const memberName = `${member.first_name} ${member.last_name}`;
+  const playersToBook = body.allowOthersToJoin ? body.players : 4; // If allowing others, book exact amount; otherwise, book full slot
+  
   const stmt = env.DB.prepare(`
     INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -114,8 +152,8 @@ async function handleCreateTeeTime(request: Request, env: Env) {
     body.courseId,
     body.date,
     body.time,
-    body.players,
-    body.playerNames || null,
+    playersToBook,
+    memberName,
     body.notes || null
   ).run();
 

@@ -72,6 +72,7 @@ export interface TeeTimeRequest {
   players: number;
   playerNames?: string;
   notes?: string;
+  allowOthersToJoin?: boolean;
 }
 
 export interface DiningReservation {

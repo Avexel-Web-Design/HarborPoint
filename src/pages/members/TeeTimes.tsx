@@ -9,7 +9,14 @@ interface TeeTime {
   players: number;
   maxPlayers: number;
   price: number;
-  status: 'available' | 'booked' | 'pending';
+  status: 'available' | 'booked' | 'pending' | 'partial';
+  availableSpots?: number;
+  bookedBy?: {
+    firstName: string;
+    lastName: string;
+    memberId: string;
+    playerNames?: string;
+  };
 }
 
 interface TeeTimeBooking {
@@ -29,8 +36,7 @@ interface Course {
   description: string;
 }
 
-const MemberTeeTimes = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [availableTeeTimes, setAvailableTeeTimes] = useState<TeeTime[]>([]);
   const [myBookings, setMyBookings] = useState<TeeTimeBooking[]>([]);
@@ -39,6 +45,12 @@ const MemberTeeTimes = () => {
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Booking modal state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
+  const [selectedPlayers, setSelectedPlayers] = useState(1);
+  const [allowOthersToJoin, setAllowOthersToJoin] = useState(false);
 
   // Initialize courses
   useEffect(() => {
@@ -92,7 +104,34 @@ const MemberTeeTimes = () => {
     } catch (err) {
       console.error('Failed to load bookings:', err);
     }
-  };  const bookTeeTime = async (teeTime: any, players: number) => {
+  };  const openBookingModal = (teeTime: TeeTime, players: number) => {
+    setSelectedTeeTime(teeTime);
+    setSelectedPlayers(players);
+    setAllowOthersToJoin(false);
+    setShowBookingModal(true);
+  };
+
+  const closeBookingModal = () => {
+    setShowBookingModal(false);
+    setSelectedTeeTime(null);
+    setSelectedPlayers(1);
+    setAllowOthersToJoin(false);
+  };
+
+  const confirmBooking = async () => {
+    if (selectedTeeTime) {
+      await bookTeeTime(selectedTeeTime, selectedPlayers, allowOthersToJoin);
+      closeBookingModal();
+    }
+  };
+
+  const bookTeeTime = async (teeTime: any, players: number, allowJoining: boolean = false) => {
+    // Safety check - don't allow booking already booked times
+    if (teeTime.status === 'booked') {
+      setError('This tee time is already booked');
+      return;
+    }
+
     setBookingLoading(teeTime.id);
     setError('');
     setSuccess('');
@@ -108,7 +147,8 @@ const MemberTeeTimes = () => {
           courseId: teeTime.courseId,
           date: teeTime.date,
           time: teeTime.time,
-          players: players
+          players: players,
+          allowOthersToJoin: allowJoining
         })
       });
       
@@ -230,58 +270,90 @@ const MemberTeeTimes = () => {
               </div>
             </div>
 
-            {/* Available Tee Times */}
-            <div className="bg-white rounded-lg shadow p-6">
+            {/* Available Tee Times */}            <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Available Times for {formatDate(selectedDate)}
+                Tee Times for {formatDate(selectedDate)}
               </h3>
               
               {loading ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                  <p className="mt-2 text-gray-600">Loading available times...</p>
+                  <p className="mt-2 text-gray-600">Loading tee times...</p>
                 </div>
               ) : availableTeeTimes.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  No available tee times for the selected date and course.
+                  No tee times for the selected date and course.
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-4">
-                  {availableTeeTimes.map((teeTime) => (
-                    <div key={teeTime.id} className="border border-gray-200 rounded-lg p-4">
+                  {availableTeeTimes.map((teeTime) => (                    <div key={teeTime.id} className={`border rounded-lg p-4 ${
+                      teeTime.status === 'booked' 
+                        ? 'border-red-200 bg-red-50' 
+                        : teeTime.status === 'partial'
+                        ? 'border-yellow-200 bg-yellow-50'
+                        : 'border-gray-200 bg-white'
+                    }`}>
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <p className="font-semibold text-lg">{formatTime(teeTime.time)}</p>
                           <p className="text-sm text-gray-600">{teeTime.courseName}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-primary-600">${teeTime.price}</p>
-                          <p className="text-sm text-gray-500">per player</p>
-                        </div>
+                        {(teeTime.status === 'available' || teeTime.status === 'partial') && (
+                          <div className="text-right">
+                            <p className="font-semibold text-primary-600">${teeTime.price}</p>
+                            <p className="text-sm text-gray-500">per player</p>
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">
-                          {teeTime.players}/{teeTime.maxPlayers} players
-                        </span>
-                        
-                        <div className="flex space-x-2">
-                          {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
-                            <button
-                              key={players}
-                              onClick={() => bookTeeTime(teeTime, players)}
-                              disabled={bookingLoading === teeTime.id}
-                              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm font-medium"
-                            >
-                              {bookingLoading === teeTime.id ? (
-                                <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                              ) : (
-                                `Book ${players}`
-                              )}
-                            </button>
-                          ))}
+                      {teeTime.status === 'booked' ? (
+                        // Show booked tee time information
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-red-700">BOOKED</span>
+                            <span className="text-sm text-gray-600">
+                              {teeTime.players}/{teeTime.maxPlayers} players
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-700">
+                            <p className="font-medium">
+                              {teeTime.bookedBy?.firstName} {teeTime.bookedBy?.lastName}
+                            </p>
+                            {teeTime.bookedBy?.playerNames && (
+                              <p className="text-gray-600 mt-1">
+                                Group: {teeTime.bookedBy.playerNames}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              Member ID: {teeTime.bookedBy?.memberId}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        // Show available tee time booking options
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">
+                            {teeTime.players}/{teeTime.maxPlayers} players
+                          </span>
+                          
+                          <div className="flex space-x-2">
+                            {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
+                              <button
+                                key={players}
+                                onClick={() => openBookingModal(teeTime, players)}
+                                disabled={bookingLoading === teeTime.id}
+                                className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm font-medium"
+                              >
+                                {bookingLoading === teeTime.id ? (
+                                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                                ) : (
+                                  `Book ${players}`
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -334,7 +406,57 @@ const MemberTeeTimes = () => {
                 </div>
               )}
             </div>          </div>
-        </div>
+        </div>        {/* Booking Modal */}
+        {showBookingModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50" 
+              onClick={closeBookingModal}
+            ></div>
+            
+            {/* Modal */}
+            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3 relative z-10">
+              <h2 className="text-xl font-semibold mb-4">Confirm Booking</h2>
+              <p className="mb-4">
+                You are about to book {selectedPlayers} spot{selectedPlayers !== 1 ? 's' : ''} for the tee time on {formatDate(selectedTeeTime?.date || '')} at {formatTime(selectedTeeTime?.time || '')}.
+              </p>
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  id="allow-others-to-join"
+                  checked={allowOthersToJoin}
+                  onChange={(e) => setAllowOthersToJoin(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="allow-others-to-join" className="text-sm text-gray-700">
+                  Allow others to join my booking
+                </label>
+              </div>
+              {allowOthersToJoin && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-700">
+                    When enabled, other members will be able to book the remaining spots for this tee time.
+                  </p>
+                </div>
+              )}
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={closeBookingModal}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmBooking}
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md"
+                >
+                  Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>    );
 };
 
