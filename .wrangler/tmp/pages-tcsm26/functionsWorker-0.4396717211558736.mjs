@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-yO3ncQ/checked-fetch.js
+// ../.wrangler/tmp/bundle-9M7Gdg/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -2049,7 +2049,7 @@ async function handleCreateTeeTime2(request, env) {
     }
   }
   const memberName = `${member.first_name} ${member.last_name}`;
-  const playersToBook = body.allowOthersToJoin ? body.players : 4;
+  const playersToBook = body.players;
   const stmt = env.DB.prepare(`
     INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -2128,7 +2128,7 @@ async function handleDeleteTeeTime2(request, env) {
 }
 __name(handleDeleteTeeTime2, "handleDeleteTeeTime");
 
-// ../.wrangler/tmp/pages-wUL8mK/functionsRoutes-0.8425426105742078.mjs
+// ../.wrangler/tmp/pages-tcsm26/functionsRoutes-0.31416214729113423.mjs
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -2731,7 +2731,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-yO3ncQ/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-9M7Gdg/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -2763,7 +2763,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-yO3ncQ/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-9M7Gdg/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -2863,4 +2863,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default as default
 };
-//# sourceMappingURL=functionsWorker-0.5774464935114829.mjs.map
+//# sourceMappingURL=functionsWorker-0.4396717211558736.mjs.map

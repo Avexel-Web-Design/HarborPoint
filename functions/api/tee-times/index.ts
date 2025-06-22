@@ -135,10 +135,10 @@ async function handleCreateTeeTime(request: Request, env: Env) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  }
-  // Create the tee time
+  }  // Create the tee time
   const memberName = `${member.first_name} ${member.last_name}`;
-  const playersToBook = body.allowOthersToJoin ? body.players : 4; // If allowing others, book exact amount; otherwise, book full slot
+  // Always use the actual number of players, not inflated count
+  const playersToBook = body.players;
     const stmt = env.DB.prepare(`
     INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
