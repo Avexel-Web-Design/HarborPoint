@@ -39,13 +39,12 @@ const AdminMembers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalMembers, setTotalMembers] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [memberForm, setMemberForm] = useState<MemberForm>({
+  const [editingMember, setEditingMember] = useState<Member | null>(null);  const [memberForm, setMemberForm] = useState<MemberForm>({
     email: '',
     password: '',
     firstName: '',
     lastName: '',
-    membershipType: 'Individual',
+    membershipType: 'general',
     phone: '',
     isActive: true
   });
@@ -87,14 +86,13 @@ const AdminMembers = () => {
       setLoading(false);
     }
   };
-
   const resetForm = () => {
     setMemberForm({
       email: '',
       password: '',
       firstName: '',
       lastName: '',
-      membershipType: 'Individual',
+      membershipType: 'general',
       phone: '',
       isActive: true
     });
@@ -230,79 +228,6 @@ const AdminMembers = () => {
           </div>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-8 w-8 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Members</dt>
-                  <dd className="text-lg font-medium text-gray-900">{totalMembers}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Active Members</dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {members.filter(m => m.is_active).length}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Family Members</dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {members.filter(m => m.membership_type === 'Family').length}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-8 w-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Corporate Members</dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {members.filter(m => m.membership_type === 'Corporate').length}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Members Management */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
@@ -387,16 +312,17 @@ const AdminMembers = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Membership Type</label>
-                      <select
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Membership Type</label>                      <select
                         value={memberForm.membershipType}
                         onChange={(e) => setMemberForm({ ...memberForm, membershipType: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       >
-                        <option value="Individual">Individual</option>
-                        <option value="Family">Family</option>
-                        <option value="Corporate">Corporate</option>
-                        <option value="Junior">Junior</option>
+                        <option value="general">General</option>
+                        <option value="property">Property</option>
+                        <option value="social">Social</option>
+                        <option value="associate">Associate</option>
+                        <option value="junior">Junior</option>
+                        <option value="emeritus">Emeritus</option>
                       </select>
                     </div>
 

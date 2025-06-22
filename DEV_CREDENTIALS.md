@@ -7,7 +7,7 @@ This document contains the default login credentials for testing the BirchwoodCC
 **Email:** `member@birchwoodcc.com`  
 **Password:** `member123`  
 **Member ID:** `BW001`  
-**Membership Type:** `Full`  
+**Membership Type:** `general`
 
 ## Admin Account
 
@@ -55,17 +55,17 @@ VALUES ('admin@birchwoodcc.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c
 
 You can create additional test members with these credentials:
 
-### Premium Member
+### Property Member
 **Email:** `premium@birchwoodcc.com`  
 **Password:** `premium123`  
 **Member ID:** `BW002`  
-**Membership Type:** `Premium`
+**Membership Type:** `property`
 
-### Basic Member  
+### Social Member  
 **Email:** `basic@birchwoodcc.com`  
 **Password:** `basic123`  
 **Member ID:** `BW003`  
-**Membership Type:** `Basic`
+**Membership Type:** `social`
 
 ## Important Security Notes
 
