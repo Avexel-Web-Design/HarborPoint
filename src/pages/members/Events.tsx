@@ -1,30 +1,48 @@
+import { useState, useEffect } from 'react';
+
+interface EventWithRegistration {
+  id: number;
+  title: string;
+  description?: string;
+  date: string;
+  time: string;
+  location?: string;
+  cost: number;
+  status: string;
+  is_registered?: boolean;
+  registered_count?: number;
+}
+
 const MemberEvents = () => {
-  const upcomingEvents = [
-    {
-      title: 'Member-Guest Tournament',
-      date: 'July 15-16, 2025',
-      description: 'Annual two-day tournament for members and their guests',
-      status: 'Registration Open'
-    },
-    {
-      title: 'Summer Solstice Dinner',
-      date: 'June 21, 2025',
-      description: 'Elegant dinner celebration on the longest day of the year',
-      status: 'Coming Soon'
-    },
-    {
-      title: 'Junior Golf Camp',
-      date: 'July 8-12, 2025',
-      description: 'Week-long golf instruction for young members',
-      status: 'Registration Open'
-    },
-    {
-      title: 'Wine Tasting Evening',
-      date: 'August 5, 2025',
-      description: 'Featuring wines from Michigan vineyards',
-      status: 'Save the Date'
+  const [upcomingEvents, setUpcomingEvents] = useState<EventWithRegistration[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+
+  useEffect(() => {
+    loadUpcomingEvents();
+  }, []);
+
+  const loadUpcomingEvents = async () => {
+    try {
+      const response = await fetch('/api/events', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Show all events in the Events tab
+        setUpcomingEvents(data.events || []);
+      } else if (response.status === 401) {
+        // User not authenticated - this is normal for dashboard protected routes
+        console.log('User not authenticated, events will not load');
+      } else {
+        console.error('Failed to fetch events:', response.status);
+      }
+    } catch (error) {
+      console.error('Failed to load upcoming events:', error);
+    } finally {
+      setEventsLoading(false);
     }
-  ];
+  };
   return (
     <div className="container-width section-padding py-8">
       <div className="max-w-4xl mx-auto">{/* Coming Soon Notice */}
@@ -41,9 +59,7 @@ const MemberEvents = () => {
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Upcoming Events */}
+          </div>          {/* Upcoming Events */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -51,36 +67,61 @@ const MemberEvents = () => {
               </h2>
             </div>
             
-            <div className="divide-y divide-gray-200">
-              {upcomingEvents.map((event, index) => (
-                <div key={index} className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {event.title}
-                      </h3>
-                      <p className="text-primary-600 font-medium mb-2">
-                        {event.date}
-                      </p>
-                      <p className="text-gray-600 mb-3">
-                        {event.description}
-                      </p>
-                    </div>
-                    <div className="ml-4">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                        event.status === 'Registration Open' 
-                          ? 'bg-green-100 text-green-800'
-                          : event.status === 'Coming Soon'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {event.status}
-                      </span>
+            {eventsLoading ? (
+              <div className="text-center p-8">
+                <div className="text-4xl mb-2">⏳</div>
+                <p className="text-gray-600">Loading events...</p>
+              </div>
+            ) : upcomingEvents.length > 0 ? (
+              <div className="divide-y divide-gray-200">
+                {upcomingEvents.map((event, index) => (
+                  <div key={event.id || index} className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          {event.title}
+                        </h3>
+                        <div className="flex items-center text-primary-600 font-medium mb-2">
+                          <span className="mr-4">📅 {new Date(event.date).toLocaleDateString()}</span>
+                          <span className="mr-4">🕐 {event.time}</span>
+                          {event.location && <span>📍 {event.location}</span>}
+                        </div>
+                        <p className="text-gray-600 mb-3">
+                          {event.description}
+                        </p>
+                        <div className="text-sm text-gray-500">
+                          Cost: {event.cost > 0 ? `$${event.cost}` : 'Free'}
+                        </div>
+                      </div>
+                      <div className="ml-4 flex flex-col items-end">
+                        <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium mb-2 ${
+                          event.status === 'open' 
+                            ? 'bg-green-100 text-green-800'
+                            : event.status === 'closed'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {event.status === 'open' ? 'Registration Open' : 
+                           event.status === 'closed' ? 'Registration Closed' : 
+                           event.status}
+                        </span>
+                        {event.is_registered ? (
+                          <div className="text-sm text-green-600">✓ Registered</div>
+                        ) : (
+                          <div className="text-sm text-gray-400">Not registered</div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-8">
+                <div className="text-4xl mb-2">📅</div>
+                <h4 className="font-semibold text-gray-900 mb-1">No upcoming events</h4>
+                <p className="text-gray-600">Check back soon for new events and tournaments</p>
+              </div>
+            )}
           </div>
 
           {/* Contact Information */}
