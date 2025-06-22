@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Calendar from '../../components/admin/Calendar';
 import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
@@ -120,15 +120,14 @@ const AdminEventsPage = () => {
       setShowEditModal(true);
     }
   };
-
-  const calendarEvents = events.map(event => ({
+  const calendarEvents = useMemo(() => events.map(event => ({
     id: event.id,
     date: event.date,
     time: event.time,
     title: event.title,
     subtitle: `${event.registered_count}/${event.max_capacity || '∞'} registered`,
     type: 'event' as const
-  }));
+  })), [events]);
 
   const selectedDateEvents = events.filter(e => e.date === selectedDate);
 

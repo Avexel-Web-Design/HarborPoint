@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Calendar from '../../components/admin/Calendar';
 import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
@@ -149,8 +149,7 @@ const AdminTeeTimesPage = () => {
       throw error;
     }
   };
-
-  const calendarEvents = teeTimes.map(teeTime => ({
+  const calendarEvents = useMemo(() => teeTimes.map(teeTime => ({
     id: teeTime.id,
     date: teeTime.date,
     time: teeTime.time,
@@ -160,7 +159,7 @@ const AdminTeeTimesPage = () => {
     member_id: teeTime.member_id,
     course_name: teeTime.course_name,
     notes: teeTime.notes
-  }));
+  })), [teeTimes]);
 
   const selectedDateTeeTimes = teeTimes.filter(tt => tt.date === selectedDate);
 
@@ -241,18 +240,20 @@ const AdminTeeTimesPage = () => {
                   <p>• Drag tee times to reschedule them</p>
                 </div>
               </div>
-            )}
-
-            {/* Selected Date Details */}
+            )}            {/* Selected Date Details */}
             {selectedDate && (
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {(() => {
+                    const [year, month, day] = selectedDate.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    return date.toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+                  })()}
                 </h3>
                 
                 {selectedDateTeeTimes.length > 0 ? (
@@ -298,16 +299,15 @@ const AdminTeeTimesPage = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Reservations</span>
                   <span className="font-medium">{teeTimes.length}</span>
-                </div>
-                <div className="flex justify-between">
+                </div>                <div className="flex justify-between">
                   <span className="text-gray-600">This Week</span>
                   <span className="font-medium">
                     {teeTimes.filter(tt => {
-                      const teeTimeDate = new Date(tt.date);
+                      const [year, month, day] = tt.date.split('-').map(Number);
+                      const teeTimeDate = new Date(year, month - 1, day);
                       const today = new Date();
-                      const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
-                      const weekEnd = new Date(weekStart);
-                      weekEnd.setDate(weekEnd.getDate() + 6);
+                      const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+                      const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
                       return teeTimeDate >= weekStart && teeTimeDate <= weekEnd;
                     }).length}
                   </span>
@@ -316,7 +316,8 @@ const AdminTeeTimesPage = () => {
                   <span className="text-gray-600">This Month</span>
                   <span className="font-medium">
                     {teeTimes.filter(tt => {
-                      const teeTimeDate = new Date(tt.date);
+                      const [year, month, day] = tt.date.split('-').map(Number);
+                      const teeTimeDate = new Date(year, month - 1, day);
                       const today = new Date();
                       return (
                         teeTimeDate.getMonth() === today.getMonth() &&

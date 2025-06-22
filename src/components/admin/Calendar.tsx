@@ -30,7 +30,11 @@ const Calendar: React.FC<CalendarProps> = ({
   selectedDate,
   enableDragDrop = false
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Initialize with first day of current month to avoid day-specific issues
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
   const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
 
@@ -39,13 +43,12 @@ const Calendar: React.FC<CalendarProps> = ({
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  const { calendarDays, eventsMap } = useMemo(() => {
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];  const { calendarDays, eventsMap } = useMemo(() => {
+    // Always use a fresh date calculation to avoid mutation issues
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
-    // Create date object for first day of month at start of day
+    // Create date object for first day of month - ensure it's always day 1
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
@@ -75,25 +78,35 @@ const Calendar: React.FC<CalendarProps> = ({
 
     return { calendarDays: days, eventsMap };
   }, [currentDate, events]);
-
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prevDate => {
-      const newDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), 1);
+      const year = prevDate.getFullYear();
+      const month = prevDate.getMonth();
+      
       if (direction === 'prev') {
-        newDate.setMonth(newDate.getMonth() - 1);
+        // Go to previous month
+        if (month === 0) {
+          return new Date(year - 1, 11, 1); // December of previous year
+        } else {
+          return new Date(year, month - 1, 1);
+        }
       } else {
-        newDate.setMonth(newDate.getMonth() + 1);
+        // Go to next month
+        if (month === 11) {
+          return new Date(year + 1, 0, 1); // January of next year
+        } else {
+          return new Date(year, month + 1, 1);
+        }
       }
-      return newDate;
     });
   };
-
   const formatDateKey = (day: number) => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    // Ensure we create date at start of day in local timezone
-    const date = new Date(year, month, day);
-    return date.toISOString().split('T')[0];
+    // Format date directly without timezone conversion
+    const monthStr = (month + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    return `${year}-${monthStr}-${dayStr}`;
   };
 
   const isToday = (day: number) => {
@@ -183,10 +196,8 @@ const Calendar: React.FC<CalendarProps> = ({
             {day}
           </div>
         ))}
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7">
+      </div>      {/* Calendar Grid */}
+      <div className="grid grid-cols-7" key={`${currentDate.getFullYear()}-${currentDate.getMonth()}`}>
         {calendarDays.map((day, index) => {
           if (day === null) {
             return <div key={index} className="h-24 border-r border-b border-gray-100"></div>;
