@@ -18,7 +18,6 @@ import MemberProfile from './pages/members/Profile'
 import MemberEvents from './pages/members/Events'
 import MemberTeeTimes from './pages/members/TeeTimes'
 import MemberDining from './pages/members/Dining'
-import MemberGuestPasses from './pages/members/GuestPasses'
 
 // Admin components
 import AdminLogin from './pages/admin/AdminLogin'
@@ -74,13 +73,7 @@ function App() {
           <Route path="/members/dining" element={
             <ProtectedRoute>
               <MemberDining />
-            </ProtectedRoute>
-          } />
-          <Route path="/members/guest-passes" element={
-            <ProtectedRoute>
-              <MemberGuestPasses />
-            </ProtectedRoute>
-          } />
+            </ProtectedRoute>          } />
 
           {/* Admin authentication routes */}
           <Route path="/admin" element={<AdminLogin />} />

@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-Wg3kYP/checked-fetch.js
+// .wrangler/tmp/bundle-pH8tYZ/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -27,7 +27,34 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
   }
 });
 
-// api/auth/utils.ts
+// .wrangler/tmp/pages-nG4oa0/functionsWorker-0.7433101622464133.mjs
+var __defProp2 = Object.defineProperty;
+var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
+var urls2 = /* @__PURE__ */ new Set();
+function checkURL2(request, init) {
+  const url = request instanceof URL ? request : new URL(
+    (typeof request === "string" ? new Request(request, init) : request).url
+  );
+  if (url.port && url.port !== "443" && url.protocol === "https:") {
+    if (!urls2.has(url.toString())) {
+      urls2.add(url.toString());
+      console.warn(
+        `WARNING: known issue with \`fetch()\` requests to custom HTTPS ports in published Workers:
+ - ${url.toString()} - the custom port will be ignored when the Worker is published using the \`wrangler deploy\` command.
+`
+      );
+    }
+  }
+}
+__name(checkURL2, "checkURL");
+__name2(checkURL2, "checkURL");
+globalThis.fetch = new Proxy(globalThis.fetch, {
+  apply(target, thisArg, argArray) {
+    const [request, init] = argArray;
+    checkURL2(request, init);
+    return Reflect.apply(target, thisArg, argArray);
+  }
+});
 async function verifyAuth(request, env) {
   try {
     const cookieHeader = request.headers.get("Cookie");
@@ -78,6 +105,7 @@ async function verifyAuth(request, env) {
   }
 }
 __name(verifyAuth, "verifyAuth");
+__name2(verifyAuth, "verifyAuth");
 async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -86,6 +114,7 @@ async function hashPassword(password) {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 __name(hashPassword, "hashPassword");
+__name2(hashPassword, "hashPassword");
 async function createSessionToken(memberId, jwtSecret) {
   const tokenData = {
     memberId,
@@ -99,6 +128,7 @@ async function createSessionToken(memberId, jwtSecret) {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 __name(createSessionToken, "createSessionToken");
+__name2(createSessionToken, "createSessionToken");
 function parseCookies(cookieHeader) {
   const cookies = {};
   cookieHeader.split(";").forEach((cookie) => {
@@ -110,6 +140,7 @@ function parseCookies(cookieHeader) {
   return cookies;
 }
 __name(parseCookies, "parseCookies");
+__name2(parseCookies, "parseCookies");
 async function verifyJWT(token, env) {
   try {
     console.log("Verifying JWT token:", token.substring(0, 50) + "...");
@@ -168,6 +199,7 @@ async function verifyJWT(token, env) {
   }
 }
 __name(verifyJWT, "verifyJWT");
+__name2(verifyJWT, "verifyJWT");
 async function createJWTSignature(data, secret) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -181,9 +213,8 @@ async function createJWTSignature(data, secret) {
   return btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 __name(createJWTSignature, "createJWTSignature");
-
-// api/admin/auth/login.ts
-var onRequestPost = /* @__PURE__ */ __name(async (context) => {
+__name2(createJWTSignature, "createJWTSignature");
+var onRequestPost = /* @__PURE__ */ __name2(async (context) => {
   try {
     const request = context.request;
     const { DB, JWT_SECRET } = context.env;
@@ -246,9 +277,7 @@ var onRequestPost = /* @__PURE__ */ __name(async (context) => {
     });
   }
 }, "onRequestPost");
-
-// api/admin/auth/logout.ts
-var onRequestPost2 = /* @__PURE__ */ __name(async (context) => {
+var onRequestPost2 = /* @__PURE__ */ __name2(async (context) => {
   try {
     const request = context.request;
     const { DB } = context.env;
@@ -293,10 +322,9 @@ function parseCookies2(cookieHeader) {
   });
   return cookies;
 }
-__name(parseCookies2, "parseCookies");
-
-// api/admin/auth/me.ts
-var onRequestGet = /* @__PURE__ */ __name(async (context) => {
+__name(parseCookies2, "parseCookies2");
+__name2(parseCookies2, "parseCookies");
+var onRequestGet = /* @__PURE__ */ __name2(async (context) => {
   try {
     const request = context.request;
     const { DB } = context.env;
@@ -344,6 +372,7 @@ async function verifyAdminAuth(request, DB) {
   };
 }
 __name(verifyAdminAuth, "verifyAdminAuth");
+__name2(verifyAdminAuth, "verifyAdminAuth");
 function parseCookies3(cookieHeader) {
   const cookies = {};
   cookieHeader.split(";").forEach((cookie) => {
@@ -354,10 +383,9 @@ function parseCookies3(cookieHeader) {
   });
   return cookies;
 }
-__name(parseCookies3, "parseCookies");
-
-// api/auth/login.ts
-var onRequestPost3 = /* @__PURE__ */ __name(async (context) => {
+__name(parseCookies3, "parseCookies3");
+__name2(parseCookies3, "parseCookies");
+var onRequestPost3 = /* @__PURE__ */ __name2(async (context) => {
   try {
     const request = context.request;
     const { DB, JWT_SECRET } = context.env;
@@ -435,6 +463,7 @@ async function verifyPassword(password, hash) {
   return hashHex === hash;
 }
 __name(verifyPassword, "verifyPassword");
+__name2(verifyPassword, "verifyPassword");
 async function createSessionToken2(memberId, secret) {
   const payload = {
     memberId,
@@ -448,7 +477,8 @@ async function createSessionToken2(memberId, secret) {
   const signature = await createSignature(`${encodedHeader}.${encodedPayload}`, secret);
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
-__name(createSessionToken2, "createSessionToken");
+__name(createSessionToken2, "createSessionToken2");
+__name2(createSessionToken2, "createSessionToken");
 async function createSignature(data, secret) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -462,9 +492,8 @@ async function createSignature(data, secret) {
   return btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 __name(createSignature, "createSignature");
-
-// api/auth/logout.ts
-var onRequestPost4 = /* @__PURE__ */ __name(async (context) => {
+__name2(createSignature, "createSignature");
+var onRequestPost4 = /* @__PURE__ */ __name2(async (context) => {
   try {
     const request = context.request;
     const { DB } = context.env;
@@ -492,9 +521,7 @@ var onRequestPost4 = /* @__PURE__ */ __name(async (context) => {
     });
   }
 }, "onRequestPost");
-
-// api/auth/me.ts
-var onRequestGet2 = /* @__PURE__ */ __name(async (context) => {
+var onRequestGet2 = /* @__PURE__ */ __name2(async (context) => {
   console.log("=== AUTH ME REQUEST ===");
   console.log("Request headers:", Object.fromEntries(context.request.headers.entries()));
   try {
@@ -528,9 +555,7 @@ var onRequestGet2 = /* @__PURE__ */ __name(async (context) => {
     });
   }
 }, "onRequestGet");
-
-// api/auth/register.ts
-var onRequestPost5 = /* @__PURE__ */ __name(async (context) => {
+var onRequestPost5 = /* @__PURE__ */ __name2(async (context) => {
   try {
     const request = context.request;
     const { DB } = context.env;
@@ -600,7 +625,8 @@ async function hashPassword2(password) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-__name(hashPassword2, "hashPassword");
+__name(hashPassword2, "hashPassword2");
+__name2(hashPassword2, "hashPassword");
 async function generateMemberId(DB) {
   let memberId;
   let attempts = 0;
@@ -617,9 +643,8 @@ async function generateMemberId(DB) {
   return memberId;
 }
 __name(generateMemberId, "generateMemberId");
-
-// api/admin/members/index.ts
-var onRequest = /* @__PURE__ */ __name(async (context) => {
+__name2(generateMemberId, "generateMemberId");
+var onRequest = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -683,6 +708,7 @@ async function handleGetMembers(request, env) {
   });
 }
 __name(handleGetMembers, "handleGetMembers");
+__name2(handleGetMembers, "handleGetMembers");
 async function handleCreateMember(request, env) {
   const body = await request.json();
   const { email, password, firstName, lastName, membershipType, phone } = body;
@@ -717,6 +743,7 @@ async function handleCreateMember(request, env) {
   }
 }
 __name(handleCreateMember, "handleCreateMember");
+__name2(handleCreateMember, "handleCreateMember");
 async function handleUpdateMember(request, env) {
   const body = await request.json();
   const { id, email, firstName, lastName, membershipType, phone, isActive } = body;
@@ -747,6 +774,7 @@ async function handleUpdateMember(request, env) {
   }
 }
 __name(handleUpdateMember, "handleUpdateMember");
+__name2(handleUpdateMember, "handleUpdateMember");
 async function handleDeleteMember(request, env) {
   const url = new URL(request.url);
   const memberId = url.searchParams.get("id");
@@ -775,6 +803,7 @@ async function handleDeleteMember(request, env) {
   }
 }
 __name(handleDeleteMember, "handleDeleteMember");
+__name2(handleDeleteMember, "handleDeleteMember");
 async function verifyAdminAuth2(request, DB) {
   const cookieHeader = request.headers.get("Cookie");
   if (!cookieHeader) return null;
@@ -793,7 +822,8 @@ async function verifyAdminAuth2(request, DB) {
     role: sessionResult.role
   } : null;
 }
-__name(verifyAdminAuth2, "verifyAdminAuth");
+__name(verifyAdminAuth2, "verifyAdminAuth2");
+__name2(verifyAdminAuth2, "verifyAdminAuth");
 function parseCookies4(cookieHeader) {
   const cookies = {};
   cookieHeader.split(";").forEach((cookie) => {
@@ -804,7 +834,8 @@ function parseCookies4(cookieHeader) {
   });
   return cookies;
 }
-__name(parseCookies4, "parseCookies");
+__name(parseCookies4, "parseCookies4");
+__name2(parseCookies4, "parseCookies");
 async function hashPassword3(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -812,16 +843,16 @@ async function hashPassword3(password) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-__name(hashPassword3, "hashPassword");
+__name(hashPassword3, "hashPassword3");
+__name2(hashPassword3, "hashPassword");
 function generateMemberId2() {
   const timestamp = Date.now().toString().slice(-6);
   const random = Math.floor(Math.random() * 1e3).toString().padStart(3, "0");
   return `BC${timestamp}${random}`;
 }
-__name(generateMemberId2, "generateMemberId");
-
-// api/tee-times/available.ts
-var onRequest2 = /* @__PURE__ */ __name(async (context) => {
+__name(generateMemberId2, "generateMemberId2");
+__name2(generateMemberId2, "generateMemberId");
+var onRequest2 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
@@ -882,9 +913,7 @@ var onRequest2 = /* @__PURE__ */ __name(async (context) => {
     });
   }
 }, "onRequest");
-
-// api/dining/index.ts
-var onRequest3 = /* @__PURE__ */ __name(async (context) => {
+var onRequest3 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -923,6 +952,7 @@ async function handleGetReservations(request, env) {
   });
 }
 __name(handleGetReservations, "handleGetReservations");
+__name2(handleGetReservations, "handleGetReservations");
 async function handleCreateReservation(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -977,6 +1007,7 @@ async function handleCreateReservation(request, env) {
   }
 }
 __name(handleCreateReservation, "handleCreateReservation");
+__name2(handleCreateReservation, "handleCreateReservation");
 async function handleDeleteReservation(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1013,9 +1044,8 @@ async function handleDeleteReservation(request, env) {
   }
 }
 __name(handleDeleteReservation, "handleDeleteReservation");
-
-// api/events/index.ts
-var onRequest4 = /* @__PURE__ */ __name(async (context) => {
+__name2(handleDeleteReservation, "handleDeleteReservation");
+var onRequest4 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1061,6 +1091,7 @@ async function handleGetEvents(request, env) {
   });
 }
 __name(handleGetEvents, "handleGetEvents");
+__name2(handleGetEvents, "handleGetEvents");
 async function handleRegisterForEvent(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1132,6 +1163,7 @@ async function handleRegisterForEvent(request, env) {
   }
 }
 __name(handleRegisterForEvent, "handleRegisterForEvent");
+__name2(handleRegisterForEvent, "handleRegisterForEvent");
 async function handleUnregisterFromEvent(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1168,9 +1200,8 @@ async function handleUnregisterFromEvent(request, env) {
   }
 }
 __name(handleUnregisterFromEvent, "handleUnregisterFromEvent");
-
-// api/guest-passes/index.ts
-var onRequest5 = /* @__PURE__ */ __name(async (context) => {
+__name2(handleUnregisterFromEvent, "handleUnregisterFromEvent");
+var onRequest5 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1209,6 +1240,7 @@ async function handleGetGuestPasses(request, env) {
   });
 }
 __name(handleGetGuestPasses, "handleGetGuestPasses");
+__name2(handleGetGuestPasses, "handleGetGuestPasses");
 async function handleCreateGuestPass(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1256,6 +1288,7 @@ async function handleCreateGuestPass(request, env) {
   }
 }
 __name(handleCreateGuestPass, "handleCreateGuestPass");
+__name2(handleCreateGuestPass, "handleCreateGuestPass");
 async function handleRevokeGuestPass(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1292,6 +1325,7 @@ async function handleRevokeGuestPass(request, env) {
   }
 }
 __name(handleRevokeGuestPass, "handleRevokeGuestPass");
+__name2(handleRevokeGuestPass, "handleRevokeGuestPass");
 async function generatePassCode() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let result = "";
@@ -1301,9 +1335,8 @@ async function generatePassCode() {
   return result;
 }
 __name(generatePassCode, "generatePassCode");
-
-// api/tee-times/index.ts
-var onRequest6 = /* @__PURE__ */ __name(async (context) => {
+__name2(generatePassCode, "generatePassCode");
+var onRequest6 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
@@ -1361,6 +1394,7 @@ async function handleGetTeeTimes(request, env) {
   });
 }
 __name(handleGetTeeTimes, "handleGetTeeTimes");
+__name2(handleGetTeeTimes, "handleGetTeeTimes");
 async function handleCreateTeeTime(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1417,6 +1451,7 @@ async function handleCreateTeeTime(request, env) {
   }
 }
 __name(handleCreateTeeTime, "handleCreateTeeTime");
+__name2(handleCreateTeeTime, "handleCreateTeeTime");
 async function handleDeleteTeeTime(request, env) {
   const member = await verifyAuth(request, env);
   if (!member) {
@@ -1463,8 +1498,7 @@ async function handleDeleteTeeTime(request, env) {
   }
 }
 __name(handleDeleteTeeTime, "handleDeleteTeeTime");
-
-// ../.wrangler/tmp/pages-fJMGcM/functionsRoutes-0.8805681220756743.mjs
+__name2(handleDeleteTeeTime, "handleDeleteTeeTime");
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -1558,8 +1592,6 @@ var routes = [
     modules: [onRequest6]
   }
 ];
-
-// ../../../../../AppData/Roaming/npm/node_modules/wrangler/node_modules/path-to-regexp/dist.es2015/index.js
 function lexer(str) {
   var tokens = [];
   var i = 0;
@@ -1644,6 +1676,7 @@ function lexer(str) {
   return tokens;
 }
 __name(lexer, "lexer");
+__name2(lexer, "lexer");
 function parse(str, options) {
   if (options === void 0) {
     options = {};
@@ -1654,18 +1687,18 @@ function parse(str, options) {
   var key = 0;
   var i = 0;
   var path = "";
-  var tryConsume = /* @__PURE__ */ __name(function(type) {
+  var tryConsume = /* @__PURE__ */ __name2(function(type) {
     if (i < tokens.length && tokens[i].type === type)
       return tokens[i++].value;
   }, "tryConsume");
-  var mustConsume = /* @__PURE__ */ __name(function(type) {
+  var mustConsume = /* @__PURE__ */ __name2(function(type) {
     var value2 = tryConsume(type);
     if (value2 !== void 0)
       return value2;
     var _a2 = tokens[i], nextType = _a2.type, index = _a2.index;
     throw new TypeError("Unexpected ".concat(nextType, " at ").concat(index, ", expected ").concat(type));
   }, "mustConsume");
-  var consumeText = /* @__PURE__ */ __name(function() {
+  var consumeText = /* @__PURE__ */ __name2(function() {
     var result2 = "";
     var value2;
     while (value2 = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")) {
@@ -1673,7 +1706,7 @@ function parse(str, options) {
     }
     return result2;
   }, "consumeText");
-  var isSafe = /* @__PURE__ */ __name(function(value2) {
+  var isSafe = /* @__PURE__ */ __name2(function(value2) {
     for (var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++) {
       var char2 = delimiter_1[_i];
       if (value2.indexOf(char2) > -1)
@@ -1681,7 +1714,7 @@ function parse(str, options) {
     }
     return false;
   }, "isSafe");
-  var safePattern = /* @__PURE__ */ __name(function(prefix2) {
+  var safePattern = /* @__PURE__ */ __name2(function(prefix2) {
     var prev = result[result.length - 1];
     var prevText = prefix2 || (prev && typeof prev === "string" ? prev : "");
     if (prev && !prevText) {
@@ -1744,12 +1777,14 @@ function parse(str, options) {
   return result;
 }
 __name(parse, "parse");
+__name2(parse, "parse");
 function match(str, options) {
   var keys = [];
   var re = pathToRegexp(str, keys, options);
   return regexpToFunction(re, keys, options);
 }
 __name(match, "match");
+__name2(match, "match");
 function regexpToFunction(re, keys, options) {
   if (options === void 0) {
     options = {};
@@ -1763,7 +1798,7 @@ function regexpToFunction(re, keys, options) {
       return false;
     var path = m[0], index = m.index;
     var params = /* @__PURE__ */ Object.create(null);
-    var _loop_1 = /* @__PURE__ */ __name(function(i2) {
+    var _loop_1 = /* @__PURE__ */ __name2(function(i2) {
       if (m[i2] === void 0)
         return "continue";
       var key = keys[i2 - 1];
@@ -1782,14 +1817,17 @@ function regexpToFunction(re, keys, options) {
   };
 }
 __name(regexpToFunction, "regexpToFunction");
+__name2(regexpToFunction, "regexpToFunction");
 function escapeString(str) {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
 }
 __name(escapeString, "escapeString");
+__name2(escapeString, "escapeString");
 function flags(options) {
   return options && options.sensitive ? "" : "i";
 }
 __name(flags, "flags");
+__name2(flags, "flags");
 function regexpToRegexp(path, keys) {
   if (!keys)
     return path;
@@ -1810,6 +1848,7 @@ function regexpToRegexp(path, keys) {
   return path;
 }
 __name(regexpToRegexp, "regexpToRegexp");
+__name2(regexpToRegexp, "regexpToRegexp");
 function arrayToRegexp(paths, keys, options) {
   var parts = paths.map(function(path) {
     return pathToRegexp(path, keys, options).source;
@@ -1817,10 +1856,12 @@ function arrayToRegexp(paths, keys, options) {
   return new RegExp("(?:".concat(parts.join("|"), ")"), flags(options));
 }
 __name(arrayToRegexp, "arrayToRegexp");
+__name2(arrayToRegexp, "arrayToRegexp");
 function stringToRegexp(path, keys, options) {
   return tokensToRegexp(parse(path, options), keys, options);
 }
 __name(stringToRegexp, "stringToRegexp");
+__name2(stringToRegexp, "stringToRegexp");
 function tokensToRegexp(tokens, keys, options) {
   if (options === void 0) {
     options = {};
@@ -1876,6 +1917,7 @@ function tokensToRegexp(tokens, keys, options) {
   return new RegExp(route, flags(options));
 }
 __name(tokensToRegexp, "tokensToRegexp");
+__name2(tokensToRegexp, "tokensToRegexp");
 function pathToRegexp(path, keys, options) {
   if (path instanceof RegExp)
     return regexpToRegexp(path, keys);
@@ -1884,8 +1926,7 @@ function pathToRegexp(path, keys, options) {
   return stringToRegexp(path, keys, options);
 }
 __name(pathToRegexp, "pathToRegexp");
-
-// ../../../../../AppData/Roaming/npm/node_modules/wrangler/templates/pages-template-worker.ts
+__name2(pathToRegexp, "pathToRegexp");
 var escapeRegex = /[.+?^${}()|[\]\\]/g;
 function* executeRequest(request) {
   const requestPath = new URL(request.url).pathname;
@@ -1936,13 +1977,14 @@ function* executeRequest(request) {
   }
 }
 __name(executeRequest, "executeRequest");
+__name2(executeRequest, "executeRequest");
 var pages_template_worker_default = {
   async fetch(originalRequest, env, workerContext) {
     let request = originalRequest;
     const handlerIterator = executeRequest(request);
     let data = {};
     let isFailOpen = false;
-    const next = /* @__PURE__ */ __name(async (input, init) => {
+    const next = /* @__PURE__ */ __name2(async (input, init) => {
       if (input !== void 0) {
         let url = input;
         if (typeof input === "string") {
@@ -1969,7 +2011,7 @@ var pages_template_worker_default = {
           },
           env,
           waitUntil: workerContext.waitUntil.bind(workerContext),
-          passThroughOnException: /* @__PURE__ */ __name(() => {
+          passThroughOnException: /* @__PURE__ */ __name2(() => {
             isFailOpen = true;
           }, "passThroughOnException")
         };
@@ -1997,16 +2039,14 @@ var pages_template_worker_default = {
     }
   }
 };
-var cloneResponse = /* @__PURE__ */ __name((response) => (
+var cloneResponse = /* @__PURE__ */ __name2((response) => (
   // https://fetch.spec.whatwg.org/#null-body-status
   new Response(
     [101, 204, 205, 304].includes(response.status) ? null : response.body,
     response
   )
 ), "cloneResponse");
-
-// ../../../../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
-var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+var drainBody = /* @__PURE__ */ __name2(async (request, env, _ctx, middlewareCtx) => {
   try {
     return await middlewareCtx.next(request, env);
   } finally {
@@ -2022,8 +2062,6 @@ var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
   }
 }, "drainBody");
 var middleware_ensure_req_body_drained_default = drainBody;
-
-// ../../../../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
 function reduceError(e) {
   return {
     name: e?.name,
@@ -2033,7 +2071,8 @@ function reduceError(e) {
   };
 }
 __name(reduceError, "reduceError");
-var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+__name2(reduceError, "reduceError");
+var jsonError = /* @__PURE__ */ __name2(async (request, env, _ctx, middlewareCtx) => {
   try {
     return await middlewareCtx.next(request, env);
   } catch (e) {
@@ -2045,20 +2084,17 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
   }
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
-
-// ../.wrangler/tmp/bundle-Wg3kYP/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
 ];
 var middleware_insertion_facade_default = pages_template_worker_default;
-
-// ../../../../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/common.ts
 var __facade_middleware__ = [];
 function __facade_register__(...args) {
   __facade_middleware__.push(...args.flat());
 }
 __name(__facade_register__, "__facade_register__");
+__name2(__facade_register__, "__facade_register__");
 function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
   const [head, ...tail] = middlewareChain;
   const middlewareCtx = {
@@ -2070,6 +2106,7 @@ function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
   return head(request, env, ctx, middlewareCtx);
 }
 __name(__facade_invokeChain__, "__facade_invokeChain__");
+__name2(__facade_invokeChain__, "__facade_invokeChain__");
 function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   return __facade_invokeChain__(request, env, ctx, dispatch, [
     ...__facade_middleware__,
@@ -2077,16 +2114,18 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 __name(__facade_invoke__, "__facade_invoke__");
-
-// ../.wrangler/tmp/bundle-Wg3kYP/middleware-loader.entry.ts
+__name2(__facade_invoke__, "__facade_invoke__");
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
+  static {
+    __name(this, "___Facade_ScheduledController__");
+  }
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
     this.cron = cron;
     this.#noRetry = noRetry;
   }
   static {
-    __name(this, "__Facade_ScheduledController__");
+    __name2(this, "__Facade_ScheduledController__");
   }
   #noRetry;
   noRetry() {
@@ -2103,7 +2142,7 @@ function wrapExportedHandler(worker) {
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
     __facade_register__(middleware);
   }
-  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
+  const fetchDispatcher = /* @__PURE__ */ __name2(function(request, env, ctx) {
     if (worker.fetch === void 0) {
       throw new Error("Handler does not export a fetch() function.");
     }
@@ -2112,7 +2151,7 @@ function wrapExportedHandler(worker) {
   return {
     ...worker,
     fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
+      const dispatcher = /* @__PURE__ */ __name2(function(type, init) {
         if (type === "scheduled" && worker.scheduled !== void 0) {
           const controller = new __Facade_ScheduledController__(
             Date.now(),
@@ -2128,6 +2167,7 @@ function wrapExportedHandler(worker) {
   };
 }
 __name(wrapExportedHandler, "wrapExportedHandler");
+__name2(wrapExportedHandler, "wrapExportedHandler");
 function wrapWorkerEntrypoint(klass) {
   if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
     return klass;
@@ -2136,7 +2176,7 @@ function wrapWorkerEntrypoint(klass) {
     __facade_register__(middleware);
   }
   return class extends klass {
-    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
+    #fetchDispatcher = /* @__PURE__ */ __name2((request, env, ctx) => {
       this.env = env;
       this.ctx = ctx;
       if (super.fetch === void 0) {
@@ -2144,7 +2184,7 @@ function wrapWorkerEntrypoint(klass) {
       }
       return super.fetch(request);
     }, "#fetchDispatcher");
-    #dispatcher = /* @__PURE__ */ __name((type, init) => {
+    #dispatcher = /* @__PURE__ */ __name2((type, init) => {
       if (type === "scheduled" && super.scheduled !== void 0) {
         const controller = new __Facade_ScheduledController__(
           Date.now(),
@@ -2167,6 +2207,7 @@ function wrapWorkerEntrypoint(klass) {
   };
 }
 __name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
+__name2(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
 var WRAPPED_ENTRY;
 if (typeof middleware_insertion_facade_default === "object") {
   WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
@@ -2174,8 +2215,178 @@ if (typeof middleware_insertion_facade_default === "object") {
   WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
 }
 var middleware_loader_entry_default = WRAPPED_ENTRY;
-export {
-  __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default as default
+
+// ../../../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
+var drainBody2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env);
+  } finally {
+    try {
+      if (request.body !== null && !request.bodyUsed) {
+        const reader = request.body.getReader();
+        while (!(await reader.read()).done) {
+        }
+      }
+    } catch (e) {
+      console.error("Failed to drain the unused request body.", e);
+    }
+  }
+}, "drainBody");
+var middleware_ensure_req_body_drained_default2 = drainBody2;
+
+// ../../../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
+function reduceError2(e) {
+  return {
+    name: e?.name,
+    message: e?.message ?? String(e),
+    stack: e?.stack,
+    cause: e?.cause === void 0 ? void 0 : reduceError2(e.cause)
+  };
+}
+__name(reduceError2, "reduceError");
+var jsonError2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env);
+  } catch (e) {
+    const error = reduceError2(e);
+    return Response.json(error, {
+      status: 500,
+      headers: { "MF-Experimental-Error-Stack": "true" }
+    });
+  }
+}, "jsonError");
+var middleware_miniflare3_json_error_default2 = jsonError2;
+
+// .wrangler/tmp/bundle-pH8tYZ/middleware-insertion-facade.js
+var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
+  middleware_ensure_req_body_drained_default2,
+  middleware_miniflare3_json_error_default2
+];
+var middleware_insertion_facade_default2 = middleware_loader_entry_default;
+
+// ../../../../AppData/Roaming/npm/node_modules/wrangler/templates/middleware/common.ts
+var __facade_middleware__2 = [];
+function __facade_register__2(...args) {
+  __facade_middleware__2.push(...args.flat());
+}
+__name(__facade_register__2, "__facade_register__");
+function __facade_invokeChain__2(request, env, ctx, dispatch, middlewareChain) {
+  const [head, ...tail] = middlewareChain;
+  const middlewareCtx = {
+    dispatch,
+    next(newRequest, newEnv) {
+      return __facade_invokeChain__2(newRequest, newEnv, ctx, dispatch, tail);
+    }
+  };
+  return head(request, env, ctx, middlewareCtx);
+}
+__name(__facade_invokeChain__2, "__facade_invokeChain__");
+function __facade_invoke__2(request, env, ctx, dispatch, finalMiddleware) {
+  return __facade_invokeChain__2(request, env, ctx, dispatch, [
+    ...__facade_middleware__2,
+    finalMiddleware
+  ]);
+}
+__name(__facade_invoke__2, "__facade_invoke__");
+
+// .wrangler/tmp/bundle-pH8tYZ/middleware-loader.entry.ts
+var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
+  constructor(scheduledTime, cron, noRetry) {
+    this.scheduledTime = scheduledTime;
+    this.cron = cron;
+    this.#noRetry = noRetry;
+  }
+  static {
+    __name(this, "__Facade_ScheduledController__");
+  }
+  #noRetry;
+  noRetry() {
+    if (!(this instanceof ___Facade_ScheduledController__2)) {
+      throw new TypeError("Illegal invocation");
+    }
+    this.#noRetry();
+  }
 };
-//# sourceMappingURL=functionsWorker-0.8612482993465349.mjs.map
+function wrapExportedHandler2(worker) {
+  if (__INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0) {
+    return worker;
+  }
+  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__2) {
+    __facade_register__2(middleware);
+  }
+  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
+    if (worker.fetch === void 0) {
+      throw new Error("Handler does not export a fetch() function.");
+    }
+    return worker.fetch(request, env, ctx);
+  }, "fetchDispatcher");
+  return {
+    ...worker,
+    fetch(request, env, ctx) {
+      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
+        if (type === "scheduled" && worker.scheduled !== void 0) {
+          const controller = new __Facade_ScheduledController__2(
+            Date.now(),
+            init.cron ?? "",
+            () => {
+            }
+          );
+          return worker.scheduled(controller, env, ctx);
+        }
+      }, "dispatcher");
+      return __facade_invoke__2(request, env, ctx, dispatcher, fetchDispatcher);
+    }
+  };
+}
+__name(wrapExportedHandler2, "wrapExportedHandler");
+function wrapWorkerEntrypoint2(klass) {
+  if (__INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0) {
+    return klass;
+  }
+  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__2) {
+    __facade_register__2(middleware);
+  }
+  return class extends klass {
+    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
+      this.env = env;
+      this.ctx = ctx;
+      if (super.fetch === void 0) {
+        throw new Error("Entrypoint class does not define a fetch() function.");
+      }
+      return super.fetch(request);
+    }, "#fetchDispatcher");
+    #dispatcher = /* @__PURE__ */ __name((type, init) => {
+      if (type === "scheduled" && super.scheduled !== void 0) {
+        const controller = new __Facade_ScheduledController__2(
+          Date.now(),
+          init.cron ?? "",
+          () => {
+          }
+        );
+        return super.scheduled(controller);
+      }
+    }, "#dispatcher");
+    fetch(request) {
+      return __facade_invoke__2(
+        request,
+        this.env,
+        this.ctx,
+        this.#dispatcher,
+        this.#fetchDispatcher
+      );
+    }
+  };
+}
+__name(wrapWorkerEntrypoint2, "wrapWorkerEntrypoint");
+var WRAPPED_ENTRY2;
+if (typeof middleware_insertion_facade_default2 === "object") {
+  WRAPPED_ENTRY2 = wrapExportedHandler2(middleware_insertion_facade_default2);
+} else if (typeof middleware_insertion_facade_default2 === "function") {
+  WRAPPED_ENTRY2 = wrapWorkerEntrypoint2(middleware_insertion_facade_default2);
+}
+var middleware_loader_entry_default2 = WRAPPED_ENTRY2;
+export {
+  __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
+  middleware_loader_entry_default2 as default
+};
+//# sourceMappingURL=functionsWorker-0.7433101622464133.js.map
