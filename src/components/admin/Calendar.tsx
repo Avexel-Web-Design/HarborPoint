@@ -1,27 +1,38 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+interface CalendarEvent {
+  id: string | number;
+  date: string;
+  time?: string;
+  title: string;
+  subtitle?: string;
+  status?: string;
+  type?: 'tee-time' | 'event' | 'reservation';
+}
+
 interface CalendarProps {
-  events: Array<{
-    id: string | number;
-    date: string;
-    time?: string;
-    title: string;
-    subtitle?: string;
-    status?: string;
-  }>;
+  events: CalendarEvent[];
   onDateClick?: (date: string) => void;
-  onEventClick?: (event: any) => void;
+  onEventClick?: (event: CalendarEvent) => void;
+  onDateDoubleClick?: (date: string) => void;
+  onEventDrop?: (event: CalendarEvent, newDate: string) => void;
   selectedDate?: string;
+  enableDragDrop?: boolean;
 }
 
 const Calendar: React.FC<CalendarProps> = ({ 
   events, 
   onDateClick, 
   onEventClick, 
-  selectedDate 
+  onDateDoubleClick,
+  onEventDrop,
+  selectedDate,
+  enableDragDrop = false
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -90,10 +101,50 @@ const Calendar: React.FC<CalendarProps> = ({
       today.getDate() === day
     );
   };
-
   const isSelected = (day: number) => {
     if (!selectedDate) return false;
     return selectedDate === formatDateKey(day);
+  };
+
+  const handleEventDragStart = (e: React.DragEvent, event: CalendarEvent) => {
+    if (!enableDragDrop) return;
+    setDraggedEvent(event);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
+  };
+
+  const handleEventDragEnd = () => {
+    setDraggedEvent(null);
+    setDragOverDate(null);
+  };
+
+  const handleDateDragOver = (e: React.DragEvent, dateKey: string) => {
+    if (!draggedEvent || !enableDragDrop) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverDate(dateKey);
+  };
+
+  const handleDateDragLeave = () => {
+    setDragOverDate(null);
+  };
+
+  const handleDateDrop = (e: React.DragEvent, dateKey: string) => {
+    e.preventDefault();
+    if (!draggedEvent || !enableDragDrop || !onEventDrop) return;
+    
+    if (dateKey !== draggedEvent.date) {
+      onEventDrop(draggedEvent, dateKey);
+    }
+    
+    setDraggedEvent(null);
+    setDragOverDate(null);
+  };
+
+  const handleDateDoubleClick = (dateKey: string) => {
+    if (onDateDoubleClick) {
+      onDateDoubleClick(dateKey);
+    }
   };
 
   return (
@@ -133,20 +184,23 @@ const Calendar: React.FC<CalendarProps> = ({
         {calendarDays.map((day, index) => {
           if (day === null) {
             return <div key={index} className="h-24 border-r border-b border-gray-100"></div>;
-          }
-
-          const dateKey = formatDateKey(day);
+          }          const dateKey = formatDateKey(day);
           const dayEvents = eventsMap[dateKey] || [];
           const isCurrentDay = isToday(day);
           const isSelectedDay = isSelected(day);
+          const isDragOver = dragOverDate === dateKey;
 
           return (
             <div
               key={day}
               className={`h-24 border-r border-b border-gray-100 p-1 cursor-pointer hover:bg-gray-50 ${
                 isSelectedDay ? 'bg-blue-50' : ''
-              }`}
+              } ${isDragOver ? 'bg-yellow-50 border-yellow-300' : ''}`}
               onClick={() => onDateClick?.(dateKey)}
+              onDoubleClick={() => handleDateDoubleClick(dateKey)}
+              onDragOver={(e) => handleDateDragOver(e, dateKey)}
+              onDragLeave={handleDateDragLeave}
+              onDrop={(e) => handleDateDrop(e, dateKey)}
             >
               <div className="h-full flex flex-col">
                 <span
@@ -157,12 +211,19 @@ const Calendar: React.FC<CalendarProps> = ({
                   }`}
                 >
                   {day}
-                </span>
-                <div className="flex-1 overflow-hidden">
+                </span>                <div className="flex-1 overflow-hidden">
                   {dayEvents.slice(0, 2).map((event) => (
                     <div
                       key={event.id}
-                      className="text-xs p-1 mb-1 bg-blue-100 text-blue-800 rounded cursor-pointer hover:bg-blue-200 truncate"
+                      className={`text-xs p-1 mb-1 rounded cursor-pointer truncate ${
+                        event.type === 'tee-time' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                        event.type === 'event' ? 'bg-purple-100 text-purple-800 hover:bg-purple-200' :
+                        event.type === 'reservation' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' :
+                        'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      }`}
+                      draggable={enableDragDrop}
+                      onDragStart={(e) => handleEventDragStart(e, event)}
+                      onDragEnd={handleEventDragEnd}
                       onClick={(e) => {
                         e.stopPropagation();
                         onEventClick?.(event);

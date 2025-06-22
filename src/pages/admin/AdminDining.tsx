@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Calendar from '../../components/admin/Calendar';
+import CreateModal from '../../components/admin/CreateModal';
+import EditModal from '../../components/admin/EditModal';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 interface DiningReservation {
@@ -18,14 +20,6 @@ interface DiningReservation {
   created_at: string;
 }
 
-interface DiningReservationForm {
-  id?: number;
-  date: string;
-  time: string;
-  party_size: number;
-  special_requests: string;
-}
-
 const AdminDiningPage = () => {
   const { } = useAdminAuth();
   const [reservations, setReservations] = useState<DiningReservation[]>([]);
@@ -33,13 +27,8 @@ const AdminDiningPage = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedReservation, setSelectedReservation] = useState<DiningReservation | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState('');
-  const [reservationForm, setReservationForm] = useState<DiningReservationForm>({
-    date: '',
-    time: '',
-    party_size: 1,
-    special_requests: ''
-  });
 
   useEffect(() => {
     loadReservations();
@@ -65,75 +54,73 @@ const AdminDiningPage = () => {
       setLoading(false);
     }
   };
+  const handleCreate = async (data: any) => {
+    try {
+      const response = await fetch('/api/admin/dining', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
 
+      if (response.ok) {
+        setMessage('Dining reservation created successfully!');
+        loadReservations();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error creating reservation');
+      }
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      setMessage('Error creating reservation');
+      throw error;
+    }
+  };
+  const handleUpdate = async (data: any) => {
+    try {
+      const response = await fetch('/api/admin/dining', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        setMessage('Reservation updated successfully!');
+        loadReservations();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error updating reservation');
+      }
+    } catch (error) {
+      console.error('Error updating reservation:', error);
+      setMessage('Error updating reservation');
+      throw error;
+    }
+  };
   const handleDateClick = (date: string) => {
     setSelectedDate(date);
+  };
+
+  const handleDateDoubleClick = (date: string) => {
+    setSelectedDate(date);
+    setSelectedReservation(null);
+    setShowCreateModal(true);
+  };
+
+  const handleEventDrop = async (event: any, newDate: string) => {
+    const fullReservation = reservations.find(r => r.id.toString() === event.id.toString());
+    if (!fullReservation) return;
+
+    const updatedReservation = { ...fullReservation, date: newDate };
+    await handleUpdate(updatedReservation);
   };
 
   const handleReservationClick = (reservation: any) => {
     const fullReservation = reservations.find(r => r.id === reservation.id);
     if (fullReservation) {
       setSelectedReservation(fullReservation);
-      setReservationForm({
-        id: fullReservation.id,
-        date: fullReservation.date,
-        time: fullReservation.time,
-        party_size: fullReservation.party_size,
-        special_requests: fullReservation.special_requests || ''
-      });
       setShowEditModal(true);
-    }
-  };
-
-  const handleUpdateReservation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const response = await fetch('/api/admin/dining', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(reservationForm)
-      });
-
-      if (response.ok) {
-        setMessage('Reservation updated successfully!');
-        setShowEditModal(false);
-        setSelectedReservation(null);
-        loadReservations();
-      } else {
-        const data = await response.json();
-        setMessage(data.error || 'Failed to update reservation');
-      }
-    } catch (error) {
-      console.error('Error updating reservation:', error);
-      setMessage('Error updating reservation');
-    }
-  };
-
-  const handleDeleteReservation = async (reservationId: number) => {
-    if (!confirm('Are you sure you want to cancel this reservation?')) return;
-
-    try {
-      const response = await fetch(`/api/admin/dining?id=${reservationId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setMessage('Reservation cancelled successfully!');
-        setShowEditModal(false);
-        setSelectedReservation(null);
-        loadReservations();
-      } else {
-        const data = await response.json();
-        setMessage(data.error || 'Failed to cancel reservation');
-      }
-    } catch (error) {
-      console.error('Error cancelling reservation:', error);
-      setMessage('Error cancelling reservation');
     }
   };
 
@@ -142,7 +129,8 @@ const AdminDiningPage = () => {
     date: reservation.date,
     time: reservation.time,
     title: `${reservation.first_name} ${reservation.last_name}`,
-    subtitle: `Party of ${reservation.party_size}`
+    subtitle: `Party of ${reservation.party_size}`,
+    type: 'reservation' as const
   }));
 
   const selectedDateReservations = reservations.filter(r => r.date === selectedDate);
@@ -178,8 +166,20 @@ const AdminDiningPage = () => {
                 Manage and overview dining reservations
               </p>
             </div>
-            <div className="text-sm text-gray-500">
-              Total reservations: {reservations.length}
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                Total reservations: {reservations.length}
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedReservation(null);
+                  setSelectedDate('');
+                  setShowCreateModal(true);
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Create Reservation
+              </button>
             </div>
           </div>
         </div>
@@ -202,13 +202,26 @@ const AdminDiningPage = () => {
             <Calendar
               events={calendarEvents}
               onDateClick={handleDateClick}
+              onDateDoubleClick={handleDateDoubleClick}
               onEventClick={handleReservationClick}
+              onEventDrop={handleEventDrop}
               selectedDate={selectedDate}
+              enableDragDrop={true}
             />
-          </div>
-
-          {/* Sidebar */}
+          </div>          {/* Sidebar */}
           <div className="space-y-6">
+            {/* Instructions */}
+            {!selectedDate && (
+              <div className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <p>• Double-click any date to create a reservation</p>
+                  <p>• Click a reservation to view details</p>
+                  <p>• Drag reservations to reschedule them</p>
+                </div>
+              </div>
+            )}
+
             {/* Selected Date Details */}
             {selectedDate && (
               <div className="bg-white rounded-lg shadow p-6">
@@ -226,41 +239,44 @@ const AdminDiningPage = () => {
                     {Object.entries(reservationsByTime)
                       .sort(([a], [b]) => a.localeCompare(b))
                       .map(([time, timeReservations]) => (
-                      <div key={time} className="border-l-4 border-blue-500 pl-4">
-                        <div className="font-medium text-gray-900 mb-2">{time}</div>
-                        <div className="space-y-2">
-                          {timeReservations.map(reservation => (
-                            <div
-                              key={reservation.id}
-                              className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                              onClick={() => handleReservationClick(reservation)}
-                            >
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <div className="font-medium text-gray-900">
-                                    {reservation.first_name} {reservation.last_name}
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    Party of {reservation.party_size}
-                                  </div>
-                                  {reservation.special_requests && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      Note: {reservation.special_requests}
+                        <div key={time} className="border-l-4 border-blue-500 pl-4">
+                          <div className="font-medium text-gray-900 mb-2">{time}</div>
+                          <div className="space-y-2">
+                            {timeReservations.map(reservation => (
+                              <div
+                                key={reservation.id}
+                                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
+                                onClick={() => handleReservationClick(reservation)}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <div className="font-medium text-gray-900">
+                                      {reservation.first_name} {reservation.last_name}
                                     </div>
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-400">
-                                  #{reservation.member_id_display}
+                                    <div className="text-sm text-gray-600">
+                                      Party of {reservation.party_size}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      #{reservation.member_id_display}
+                                    </div>
+                                    {reservation.special_requests && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        {reservation.special_requests}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">No reservations for this date.</p>
+                  <div className="text-gray-500 text-sm">
+                    <p>No reservations for this date.</p>
+                    <p className="mt-2 text-xs">Double-click on a calendar date to create a reservation.</p>
+                  </div>
                 )}
               </div>
             )}
@@ -274,39 +290,26 @@ const AdminDiningPage = () => {
                   <span className="font-medium">{reservations.length}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-gray-600">Today</span>
+                  <span className="font-medium">
+                    {reservations.filter(r => r.date === new Date().toISOString().split('T')[0]).length}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-600">This Week</span>
                   <span className="font-medium">
                     {reservations.filter(r => {
-                      const reservationDate = new Date(r.date);
+                      const resDate = new Date(r.date);
                       const today = new Date();
                       const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
                       const weekEnd = new Date(weekStart);
                       weekEnd.setDate(weekEnd.getDate() + 6);
-                      return reservationDate >= weekStart && reservationDate <= weekEnd;
+                      return resDate >= weekStart && resDate <= weekEnd;
                     }).length}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">This Month</span>
-                  <span className="font-medium">
-                    {reservations.filter(r => {
-                      const reservationDate = new Date(r.date);
-                      const today = new Date();
-                      return (
-                        reservationDate.getMonth() === today.getMonth() &&
-                        reservationDate.getFullYear() === today.getFullYear()
-                      );
-                    }).length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Guests</span>
-                  <span className="font-medium">
-                    {reservations.reduce((sum, r) => sum + r.party_size, 0)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Avg Party Size</span>
+                  <span className="text-gray-600">Average Party Size</span>
                   <span className="font-medium">
                     {reservations.length > 0 
                       ? (reservations.reduce((sum, r) => sum + r.party_size, 0) / reservations.length).toFixed(1)
@@ -320,109 +323,26 @@ const AdminDiningPage = () => {
         </div>
       </div>
 
+      {/* Create Modal */}
+      {showCreateModal && (
+        <CreateModal
+          type="reservation"
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreate}
+          selectedDate={selectedDate}
+        />
+      )}
+
       {/* Edit Modal */}
       {showEditModal && selectedReservation && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Edit Dining Reservation
-              </h3>
-              
-              <form onSubmit={handleUpdateReservation} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Member
-                  </label>
-                  <div className="text-sm text-gray-600">
-                    {selectedReservation.first_name} {selectedReservation.last_name} (#{selectedReservation.member_id_display})
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {selectedReservation.email}
-                    {selectedReservation.phone && ` • ${selectedReservation.phone}`}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={reservationForm.date}
-                    onChange={(e) => setReservationForm({...reservationForm, date: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={reservationForm.time}
-                    onChange={(e) => setReservationForm({...reservationForm, time: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Party Size
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="12"
-                    value={reservationForm.party_size}
-                    onChange={(e) => setReservationForm({...reservationForm, party_size: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Special Requests
-                  </label>
-                  <textarea
-                    value={reservationForm.special_requests}
-                    onChange={(e) => setReservationForm({...reservationForm, special_requests: e.target.value})}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Dietary restrictions, seating preferences, etc."
-                  />
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    Update
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteReservation(selectedReservation.id)}
-                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(false)}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    Close
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+        <EditModal
+          type="reservation"
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={handleUpdate}
+          item={selectedReservation}
+        />
       )}
     </div>
   );

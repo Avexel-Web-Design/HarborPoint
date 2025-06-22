@@ -359,30 +359,6 @@ const MemberTeeTimes = () => {
                 </div>
               )}
             </div>
-
-            {/* Course Information */}
-            <div className="bg-white rounded-lg shadow p-6 mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Course Information
-              </h3>
-              
-              {courses.map(course => (
-                <div key={course.id} className={`mb-3 p-3 rounded ${selectedCourse === course.id ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50'}`}>
-                  <p className="font-medium">{course.name}</p>
-                  <p className="text-sm text-gray-600">{course.description}</p>
-                </div>
-              ))}
-              
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-2">Booking Policy</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Bookings can be made up to 30 days in advance</li>
-                  <li>• Cancellations must be made 24 hours in advance</li>
-                  <li>• Late cancellations may incur fees</li>
-                  <li>• Check-in is required 15 minutes before tee time</li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
       </div>

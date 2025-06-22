@@ -20,19 +20,19 @@ const Lifestyle = () => {  const activities = [
       title: "Swimming Pool",
       description: "Heated outdoor pool for year-round enjoyment",
       icon: faPersonSwimming,
-      link: "/amenities"
+      link: "/lifestyle"
     },
     {
       title: "Walking Trails",
       description: "Miles of scenic trails through northern Michigan beauty",
       icon: faPersonHiking,
-      link: "/amenities"
+      link: "/lifestyle"
     },
     {
       title: "Racquet Sports",
       description: "Tennis and pickleball courts for active members",
       icon: faTableTennisPaddleBall,
-      link: "/amenities"
+      link: "/lifestyle"
     },
     {
       title: "Fine Dining",
@@ -44,7 +44,7 @@ const Lifestyle = () => {  const activities = [
       title: "Cross Country Skiing",
       description: "Winter trails for cross-country skiing adventures",
       icon: faPersonSkiing,
-      link: "/amenities"
+      link: "/lifestyle"
     }
   ]
 

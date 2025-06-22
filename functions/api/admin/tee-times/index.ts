@@ -4,7 +4,6 @@ import { verifyAdminAuth } from '../auth/utils.ts';
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const method = request.method;
-
   try {
     const admin = await verifyAdminAuth(request, env);
     if (!admin) {
@@ -16,6 +15,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (method === 'GET') {
       return handleGetAllTeeTimes(request, env);
+    } else if (method === 'POST') {
+      return handleCreateTeeTime(request, env);
     } else if (method === 'DELETE') {
       return handleDeleteTeeTime(request, env);
     } else if (method === 'PUT') {
@@ -101,7 +102,7 @@ async function handleDeleteTeeTime(request: Request, env: Env) {
 }
 
 async function handleUpdateTeeTime(request: Request, env: Env) {
-  const { id, date, time, guests, notes } = await request.json();
+  const { id, memberIds, date, time, notes } = await request.json();
 
   if (!id) {
     return new Response(JSON.stringify({ error: 'Tee time ID required' }), {
@@ -110,20 +111,131 @@ async function handleUpdateTeeTime(request: Request, env: Env) {
     });
   }
 
+  if (memberIds && Array.isArray(memberIds) && memberIds.length > 0) {
+    // If updating member assignments, get member names
+    const memberQuery = env.DB.prepare(`
+      SELECT first_name, last_name FROM members WHERE id IN (${memberIds.map(() => '?').join(',')})
+    `);
+    const memberResult = await memberQuery.bind(...memberIds).all();
+    const memberNames = memberResult.results?.map((m: any) => `${m.first_name} ${m.last_name}`).join(', ') || '';
+    
+    const stmt = env.DB.prepare(`
+      UPDATE tee_times 
+      SET member_id = ?, date = ?, time = ?, players = ?, player_names = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    try {
+      await stmt.bind(memberIds[0], date, time, memberIds.length, memberNames, notes, id).run();
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error updating tee time:', error);
+      return new Response(JSON.stringify({ error: 'Failed to update tee time' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  } else {
+    // Legacy update without member changes
+    const stmt = env.DB.prepare(`
+      UPDATE tee_times 
+      SET date = ?, time = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    try {
+      await stmt.bind(date, time, notes, id).run();
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error updating tee time:', error);
+      return new Response(JSON.stringify({ error: 'Failed to update tee time' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+}
+
+async function handleCreateTeeTime(request: Request, env: Env) {
+  const { memberIds, courseId, date, time, notes } = await request.json();
+
+  if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
+    return new Response(JSON.stringify({ error: 'At least one member ID is required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  if (!courseId || !date || !time) {
+    return new Response(JSON.stringify({ error: 'Course, date, and time are required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Check if the tee time slot is available
+  const conflictCheck = env.DB.prepare(`
+    SELECT id FROM tee_times 
+    WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
+  `);
+  const existing = await conflictCheck.bind(courseId, date, time).first();
+
+  if (existing) {
+    return new Response(JSON.stringify({ error: 'Tee time slot is already booked' }), {
+      status: 409,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Create tee time for the first member (primary member)
+  const primaryMemberId = memberIds[0];
+  const players = memberIds.length;
+  
+  // Get member names for display
+  const memberQuery = env.DB.prepare(`
+    SELECT first_name, last_name FROM members WHERE id IN (${memberIds.map(() => '?').join(',')})
+  `);
+  const memberResult = await memberQuery.bind(...memberIds).all();
+  const memberNames = memberResult.results?.map((m: any) => `${m.first_name} ${m.last_name}`).join(', ') || '';
+
   const stmt = env.DB.prepare(`
-    UPDATE tee_times 
-    SET date = ?, time = ?, guests = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, created_by_admin)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
   `);
 
   try {
-    await stmt.bind(date, time, guests, notes, id).run();
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const result = await stmt.bind(
+      primaryMemberId,
+      courseId,
+      date,
+      time,
+      players,
+      memberNames,
+      notes || null
+    ).run();
+
+    if (result.success) {
+      return new Response(JSON.stringify({
+        success: true,
+        id: result.meta.last_row_id,
+        message: 'Tee time created successfully'
+      }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } else {
+      return new Response(JSON.stringify({ error: 'Failed to create tee time' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   } catch (error) {
-    console.error('Error updating tee time:', error);
-    return new Response(JSON.stringify({ error: 'Failed to update tee time' }), {
+    console.error('Error creating tee time:', error);
+    return new Response(JSON.stringify({ error: 'Failed to create tee time' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

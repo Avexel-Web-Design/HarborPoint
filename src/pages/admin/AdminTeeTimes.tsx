@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Calendar from '../../components/admin/Calendar';
+import CreateModal from '../../components/admin/CreateModal';
+import EditModal from '../../components/admin/EditModal';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 interface TeeTime {
@@ -18,28 +20,13 @@ interface TeeTime {
   created_at: string;
 }
 
-interface TeeTimeForm {
-  id?: number;
-  date: string;
-  time: string;
-  guests: number;
-  notes: string;
-}
-
 const AdminTeeTimesPage = () => {
-  const { } = useAdminAuth();
-  const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
+  const { } = useAdminAuth();  const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [message, setMessage] = useState('');
-  const [teeTimeForm, setTeeTimeForm] = useState<TeeTimeForm>({
-    date: '',
-    time: '',
-    guests: 1,
-    notes: ''
-  });
+  const [showCreateModal, setShowCreateModal] = useState(false);  const [message, setMessage] = useState('');
 
   useEffect(() => {
     loadTeeTimes();
@@ -70,24 +57,62 @@ const AdminTeeTimesPage = () => {
     setSelectedDate(date);
   };
 
+  const handleDateDoubleClick = (date: string) => {
+    setSelectedDate(date);
+    setShowCreateModal(true);
+  };
+
   const handleTeeTimeClick = (teeTime: any) => {
     const fullTeeTime = teeTimes.find(tt => tt.id === teeTime.id);
     if (fullTeeTime) {
       setSelectedTeeTime(fullTeeTime);
-      setTeeTimeForm({
-        id: fullTeeTime.id,
-        date: fullTeeTime.date,
-        time: fullTeeTime.time,
-        guests: fullTeeTime.guests,
-        notes: fullTeeTime.notes || ''
-      });
       setShowEditModal(true);
     }
   };
 
-  const handleUpdateTeeTime = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleEventDrop = async (event: any, newDate: string) => {
+    try {
+      const updatedData = {
+        id: event.id,
+        date: newDate,
+        time: event.time,
+        memberIds: [event.member_id], // Maintain current member assignment
+        notes: event.notes
+      };
+      
+      await handleUpdateTeeTime(updatedData);
+    } catch (error) {
+      console.error('Error moving tee time:', error);
+      setMessage('Failed to move tee time');
+    }
+  };  const handleCreateTeeTime = async (data: any) => {
+    try {
+      console.log('Creating tee time with data:', data);
+      const response = await fetch('/api/admin/tee-times', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      console.log('Create tee time response status:', response.status);
+      if (response.ok) {
+        setMessage('Tee time created successfully!');
+        loadTeeTimes();
+      } else {
+        const errorData = await response.json();
+        console.error('Create tee time error:', errorData);
+        throw new Error(errorData.error || 'Failed to create tee time');
+      }
+    } catch (error) {
+      console.error('Error creating tee time:', error);
+      setMessage('Error creating tee time');
+      throw error;
+    }
+  };
+  const handleUpdateTeeTime = async (data: any) => {
     try {
       const response = await fetch('/api/admin/tee-times', {
         method: 'PUT',
@@ -95,7 +120,7 @@ const AdminTeeTimesPage = () => {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify(teeTimeForm)
+        body: JSON.stringify(data)
       });
 
       if (response.ok) {
@@ -104,36 +129,13 @@ const AdminTeeTimesPage = () => {
         setSelectedTeeTime(null);
         loadTeeTimes();
       } else {
-        const data = await response.json();
-        setMessage(data.error || 'Failed to update tee time');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update tee time');
       }
     } catch (error) {
       console.error('Error updating tee time:', error);
       setMessage('Error updating tee time');
-    }
-  };
-
-  const handleDeleteTeeTime = async (teeTimeId: number) => {
-    if (!confirm('Are you sure you want to cancel this tee time?')) return;
-
-    try {
-      const response = await fetch(`/api/admin/tee-times?id=${teeTimeId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setMessage('Tee time cancelled successfully!');
-        setShowEditModal(false);
-        setSelectedTeeTime(null);
-        loadTeeTimes();
-      } else {
-        const data = await response.json();
-        setMessage(data.error || 'Failed to cancel tee time');
-      }
-    } catch (error) {
-      console.error('Error cancelling tee time:', error);
-      setMessage('Error cancelling tee time');
+      throw error;
     }
   };
 
@@ -142,7 +144,10 @@ const AdminTeeTimesPage = () => {
     date: teeTime.date,
     time: teeTime.time,
     title: `${teeTime.first_name} ${teeTime.last_name}`,
-    subtitle: `${teeTime.guests} guests`
+    subtitle: `${teeTime.guests} guests`,
+    type: 'tee-time' as const,
+    member_id: teeTime.member_id,
+    notes: teeTime.notes
   }));
 
   const selectedDateTeeTimes = teeTimes.filter(tt => tt.date === selectedDate);
@@ -168,9 +173,20 @@ const AdminTeeTimesPage = () => {
               <p className="text-gray-600">
                 Manage and overview tee time reservations
               </p>
-            </div>
-            <div className="text-sm text-gray-500">
-              Total reservations: {teeTimes.length}
+            </div>            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                Total reservations: {teeTimes.length}
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedTeeTime(null);
+                  setSelectedDate('');
+                  setShowCreateModal(true);
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Create Tee Time
+              </button>
             </div>
           </div>
         </div>
@@ -189,17 +205,29 @@ const AdminTeeTimesPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Calendar */}
-          <div className="lg:col-span-2">
-            <Calendar
+          <div className="lg:col-span-2">            <Calendar
               events={calendarEvents}
               onDateClick={handleDateClick}
               onEventClick={handleTeeTimeClick}
+              onDateDoubleClick={handleDateDoubleClick}
+              onEventDrop={handleEventDrop}
               selectedDate={selectedDate}
+              enableDragDrop={true}
             />
-          </div>
-
-          {/* Sidebar */}
+          </div>          {/* Sidebar */}
           <div className="space-y-6">
+            {/* Instructions */}
+            {!selectedDate && (
+              <div className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <p>• Double-click any date to create a tee time</p>
+                  <p>• Click a tee time to view details</p>
+                  <p>• Drag tee times to reschedule them</p>
+                </div>
+              </div>
+            )}
+
             {/* Selected Date Details */}
             {selectedDate && (
               <div className="bg-white rounded-lg shadow p-6">
@@ -238,9 +266,11 @@ const AdminTeeTimesPage = () => {
                         </div>
                       </div>
                     ))}
+                  </div>                ) : (
+                  <div className="text-gray-500 text-sm">
+                    <p>No tee times scheduled for this date.</p>
+                    <p className="mt-2 text-xs">Double-click on a calendar date to create a tee time.</p>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No tee times scheduled for this date.</p>
                 )}
               </div>
             )}
@@ -283,107 +313,23 @@ const AdminTeeTimesPage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div>      {/* Create Modal */}
+      <CreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        type="tee-time"
+        selectedDate={selectedDate}
+        onCreate={handleCreateTeeTime}
+      />
 
       {/* Edit Modal */}
-      {showEditModal && selectedTeeTime && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Edit Tee Time
-              </h3>
-              
-              <form onSubmit={handleUpdateTeeTime} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Member
-                  </label>
-                  <div className="text-sm text-gray-600">
-                    {selectedTeeTime.first_name} {selectedTeeTime.last_name} (#{selectedTeeTime.member_id_display})
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={teeTimeForm.date}
-                    onChange={(e) => setTeeTimeForm({...teeTimeForm, date: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={teeTimeForm.time}
-                    onChange={(e) => setTeeTimeForm({...teeTimeForm, time: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Guests
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="4"
-                    value={teeTimeForm.guests}
-                    onChange={(e) => setTeeTimeForm({...teeTimeForm, guests: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes
-                  </label>
-                  <textarea
-                    value={teeTimeForm.notes}
-                    onChange={(e) => setTeeTimeForm({...teeTimeForm, notes: e.target.value})}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    Update
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteTeeTime(selectedTeeTime.id)}
-                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(false)}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    Close
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        type="tee-time"
+        item={selectedTeeTime}
+        onUpdate={handleUpdateTeeTime}
+      />
     </div>
   );
 };
