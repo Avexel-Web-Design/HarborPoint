@@ -78,7 +78,7 @@ async function handleCreateEvent(request: Request, env: Env) {
   }
 
   const stmt = env.DB.prepare(`
-    INSERT INTO events (title, description, date, time, location, max_capacity, price, status, created_at, updated_at)
+    INSERT INTO events (title, description, date, time, location, max_attendees, cost, status, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `);
 
@@ -108,10 +108,9 @@ async function handleUpdateEvent(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
   const stmt = env.DB.prepare(`
     UPDATE events 
-    SET title = ?, description = ?, date = ?, time = ?, location = ?, max_capacity = ?, price = ?, updated_at = CURRENT_TIMESTAMP
+    SET title = ?, description = ?, date = ?, time = ?, location = ?, max_attendees = ?, cost = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
 
