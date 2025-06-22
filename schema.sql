@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS tee_times (
     player_names TEXT,
     notes TEXT,
     status TEXT DEFAULT 'active',
+    created_by_admin BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE CASCADE
@@ -61,6 +62,7 @@ CREATE TABLE IF NOT EXISTS dining_reservations (
     party_size INTEGER NOT NULL,
     special_requests TEXT,
     status TEXT DEFAULT 'confirmed',
+    created_by_admin BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE CASCADE
