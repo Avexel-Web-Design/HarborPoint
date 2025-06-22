@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import MemberSelect from './MemberSelect';
 
@@ -35,9 +35,15 @@ const CreateModal: React.FC<CreateModalProps> = ({
     party_size: 1,
     special_requests: ''
   });
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // Update form data when selectedDate changes
+  useEffect(() => {
+    setFormData((prev: any) => ({
+      ...prev,
+      date: selectedDate
+    }));
+  }, [selectedDate]);
 
   if (!isOpen) return null;
 
