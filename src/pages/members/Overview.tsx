@@ -165,10 +165,14 @@ const MemberOverview = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-serif font-bold text-primary-950 text-lg">{event.title}</h4>
-                      <p className="text-sm text-primary-700 mt-2 leading-relaxed">{event.description}</p>                      <div className="flex items-center mt-3 text-sm text-primary-600 space-x-6">
-                        <span className="flex items-center">
+                      <p className="text-sm text-primary-700 mt-2 leading-relaxed">{event.description}</p>                      <div className="flex items-center mt-3 text-sm text-primary-600 space-x-6">                        <span className="flex items-center">
                           <FontAwesomeIcon icon={faCalendarDays} className="mr-1" /> 
-                          {new Date(event.date).toLocaleDateString()}
+                          {(() => {
+                            // Parse date string manually to avoid timezone issues
+                            const [year, month, day] = event.date.split('-').map(Number);
+                            const date = new Date(year, month - 1, day);
+                            return date.toLocaleDateString();
+                          })()}
                         </span>
                         <span className="flex items-center">
                           <FontAwesomeIcon icon={faClock} className="mr-1" /> 

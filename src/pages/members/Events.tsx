@@ -91,10 +91,14 @@ const MemberEvents = () => {
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
                           {event.title}
-                        </h3>                        <div className="flex items-center text-primary-600 font-medium mb-2">
-                          <span className="mr-4 flex items-center">
+                        </h3>                        <div className="flex items-center text-primary-600 font-medium mb-2">                          <span className="mr-4 flex items-center">
                             <FontAwesomeIcon icon={faCalendarDays} className="mr-1" />
-                            {new Date(event.date).toLocaleDateString()}
+                            {(() => {
+                              // Parse date string manually to avoid timezone issues
+                              const [year, month, day] = event.date.split('-').map(Number);
+                              const date = new Date(year, month - 1, day);
+                              return date.toLocaleDateString();
+                            })()}
                           </span>
                           <span className="mr-4 flex items-center">
                             <FontAwesomeIcon icon={faClock} className="mr-1" />
