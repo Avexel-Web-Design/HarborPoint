@@ -9,11 +9,13 @@ import { onRequest as __api_admin_dining_index_ts_onRequest } from "C:\\Users\\g
 import { onRequest as __api_admin_events_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\events\\index.ts"
 import { onRequest as __api_admin_members_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\members\\index.ts"
 import { onRequest as __api_admin_tee_times_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\tee-times\\index.ts"
+import { onRequest as __api_admin_tennis_courts_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\tennis-courts\\index.ts"
 import { onRequest as __api_tee_times_available_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tee-times\\available.ts"
 import { onRequest as __api_dining_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\dining\\index.ts"
 import { onRequest as __api_events_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\events\\index.ts"
 import { onRequest as __api_guest_passes_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\guest-passes\\index.ts"
 import { onRequest as __api_tee_times_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tee-times\\index.ts"
+import { onRequest as __api_tennis_courts_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tennis-courts\\index.ts"
 
 export const routes = [
     {
@@ -94,6 +96,13 @@ export const routes = [
       modules: [__api_admin_tee_times_index_ts_onRequest],
     },
   {
+      routePath: "/api/admin/tennis-courts",
+      mountPath: "/api/admin/tennis-courts",
+      method: "",
+      middlewares: [],
+      modules: [__api_admin_tennis_courts_index_ts_onRequest],
+    },
+  {
       routePath: "/api/tee-times/available",
       mountPath: "/api/tee-times",
       method: "",
@@ -127,5 +136,12 @@ export const routes = [
       method: "",
       middlewares: [],
       modules: [__api_tee_times_index_ts_onRequest],
+    },
+  {
+      routePath: "/api/tennis-courts",
+      mountPath: "/api/tennis-courts",
+      method: "",
+      middlewares: [],
+      modules: [__api_tennis_courts_index_ts_onRequest],
     },
   ]

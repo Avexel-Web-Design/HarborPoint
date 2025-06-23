@@ -8,7 +8,8 @@ import {
   faClock,
   faMapMarkerAlt,
   faCheck,
-  faSpinner
+  faSpinner,
+  faTableTennisPaddleBall
 } from '@fortawesome/free-solid-svg-icons';
 
 interface EventWithRegistration {
@@ -54,14 +55,20 @@ const MemberOverview = () => {
     } finally {
       setEventsLoading(false);
     }
-  };
-  const quickActions = [
+  };  const quickActions = [
     {
       title: 'Book Tee Time',
       description: 'Reserve your spot on our championship courses',
       tabId: 'tee-times',
       icon: <FontAwesomeIcon icon={faGolfBallTee} />,
       color: 'bg-green-500'
+    },
+    {
+      title: 'Tennis & Pickleball',
+      description: 'Book tennis and pickleball courts',
+      tabId: 'tennis-courts',
+      icon: <FontAwesomeIcon icon={faTableTennisPaddleBall} />,
+      color: 'bg-purple-500'
     },
     {
       title: 'Member Events',

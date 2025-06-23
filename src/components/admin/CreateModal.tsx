@@ -5,10 +5,11 @@ import MemberSelect from './MemberSelect';
 interface CreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type: 'tee-time' | 'event' | 'reservation';
+  type: 'tee-time' | 'event' | 'reservation' | 'court-reservation';
   selectedDate: string;
   onCreate: (data: any) => void;
   defaultCourse?: string;
+  courtType?: 'tennis' | 'pickleball';
 }
 
 const CreateModal: React.FC<CreateModalProps> = ({
@@ -17,7 +18,8 @@ const CreateModal: React.FC<CreateModalProps> = ({
   type,
   selectedDate,
   onCreate,
-  defaultCourse = 'birches'
+  defaultCourse = 'birches',
+  courtType = 'tennis'
 }) => {  const [formData, setFormData] = useState<any>({
     date: selectedDate,
     time: '',
@@ -33,7 +35,11 @@ const CreateModal: React.FC<CreateModalProps> = ({
     price: 0,
     // Reservation specific
     party_size: 1,
-    special_requests: ''
+    special_requests: '',
+    // Court reservation specific
+    court_type: courtType,
+    court_number: '',
+    duration: 60
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,15 +56,18 @@ const CreateModal: React.FC<CreateModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-
-    try {
+    setError('');    try {
       if (type !== 'event' && formData.memberIds.length === 0) {
         setError('Please select at least one member');
         return;
       }      // Ensure courseId is included for tee times
       if (type === 'tee-time') {
         formData.courseId = formData.courseId || defaultCourse;
+      }
+
+      // For court reservations, pass member_id instead of memberIds
+      if (type === 'court-reservation') {
+        formData.member_id = formData.memberIds[0]; // Single member for court reservations
       }
 
       await onCreate(formData);
@@ -74,10 +83,12 @@ const CreateModal: React.FC<CreateModalProps> = ({
         title: '',
         description: '',
         location: '',
-        max_capacity: '',
-        price: 0,
+        max_capacity: '',        price: 0,
         party_size: 1,
-        special_requests: ''
+        special_requests: '',
+        court_type: courtType,
+        court_number: '',
+        duration: 60
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create');
@@ -88,12 +99,12 @@ const CreateModal: React.FC<CreateModalProps> = ({
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
-
   const getTitle = () => {
     switch (type) {
       case 'tee-time': return 'Create Tee Time';
       case 'event': return 'Create Event';
       case 'reservation': return 'Create Dining Reservation';
+      case 'court-reservation': return `Create ${courtType === 'tennis' ? 'Tennis' : 'Pickleball'} Court Reservation`;
       default: return 'Create';
     }
   };
@@ -297,6 +308,78 @@ const CreateModal: React.FC<CreateModalProps> = ({
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Dietary restrictions, seating preferences, etc."
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Court reservation specific fields */}
+            {type === 'court-reservation' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Court Type *
+                  </label>
+                  <select
+                    value={formData.court_type}
+                    onChange={(e) => handleInputChange('court_type', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="tennis">Tennis</option>
+                    <option value="pickleball">Pickleball</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Court Number (Optional)
+                    </label>
+                    <select
+                      value={formData.court_number}
+                      onChange={(e) => handleInputChange('court_number', e.target.value ? parseInt(e.target.value) : '')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Auto-assign</option>
+                      {Array.from({ length: formData.court_type === 'tennis' ? 9 : 4 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          Court {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration (minutes) *
+                    </label>
+                    <select
+                      value={formData.duration}
+                      onChange={(e) => handleInputChange('duration', parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value={30}>30 minutes</option>
+                      <option value={60}>1 hour</option>
+                      <option value={90}>1.5 hours</option>
+                      <option value={120}>2 hours</option>
+                      <option value={150}>2.5 hours</option>
+                      <option value={180}>3 hours</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Any additional notes or requests..."
                   />
                 </div>
               </>

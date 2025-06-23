@@ -7,6 +7,7 @@ import { useAdminAuth } from '../../contexts/AdminAuthContext';
 interface TennisReservation {
   id: number;
   member_id: number;
+  court_type: 'tennis' | 'pickleball';
   date: string;
   time: string;
   duration: number;
@@ -29,19 +30,21 @@ const AdminTennisCourtsPage = () => {
   const [selectedReservation, setSelectedReservation] = useState<TennisReservation | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState('');  const [selectedCourtType, setSelectedCourtType] = useState<'tennis' | 'pickleball'>('tennis');
   const [selectedCourt, setSelectedCourt] = useState<number>(1);
 
-  const courts = [1, 2, 3, 4]; // Assuming 4 tennis courts
+  const getTennisCourtCount = () => 9;
+  const getPickleballCourtCount = () => 4;
+  const getCourtCount = () => selectedCourtType === 'tennis' ? getTennisCourtCount() : getPickleballCourtCount();
 
+  const courts = Array.from({ length: getCourtCount() }, (_, i) => i + 1);
   useEffect(() => {
     loadReservations();
-  }, [selectedDate]);
-
+  }, [selectedDate, selectedCourtType]);
   const loadReservations = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/tennis-courts?date=${selectedDate}`, {
+      const response = await fetch(`/api/admin/tennis-courts?date=${selectedDate}&courtType=${selectedCourtType}`, {
         credentials: 'include'
       });
 
@@ -80,10 +83,10 @@ const AdminTennisCourtsPage = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
-        body: JSON.stringify({
+        credentials: 'include',        body: JSON.stringify({
           ...data,
           date: selectedDate,
+          court_type: selectedCourtType,
           court_number: selectedCourt
         })
       });
@@ -182,9 +185,8 @@ const AdminTennisCourtsPage = () => {
     const slots = [];
     const startHour = 6;  // 6 AM
     const endHour = 22;   // 10 PM
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 60) { // 1-hour slots
+      for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) { // 30-minute slots
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         slots.push(timeStr);
       }
@@ -216,13 +218,12 @@ const AdminTennisCourtsPage = () => {
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
+          <div className="flex justify-between items-center py-6">            <div>
               <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Tennis Courts Management - Court {selectedCourt}
+                {selectedCourtType === 'tennis' ? 'Tennis' : 'Pickleball'} Courts Management - Court {selectedCourt}
               </h1>
               <p className="text-gray-600">
-                Daily view of tennis court reservations
+                Daily view of {selectedCourtType} court reservations
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -242,11 +243,42 @@ const AdminTennisCourtsPage = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Court Tabs */}
+      </div>      {/* Court Type and Court Tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Court Type Selector */}
+          <div className="py-4 border-b border-gray-100">
+            <div className="flex space-x-4">
+              <button
+                onClick={() => {
+                  setSelectedCourtType('tennis');
+                  setSelectedCourt(1);
+                }}
+                className={`px-4 py-2 rounded-md font-medium text-sm ${
+                  selectedCourtType === 'tennis'
+                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                    : 'text-gray-500 hover:text-gray-700 border border-gray-300'
+                }`}
+              >
+                Tennis (9 courts)
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedCourtType('pickleball');
+                  setSelectedCourt(1);
+                }}
+                className={`px-4 py-2 rounded-md font-medium text-sm ${
+                  selectedCourtType === 'pickleball'
+                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                    : 'text-gray-500 hover:text-gray-700 border border-gray-300'
+                }`}
+              >
+                Pickleball (4 courts)
+              </button>
+            </div>
+          </div>
+          
+          {/* Court Number Tabs */}
           <nav className="-mb-px flex space-x-8">
             {courts.map((courtNumber) => (
               <button
@@ -258,7 +290,7 @@ const AdminTennisCourtsPage = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Court {courtNumber}
+                {selectedCourtType === 'tennis' ? 'Tennis' : 'Pickleball'} Court {courtNumber}
               </button>
             ))}
           </nav>
@@ -316,17 +348,16 @@ const AdminTennisCourtsPage = () => {
         </div>
 
         {/* Reservations Grid */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow">          <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">
-              Court {selectedCourt} Time Slots
+              {selectedCourtType === 'tennis' ? 'Tennis' : 'Pickleball'} Court {selectedCourt} Time Slots
             </h3>
             <p className="text-sm text-gray-600 mt-1">
-              All available time slots from 6:00 AM to 10:00 PM (1-hour slots)
+              All available time slots from 6:00 AM to 10:00 PM (30-minute slots)
             </p>
           </div>
           
-          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-gray-200">
             {allTimeSlots.map((timeSlot) => {
               const reservation = reservationsByTime[timeSlot];
               const isEmpty = !reservation;
@@ -357,9 +388,8 @@ const AdminTennisCourtsPage = () => {
                           <div>
                             <div className="font-medium text-gray-900">
                               {reservation.first_name} {reservation.last_name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {reservation.duration} hour{reservation.duration !== 1 ? 's' : ''}
+                            </div>                            <div className="text-sm text-gray-600">
+                              {reservation.duration} minute{reservation.duration !== 1 ? 's' : ''}
                               {reservation.notes && ` • ${reservation.notes}`}
                             </div>
                           </div>
@@ -408,39 +438,23 @@ const AdminTennisCourtsPage = () => {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            })}          </div>
         </div>
+      </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-          {courts.map((courtNumber) => {
-            const courtReservations = reservations.filter(r => 
-              r.date === selectedDate && r.court_number === courtNumber
-            );
-            return (
-              <div key={courtNumber} className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-sm font-medium text-gray-500">Court {courtNumber}</h3>
-                <p className="text-2xl font-bold text-gray-900">{courtReservations.length}</p>
-                <p className="text-xs text-gray-500">reservations</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>      {/* Create Modal */}
+      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        type="reservation"
+        type="court-reservation"
         selectedDate={selectedDate}
+        courtType={selectedCourtType}
         onCreate={handleCreateReservation}
-      />
-
-      {/* Edit Modal */}
+      />      {/* Edit Modal */}
       <EditModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        type="reservation"
+        type="court-reservation"
         item={selectedReservation}
         onUpdate={handleUpdateReservation}
         onDelete={handleDeleteReservation}

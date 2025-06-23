@@ -149,6 +149,29 @@ export interface AdminLoginRequest {
   password: string;
 }
 
+export interface CourtReservation {
+  id: number;
+  member_id: number;
+  court_type: 'tennis' | 'pickleball';
+  court_number?: number;
+  date: string;
+  time: string;
+  duration: number;
+  notes?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourtReservationRequest {
+  courtType: 'tennis' | 'pickleball';
+  courtNumber?: number;
+  date: string;
+  time: string;
+  duration: number;
+  notes?: string;
+}
+
 declare global {
   interface D1Database {
     prepare(query: string): D1PreparedStatement;

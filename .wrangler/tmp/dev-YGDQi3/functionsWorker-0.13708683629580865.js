@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-pMcDpE/checked-fetch.js
+// .wrangler/tmp/bundle-8trW3B/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -27,7 +27,7 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
   }
 });
 
-// .wrangler/tmp/pages-6ossh7/functionsWorker-0.1797544977500385.mjs
+// .wrangler/tmp/pages-JbqW5X/functionsWorker-0.13708683629580865.mjs
 var __defProp2 = Object.defineProperty;
 var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 var urls2 = /* @__PURE__ */ new Set();
@@ -1450,6 +1450,268 @@ __name(handleCreateTeeTime, "handleCreateTeeTime");
 __name2(handleCreateTeeTime, "handleCreateTeeTime");
 var onRequest5 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
+  const method = request.method;
+  try {
+    if (method === "GET") {
+      return handleGetCourtReservations(request, env);
+    } else if (method === "POST") {
+      return handleCreateCourtReservation(request, env);
+    } else if (method === "PUT") {
+      return handleUpdateCourtReservation(request, env);
+    } else if (method === "DELETE") {
+      return handleDeleteCourtReservation(request, env);
+    }
+    return new Response("Method not allowed", { status: 405 });
+  } catch (error) {
+    console.error("Admin tennis courts API error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}, "onRequest");
+async function handleGetCourtReservations(request, env) {
+  const admin = await verifyAdminAuth2(request, env);
+  if (!admin) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const url = new URL(request.url);
+  const date = url.searchParams.get("date") || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+  const courtType = url.searchParams.get("courtType") || "tennis";
+  const query = `
+    SELECT 
+      cr.*,
+      m.first_name,
+      m.last_name,
+      m.email,
+      m.phone,
+      m.member_id as member_id_display
+    FROM court_reservations cr
+    JOIN members m ON cr.member_id = m.id
+    WHERE cr.date = ? AND cr.court_type = ? AND cr.status = 'active'
+    ORDER BY cr.court_number ASC, cr.time ASC
+  `;
+  const stmt = env.DB.prepare(query);
+  const result = await stmt.bind(date, courtType).all();
+  return new Response(JSON.stringify({ reservations: result.results || [] }), {
+    headers: { "Content-Type": "application/json" }
+  });
+}
+__name(handleGetCourtReservations, "handleGetCourtReservations");
+__name2(handleGetCourtReservations, "handleGetCourtReservations");
+async function handleCreateCourtReservation(request, env) {
+  const admin = await verifyAdminAuth2(request, env);
+  if (!admin) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const body = await request.json();
+  if (!body.member_id || !body.court_type || !body.date || !body.time || !body.duration) {
+    return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  if (!["tennis", "pickleball"].includes(body.court_type)) {
+    return new Response(JSON.stringify({ error: "Invalid court type" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const memberCheck = env.DB.prepare("SELECT id FROM members WHERE id = ?");
+  const member = await memberCheck.bind(body.member_id).first();
+  if (!member) {
+    return new Response(JSON.stringify({ error: "Member not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  let courtNumber = body.court_number;
+  if (!courtNumber) {
+    const maxCourts = body.court_type === "tennis" ? 9 : 4;
+    for (let i = 1; i <= maxCourts; i++) {
+      const conflictCheck = env.DB.prepare(`
+        SELECT id, time, duration FROM court_reservations 
+        WHERE court_type = ? AND court_number = ? AND date = ? AND status = 'active'
+      `);
+      const existingReservations = await conflictCheck.bind(
+        body.court_type,
+        i,
+        body.date
+      ).all();
+      const newStartTime = /* @__PURE__ */ new Date(`2000-01-01T${body.time}`);
+      const newEndTime = new Date(newStartTime.getTime() + body.duration * 6e4);
+      let hasConflict = false;
+      for (const reservation of existingReservations.results || []) {
+        const existingStartTime = /* @__PURE__ */ new Date(`2000-01-01T${reservation.time}`);
+        const existingEndTime = new Date(existingStartTime.getTime() + reservation.duration * 6e4);
+        if (newStartTime < existingEndTime && newEndTime > existingStartTime) {
+          hasConflict = true;
+          break;
+        }
+      }
+      if (!hasConflict) {
+        courtNumber = i;
+        break;
+      }
+    }
+    if (!courtNumber) {
+      return new Response(JSON.stringify({ error: "No courts available at the requested time" }), {
+        status: 409,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } else {
+    const conflictCheck = env.DB.prepare(`
+      SELECT id, time, duration FROM court_reservations 
+      WHERE court_type = ? AND court_number = ? AND date = ? AND status = 'active'
+    `);
+    const existingReservations = await conflictCheck.bind(
+      body.court_type,
+      courtNumber,
+      body.date
+    ).all();
+    const newStartTime = /* @__PURE__ */ new Date(`2000-01-01T${body.time}`);
+    const newEndTime = new Date(newStartTime.getTime() + body.duration * 6e4);
+    for (const reservation of existingReservations.results || []) {
+      const existingStartTime = /* @__PURE__ */ new Date(`2000-01-01T${reservation.time}`);
+      const existingEndTime = new Date(existingStartTime.getTime() + reservation.duration * 6e4);
+      if (newStartTime < existingEndTime && newEndTime > existingStartTime) {
+        return new Response(JSON.stringify({ error: "Selected court is not available at the requested time" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+  }
+  const stmt = env.DB.prepare(`
+    INSERT INTO court_reservations (member_id, court_type, court_number, date, time, duration, notes, created_by_admin)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+  const result = await stmt.bind(
+    body.member_id,
+    body.court_type,
+    courtNumber,
+    body.date,
+    body.time,
+    body.duration,
+    body.notes || null
+  ).run();
+  if (result.success) {
+    return new Response(JSON.stringify({
+      success: true,
+      id: result.meta.last_row_id,
+      message: "Court reservation created successfully"
+    }), {
+      status: 201,
+      headers: { "Content-Type": "application/json" }
+    });
+  } else {
+    return new Response(JSON.stringify({ error: "Failed to create reservation" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(handleCreateCourtReservation, "handleCreateCourtReservation");
+__name2(handleCreateCourtReservation, "handleCreateCourtReservation");
+async function handleUpdateCourtReservation(request, env) {
+  const admin = await verifyAdminAuth2(request, env);
+  if (!admin) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const body = await request.json();
+  if (!body.id) {
+    return new Response(JSON.stringify({ error: "Reservation ID required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const existingCheck = env.DB.prepare("SELECT id FROM court_reservations WHERE id = ?");
+  const existing = await existingCheck.bind(body.id).first();
+  if (!existing) {
+    return new Response(JSON.stringify({ error: "Reservation not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const stmt = env.DB.prepare(`
+    UPDATE court_reservations 
+    SET court_type = ?, court_number = ?, date = ?, time = ?, duration = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
+  const result = await stmt.bind(
+    body.court_type,
+    body.court_number,
+    body.date,
+    body.time,
+    body.duration,
+    body.notes || null,
+    body.id
+  ).run();
+  if (result.success) {
+    return new Response(JSON.stringify({
+      success: true,
+      message: "Court reservation updated successfully"
+    }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } else {
+    return new Response(JSON.stringify({ error: "Failed to update reservation" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(handleUpdateCourtReservation, "handleUpdateCourtReservation");
+__name2(handleUpdateCourtReservation, "handleUpdateCourtReservation");
+async function handleDeleteCourtReservation(request, env) {
+  const admin = await verifyAdminAuth2(request, env);
+  if (!admin) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const url = new URL(request.url);
+  const reservationId = url.searchParams.get("id");
+  if (!reservationId) {
+    return new Response(JSON.stringify({ error: "Reservation ID required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const stmt = env.DB.prepare(`
+    UPDATE court_reservations SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
+    WHERE id = ?
+  `);
+  const result = await stmt.bind(reservationId).run();
+  if (result.success) {
+    return new Response(JSON.stringify({
+      success: true,
+      message: "Court reservation cancelled successfully"
+    }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } else {
+    return new Response(JSON.stringify({ error: "Failed to cancel reservation" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(handleDeleteCourtReservation, "handleDeleteCourtReservation");
+__name2(handleDeleteCourtReservation, "handleDeleteCourtReservation");
+var onRequest6 = /* @__PURE__ */ __name2(async (context) => {
+  const { request, env } = context;
   if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -1546,7 +1808,7 @@ var onRequest5 = /* @__PURE__ */ __name2(async (context) => {
     });
   }
 }, "onRequest");
-var onRequest6 = /* @__PURE__ */ __name2(async (context) => {
+var onRequest7 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1678,7 +1940,7 @@ async function handleDeleteReservation2(request, env) {
 }
 __name(handleDeleteReservation2, "handleDeleteReservation2");
 __name2(handleDeleteReservation2, "handleDeleteReservation");
-var onRequest7 = /* @__PURE__ */ __name2(async (context) => {
+var onRequest8 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1834,7 +2096,7 @@ async function handleUnregisterFromEvent(request, env) {
 }
 __name(handleUnregisterFromEvent, "handleUnregisterFromEvent");
 __name2(handleUnregisterFromEvent, "handleUnregisterFromEvent");
-var onRequest8 = /* @__PURE__ */ __name2(async (context) => {
+var onRequest9 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1969,7 +2231,7 @@ async function generatePassCode() {
 }
 __name(generatePassCode, "generatePassCode");
 __name2(generatePassCode, "generatePassCode");
-var onRequest9 = /* @__PURE__ */ __name2(async (context) => {
+var onRequest10 = /* @__PURE__ */ __name2(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
@@ -2169,6 +2431,219 @@ async function handleDeleteTeeTime2(request, env) {
 }
 __name(handleDeleteTeeTime2, "handleDeleteTeeTime2");
 __name2(handleDeleteTeeTime2, "handleDeleteTeeTime");
+var onRequest11 = /* @__PURE__ */ __name2(async (context) => {
+  const { request, env } = context;
+  const url = new URL(request.url);
+  const method = request.method;
+  try {
+    if (method === "GET") {
+      return handleGetCourtReservations2(request, env);
+    } else if (method === "POST") {
+      return handleCreateCourtReservation2(request, env);
+    } else if (method === "DELETE") {
+      return handleDeleteCourtReservation2(request, env);
+    }
+    return new Response("Method not allowed", { status: 405 });
+  } catch (error) {
+    console.error("Tennis courts API error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}, "onRequest");
+async function handleGetCourtReservations2(request, env) {
+  const member = await verifyAuth(request, env);
+  if (!member) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const url = new URL(request.url);
+  const startDate = url.searchParams.get("startDate");
+  const endDate = url.searchParams.get("endDate");
+  const courtType = url.searchParams.get("courtType");
+  let query = `
+    SELECT * FROM court_reservations 
+    WHERE member_id = ? AND status = 'active'
+  `;
+  let params = [member.id];
+  if (courtType) {
+    query += ` AND court_type = ?`;
+    params.push(courtType);
+  }
+  if (startDate && endDate) {
+    query += ` AND date BETWEEN ? AND ?`;
+    params.push(startDate, endDate);
+  }
+  query += ` ORDER BY date ASC, time ASC`;
+  const stmt = env.DB.prepare(query);
+  const result = await stmt.bind(...params).all();
+  return new Response(JSON.stringify({ reservations: result.results || [] }), {
+    headers: { "Content-Type": "application/json" }
+  });
+}
+__name(handleGetCourtReservations2, "handleGetCourtReservations2");
+__name2(handleGetCourtReservations2, "handleGetCourtReservations");
+async function handleCreateCourtReservation2(request, env) {
+  const member = await verifyAuth(request, env);
+  if (!member) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const body = await request.json();
+  if (!body.courtType || !body.date || !body.time || !body.duration) {
+    return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  if (!["tennis", "pickleball"].includes(body.courtType)) {
+    return new Response(JSON.stringify({ error: "Invalid court type" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  let courtNumber = body.courtNumber;
+  if (!courtNumber) {
+    const maxCourts = body.courtType === "tennis" ? 9 : 4;
+    for (let i = 1; i <= maxCourts; i++) {
+      const conflictCheck = env.DB.prepare(`
+        SELECT id, time, duration FROM court_reservations 
+        WHERE court_type = ? AND court_number = ? AND date = ? AND status = 'active'
+      `);
+      const existingReservations = await conflictCheck.bind(
+        body.courtType,
+        i,
+        body.date
+      ).all();
+      const newStartTime = /* @__PURE__ */ new Date(`2000-01-01T${body.time}`);
+      const newEndTime = new Date(newStartTime.getTime() + body.duration * 6e4);
+      let hasConflict = false;
+      for (const reservation of existingReservations.results || []) {
+        const existingStartTime = /* @__PURE__ */ new Date(`2000-01-01T${reservation.time}`);
+        const existingEndTime = new Date(existingStartTime.getTime() + reservation.duration * 6e4);
+        if (newStartTime < existingEndTime && newEndTime > existingStartTime) {
+          hasConflict = true;
+          break;
+        }
+      }
+      if (!hasConflict) {
+        courtNumber = i;
+        break;
+      }
+    }
+    if (!courtNumber) {
+      return new Response(JSON.stringify({ error: "No courts available at the requested time" }), {
+        status: 409,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } else {
+    const conflictCheck = env.DB.prepare(`
+      SELECT id, time, duration FROM court_reservations 
+      WHERE court_type = ? AND court_number = ? AND date = ? AND status = 'active'
+    `);
+    const existingReservations = await conflictCheck.bind(
+      body.courtType,
+      courtNumber,
+      body.date
+    ).all();
+    const newStartTime = /* @__PURE__ */ new Date(`2000-01-01T${body.time}`);
+    const newEndTime = new Date(newStartTime.getTime() + body.duration * 6e4);
+    for (const reservation of existingReservations.results || []) {
+      const existingStartTime = /* @__PURE__ */ new Date(`2000-01-01T${reservation.time}`);
+      const existingEndTime = new Date(existingStartTime.getTime() + reservation.duration * 6e4);
+      if (newStartTime < existingEndTime && newEndTime > existingStartTime) {
+        return new Response(JSON.stringify({ error: "Selected court is not available at the requested time" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+  }
+  const stmt = env.DB.prepare(`
+    INSERT INTO court_reservations (member_id, court_type, court_number, date, time, duration, notes)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  const result = await stmt.bind(
+    member.id,
+    body.courtType,
+    courtNumber,
+    body.date,
+    body.time,
+    body.duration,
+    body.notes || null
+  ).run();
+  if (result.success) {
+    return new Response(JSON.stringify({
+      success: true,
+      id: result.meta.last_row_id,
+      courtNumber,
+      message: `${body.courtType === "tennis" ? "Tennis" : "Pickleball"} court ${courtNumber} reserved successfully`
+    }), {
+      status: 201,
+      headers: { "Content-Type": "application/json" }
+    });
+  } else {
+    return new Response(JSON.stringify({ error: "Failed to create reservation" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(handleCreateCourtReservation2, "handleCreateCourtReservation2");
+__name2(handleCreateCourtReservation2, "handleCreateCourtReservation");
+async function handleDeleteCourtReservation2(request, env) {
+  const member = await verifyAuth(request, env);
+  if (!member) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const url = new URL(request.url);
+  const reservationId = url.searchParams.get("id");
+  if (!reservationId) {
+    return new Response(JSON.stringify({ error: "Reservation ID required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const verifyStmt = env.DB.prepare(`
+    SELECT id FROM court_reservations WHERE id = ? AND member_id = ?
+  `);
+  const reservation = await verifyStmt.bind(reservationId, member.id).first();
+  if (!reservation) {
+    return new Response(JSON.stringify({ error: "Reservation not found or unauthorized" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  const stmt = env.DB.prepare(`
+    UPDATE court_reservations SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
+    WHERE id = ?
+  `);
+  const result = await stmt.bind(reservationId).run();
+  if (result.success) {
+    return new Response(JSON.stringify({
+      success: true,
+      message: "Court reservation cancelled successfully"
+    }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } else {
+    return new Response(JSON.stringify({ error: "Failed to cancel reservation" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(handleDeleteCourtReservation2, "handleDeleteCourtReservation2");
+__name2(handleDeleteCourtReservation2, "handleDeleteCourtReservation");
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -2248,39 +2723,53 @@ var routes = [
     modules: [onRequest4]
   },
   {
+    routePath: "/api/admin/tennis-courts",
+    mountPath: "/api/admin/tennis-courts",
+    method: "",
+    middlewares: [],
+    modules: [onRequest5]
+  },
+  {
     routePath: "/api/tee-times/available",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest5]
+    modules: [onRequest6]
   },
   {
     routePath: "/api/dining",
     mountPath: "/api/dining",
     method: "",
     middlewares: [],
-    modules: [onRequest6]
+    modules: [onRequest7]
   },
   {
     routePath: "/api/events",
     mountPath: "/api/events",
     method: "",
     middlewares: [],
-    modules: [onRequest7]
+    modules: [onRequest8]
   },
   {
     routePath: "/api/guest-passes",
     mountPath: "/api/guest-passes",
     method: "",
     middlewares: [],
-    modules: [onRequest8]
+    modules: [onRequest9]
   },
   {
     routePath: "/api/tee-times",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest9]
+    modules: [onRequest10]
+  },
+  {
+    routePath: "/api/tennis-courts",
+    mountPath: "/api/tennis-courts",
+    method: "",
+    middlewares: [],
+    modules: [onRequest11]
   }
 ];
 function lexer(str) {
@@ -2948,7 +3437,7 @@ var jsonError2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default2 = jsonError2;
 
-// .wrangler/tmp/bundle-pMcDpE/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-8trW3B/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
   middleware_ensure_req_body_drained_default2,
   middleware_miniflare3_json_error_default2
@@ -2980,7 +3469,7 @@ function __facade_invoke__2(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__2, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-pMcDpE/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-8trW3B/middleware-loader.entry.ts
 var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -3080,4 +3569,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default2 as default
 };
-//# sourceMappingURL=functionsWorker-0.1797544977500385.js.map
+//# sourceMappingURL=functionsWorker-0.13708683629580865.js.map

@@ -6,15 +6,17 @@ import {
   faHome, 
   faCalendarDays, 
   faUtensils, 
-  faUser 
+  faUser,
+  faTableTennisPaddleBall
 } from '@fortawesome/free-solid-svg-icons';
 import MemberProfile from './Profile';
 import MemberEvents from './Events';
 import MemberTeeTimes from './TeeTimes';
 import MemberDining from './Dining';
 import MemberOverview from './Overview';
+import MemberTennisCourts from './TennisCourts';
 
-type TabType = 'overview' | 'profile' | 'tee-times' | 'events' | 'dining';
+type TabType = 'overview' | 'profile' | 'tee-times' | 'tennis-courts' | 'events' | 'dining';
 
 const HomeIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faHome} className={className} />
@@ -32,6 +34,10 @@ const DiningIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faUtensils} className={className} />
 );
 
+const TennisIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faTableTennisPaddleBall} className={className} />
+);
+
 const UserIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faUser} className={className} />
 );
@@ -40,17 +46,16 @@ const MemberDashboard = () => {
   const { member } = useAuth();
   
   // Initialize active tab from localStorage or URL params, fallback to 'overview'
-  const getInitialTab = (): TabType => {
-    // Check URL params first
+  const getInitialTab = (): TabType => {    // Check URL params first
     const urlParams = new URLSearchParams(window.location.search);
     const urlTab = urlParams.get('tab') as TabType;
-    if (urlTab && ['overview', 'profile', 'tee-times', 'events', 'dining'].includes(urlTab)) {
+    if (urlTab && ['overview', 'profile', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(urlTab)) {
       return urlTab;
     }
     
     // Check localStorage
     const savedTab = localStorage.getItem('memberDashboardTab') as TabType;
-    if (savedTab && ['overview', 'profile', 'tee-times', 'events', 'dining'].includes(savedTab)) {
+    if (savedTab && ['overview', 'profile', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(savedTab)) {
       return savedTab;
     }
     
@@ -69,11 +74,10 @@ const MemberDashboard = () => {
     url.searchParams.set('tab', tabId);
     window.history.replaceState({}, '', url.toString());
   };
-
   // Clean up invalid values in localStorage
   useEffect(() => {
     const savedTab = localStorage.getItem('memberDashboardTab');
-    if (savedTab && !['overview', 'profile', 'tee-times', 'events', 'dining'].includes(savedTab)) {
+    if (savedTab && !['overview', 'profile', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(savedTab)) {
       localStorage.removeItem('memberDashboardTab');
     }
   }, []);
@@ -83,7 +87,7 @@ const MemberDashboard = () => {
     const handlePopState = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const urlTab = urlParams.get('tab') as TabType;
-      if (urlTab && ['overview', 'profile', 'tee-times', 'events', 'dining'].includes(urlTab)) {
+      if (urlTab && ['overview', 'profile', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(urlTab)) {
         setActiveTab(urlTab);
         localStorage.setItem('memberDashboardTab', urlTab);
       }
@@ -102,15 +106,14 @@ const MemberDashboard = () => {
     window.addEventListener('switchTab', handleTabSwitch);
     return () => window.removeEventListener('switchTab', handleTabSwitch);
   }, []);
-
   const tabs = [
     { id: 'overview' as TabType, name: 'Overview', icon: HomeIcon },
     { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
+    { id: 'tennis-courts' as TabType, name: 'Tennis & Pickleball', icon: TennisIcon },
     { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
     { id: 'dining' as TabType, name: 'Dining', icon: DiningIcon },
     { id: 'profile' as TabType, name: 'Profile', icon: UserIcon },
   ];
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -119,6 +122,8 @@ const MemberDashboard = () => {
         return <MemberProfile />;
       case 'tee-times':
         return <MemberTeeTimes />;
+      case 'tennis-courts':
+        return <MemberTennisCourts />;
       case 'events':
         return <MemberEvents />;
       case 'dining':
