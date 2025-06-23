@@ -9,6 +9,7 @@ interface CreateModalProps {
   selectedDate: string;
   onCreate: (data: any) => void;
   defaultCourse?: string;
+  defaultTime?: string;
   courtType?: 'tennis' | 'pickleball';
 }
 
@@ -19,10 +20,11 @@ const CreateModal: React.FC<CreateModalProps> = ({
   selectedDate,
   onCreate,
   defaultCourse = 'birches',
+  defaultTime = '',
   courtType = 'tennis'
 }) => {  const [formData, setFormData] = useState<any>({
     date: selectedDate,
-    time: '',
+    time: defaultTime,
     memberIds: [],    // Tee time specific
     courseId: defaultCourse,
     players: 1,
@@ -42,14 +44,21 @@ const CreateModal: React.FC<CreateModalProps> = ({
     duration: 60
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  // Update form data when selectedDate changes
+  const [error, setError] = useState('');  // Update form data when selectedDate changes
   useEffect(() => {
     setFormData((prev: any) => ({
       ...prev,
       date: selectedDate
     }));
   }, [selectedDate]);
+
+  // Update form data when defaultTime changes
+  useEffect(() => {
+    setFormData((prev: any) => ({
+      ...prev,
+      time: defaultTime
+    }));
+  }, [defaultTime]);
 
   if (!isOpen) return null;
 

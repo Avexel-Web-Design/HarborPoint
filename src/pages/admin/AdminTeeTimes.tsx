@@ -32,13 +32,13 @@ const courseNames = {
 };
 
 const AdminTeeTimesPage = () => {
-  useAdminAuth();
-  const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
+  useAdminAuth();  const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const [message, setMessage] = useState('');
   const [activeCourse, setActiveCourse] = useState<CourseType>('birches');
 
@@ -248,10 +248,10 @@ const AdminTeeTimesPage = () => {
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
                 {filteredTeeTimes.length} bookings today
-              </div>
-              <button
+              </div>              <button
                 onClick={() => {
                   setSelectedTeeTime(null);
+                  setSelectedTimeSlot('');
                   setShowCreateModal(true);
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center space-x-2"
@@ -428,11 +428,11 @@ const AdminTeeTimesPage = () => {
                         </div>
                       )}
                     </div>
-                      <div className="flex items-center space-x-2">
-                      {isEmpty && (
+                      <div className="flex items-center space-x-2">                      {isEmpty && (
                         <button
                           onClick={() => {
                             setSelectedTeeTime(null);
+                            setSelectedTimeSlot(timeSlot);
                             setShowCreateModal(true);
                           }}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -444,6 +444,7 @@ const AdminTeeTimesPage = () => {
                         <button
                           onClick={() => {
                             setSelectedTeeTime(null);
+                            setSelectedTimeSlot(timeSlot);
                             setShowCreateModal(true);
                           }}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -458,9 +459,7 @@ const AdminTeeTimesPage = () => {
             })}
           </div>
         </div>
-      </div>
-
-      {/* Create Modal */}
+      </div>      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -468,6 +467,7 @@ const AdminTeeTimesPage = () => {
         selectedDate={selectedDate}
         onCreate={handleCreateTeeTime}
         defaultCourse={activeCourse}
+        defaultTime={selectedTimeSlot}
       />
 
       {/* Edit Modal */}
