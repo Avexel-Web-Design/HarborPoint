@@ -4,7 +4,6 @@ import {
   faGolfBallTee, 
   faCalendarDays, 
   faUtensils, 
-  faCog,
   faClock,
   faMapMarkerAlt,
   faCheck,
@@ -76,20 +75,12 @@ const MemberOverview = () => {
       tabId: 'events',
       icon: <FontAwesomeIcon icon={faCalendarDays} />,
       color: 'bg-blue-500'
-    },
-    {
+    },    {
       title: 'Dining Reservations',
       description: 'Make reservations at our clubhouse restaurant',
       tabId: 'dining',
       icon: <FontAwesomeIcon icon={faUtensils} />,
       color: 'bg-orange-500'
-    },
-    {
-      title: 'Account Settings',
-      description: 'Update your profile and preferences',
-      tabId: 'profile',
-      icon: <FontAwesomeIcon icon={faCog} />,
-      color: 'bg-gray-500'
     }
   ];
 
