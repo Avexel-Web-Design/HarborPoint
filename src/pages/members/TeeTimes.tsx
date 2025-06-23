@@ -293,16 +293,15 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                         : teeTime.status === 'partial'
                         ? 'border-yellow-200 bg-yellow-50'
                         : 'border-gray-200 bg-white'
-                    }`}>
-                      <div className="flex justify-between items-start mb-2">
+                    }`}>                      <div className="flex justify-between items-start mb-2">
                         <div>
                           <p className="font-semibold text-lg">{formatTime(teeTime.time)}</p>
                           <p className="text-sm text-gray-600">{teeTime.courseName}</p>
                         </div>
                         {(teeTime.status === 'available' || teeTime.status === 'partial') && (
                           <div className="text-right">
-                            <p className="font-semibold text-primary-600">${teeTime.price}</p>
-                            <p className="text-sm text-gray-500">per player</p>
+                            <p className="font-semibold text-primary-600">{teeTime.players}/{teeTime.maxPlayers} players</p>
+                            <p className="text-sm text-gray-500">spots taken</p>
                           </div>
                         )}
                       </div>
@@ -329,30 +328,41 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                               Member ID: {teeTime.bookedBy?.memberId}
                             </p>
                           </div>
-                        </div>
-                      ) : (
+                        </div>                      ) : (
                         // Show available tee time booking options
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">
-                            {teeTime.players}/{teeTime.maxPlayers} players
-                          </span>
-                          
-                          <div className="flex space-x-2">
-                            {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
-                              <button
-                                key={players}
-                                onClick={() => openBookingModal(teeTime, players)}
-                                disabled={bookingLoading === teeTime.id}
-                                className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-3 py-1 rounded text-sm font-medium"
-                              >
-                                {bookingLoading === teeTime.id ? (
-                                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                                ) : (
-                                  `Book ${players}`
-                                )}
-                              </button>
-                            ))}
+                          <div className="flex items-center space-x-2">
+                            <label htmlFor={`players-${teeTime.id}`} className="text-sm text-gray-600">Players:</label>
+                            <select
+                              id={`players-${teeTime.id}`}
+                              className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              defaultValue="1"
+                              onChange={(e) => {
+                                const selectElement = e.target as HTMLSelectElement;
+                                selectElement.setAttribute('data-selected-players', e.target.value);
+                              }}
+                            >
+                              {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
+                                <option key={players} value={players}>
+                                  {players}
+                                </option>
+                              ))}
+                            </select>
                           </div>
+                            <button
+                            onClick={() => {
+                              const selectElement = document.getElementById(`players-${teeTime.id}`) as HTMLSelectElement;
+                              const selectedPlayers = parseInt(selectElement?.getAttribute('data-selected-players') || selectElement?.value || '1');
+                              openBookingModal(teeTime, selectedPlayers);
+                            }}
+                            disabled={bookingLoading === teeTime.id}                            className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
+                          >
+                            {bookingLoading === teeTime.id ? (
+                              <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                            ) : (
+                              'Book Tee Time'
+                            )}
+                          </button>
                         </div>
                       )}
                     </div>
