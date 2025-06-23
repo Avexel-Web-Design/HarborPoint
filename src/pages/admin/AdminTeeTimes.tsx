@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Trash2 } from 'lucide-react';
-import Calendar from '../../components/admin/Calendar';
+import { useState, useEffect } from 'react';
+import { Trash2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
@@ -35,26 +34,29 @@ const AdminTeeTimesPage = () => {
   useAdminAuth();
   const [teeTimes, setTeeTimes] = useState<TeeTime[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState('');
   const [activeCourse, setActiveCourse] = useState<CourseType>('birches');
+
   useEffect(() => {
     loadTeeTimes();
-  }, []);
+  }, [selectedDate]);
 
   // Reset state when course changes
   useEffect(() => {
-    setSelectedDate('');
     setMessage('');
   }, [activeCourse]);
 
   const loadTeeTimes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/tee-times', {
+      const startDate = selectedDate;
+      const endDate = selectedDate;
+      
+      const response = await fetch(`/api/admin/tee-times?startDate=${startDate}&endDate=${endDate}`, {
         credentials: 'include'
       });
 
@@ -72,63 +74,41 @@ const AdminTeeTimesPage = () => {
     }
   };
 
-  const handleDateClick = (date: string) => {
-    setSelectedDate(date);
-  };
-
-  const handleDateDoubleClick = (date: string) => {
-    setSelectedDate(date);
-    setShowCreateModal(true);
-  };
-
-  const handleTeeTimeClick = (event: any) => {
-    const fullTeeTime = teeTimes.find(tt => tt.id === event.id);
-    if (fullTeeTime) {
-      setSelectedTeeTime(fullTeeTime);
-      setShowEditModal(true);
+  const changeDate = (direction: 'prev' | 'next') => {
+    const currentDate = new Date(selectedDate);
+    if (direction === 'prev') {
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      currentDate.setDate(currentDate.getDate() + 1);
     }
+    setSelectedDate(currentDate.toISOString().split('T')[0]);
   };
 
-  const handleEventDrop = async (event: any, newDate: string) => {
-    try {
-      const fullTeeTime = teeTimes.find(tt => tt.id.toString() === event.id.toString());
-      if (!fullTeeTime) return;
-
-      const updatedData = {
-        id: event.id,
-        date: newDate,
-        time: event.time,
-        courseId: fullTeeTime.course_name,
-        memberIds: [fullTeeTime.member_id],
-        notes: fullTeeTime.notes
-      };
-      
-      await handleUpdateTeeTime(updatedData);
-    } catch (error) {
-      console.error('Error moving tee time:', error);
-      setMessage('Failed to move tee time');
-    }
+  const goToToday = () => {
+    setSelectedDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleCreateTeeTime = async (data: any) => {
     try {
-      console.log('Creating tee time with data:', data);
       const response = await fetch('/api/admin/tee-times', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          ...data,
+          date: selectedDate,
+          courseId: activeCourse
+        })
       });
 
-      console.log('Create tee time response status:', response.status);
       if (response.ok) {
         setMessage('Tee time created successfully!');
+        setShowCreateModal(false);
         loadTeeTimes();
       } else {
         const errorData = await response.json();
-        console.error('Create tee time error:', errorData);
         throw new Error(errorData.error || 'Failed to create tee time');
       }
     } catch (error) {
@@ -188,22 +168,54 @@ const AdminTeeTimesPage = () => {
     }
   };
 
-  const calendarEvents = useMemo(() => {
-    const filteredTeeTimes = teeTimes.filter(teeTime => teeTime.course_name === activeCourse);
-    return filteredTeeTimes.map(teeTime => ({
-      id: teeTime.id,
-      date: teeTime.date,
-      time: teeTime.time,
-      title: `${teeTime.first_name} ${teeTime.last_name}`,
-      subtitle: `${teeTime.players || 1} player${(teeTime.players || 1) !== 1 ? 's' : ''}`,
-      type: 'tee-time' as const,
-      member_id: teeTime.member_id,
-      course_name: teeTime.course_name,
-      notes: teeTime.notes
-    }));
-  }, [teeTimes, activeCourse]);
+  const handleTeeTimeClick = (teeTime: TeeTime) => {
+    setSelectedTeeTime(teeTime);
+    setShowEditModal(true);
+  };
 
-  const selectedDateTeeTimes = teeTimes.filter(tt => tt.date === selectedDate && tt.course_name === activeCourse);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Generate all possible tee times for the day
+  const generateAllTeeTimeSlots = () => {
+    const slots = [];
+    const startHour = 7;
+    const endHour = 18;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 10) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeStr);
+      }
+    }
+    return slots;
+  };
+
+  // Get tee times for the selected course and date
+  const filteredTeeTimes = teeTimes.filter(tt => 
+    tt.course_name === activeCourse && tt.date === selectedDate
+  );
+  
+  const allTimeSlots = generateAllTeeTimeSlots();
+  const teeTimesByTime = filteredTeeTimes.reduce((acc, tt) => {
+    acc[tt.time] = tt;
+    return acc;
+  }, {} as { [key: string]: TeeTime });
 
   if (loading) {
     return (
@@ -218,26 +230,29 @@ const AdminTeeTimesPage = () => {
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">            <div>
+          <div className="flex justify-between items-center py-6">
+            <div>
               <h1 className="text-2xl font-serif font-bold text-gray-900">
                 Tee Times Management - {courseNames[activeCourse]}
               </h1>
               <p className="text-gray-600">
-                Manage and overview tee time reservations for {courseNames[activeCourse]}
+                Daily view of all tee times for {courseNames[activeCourse]}
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
-                {courseNames[activeCourse]} reservations: {teeTimes.filter(tt => tt.course_name === activeCourse).length}
-              </div><button
+                {filteredTeeTimes.length} bookings today
+              </div>
+              <button
                 onClick={() => {
                   setSelectedTeeTime(null);
-                  setSelectedDate('');
                   setShowCreateModal(true);
                 }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center space-x-2"
               >
-                Create Tee Time              </button>
+                <Plus className="h-4 w-4" />
+                <span>Create Tee Time</span>
+              </button>
             </div>
           </div>
         </div>
@@ -250,13 +265,10 @@ const AdminTeeTimesPage = () => {
             {Object.entries(courseNames).map(([courseId, courseName]) => (
               <button
                 key={courseId}
-                onClick={() => {
-                  setActiveCourse(courseId as CourseType);
-                  setSelectedDate(''); // Reset selected date when changing course
-                }}
-                className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                onClick={() => setActiveCourse(courseId as CourseType)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeCourse === courseId
-                    ? 'border-green-500 text-green-600'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -278,130 +290,143 @@ const AdminTeeTimesPage = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calendar */}
-          <div className="lg:col-span-2">
-            <Calendar
-              events={calendarEvents}
-              onDateClick={handleDateClick}
-              onEventClick={handleTeeTimeClick}
-              onDateDoubleClick={handleDateDoubleClick}
-              onEventDrop={handleEventDrop}
-              selectedDate={selectedDate}
-              enableDragDrop={true}
-            />
-          </div>
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Selected Date Details */}
-            {selectedDate && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {(() => {
-                    const [year, month, day] = selectedDate.split('-').map(Number);
-                    const date = new Date(year, month - 1, day);
-                    return date.toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    });
-                  })()}
-                </h3>
-                
-                {selectedDateTeeTimes.length > 0 ? (
-                  <div className="space-y-3">                    {selectedDateTeeTimes.map(teeTime => (
-                      <div
-                        key={teeTime.id}
-                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div 
-                            className="flex-1 cursor-pointer"
-                            onClick={() => handleTeeTimeClick(teeTime)}
-                          >
-                            <div className="font-medium text-gray-900">
-                              {teeTime.time}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {teeTime.first_name} {teeTime.last_name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {teeTime.guests} guests
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="text-xs text-gray-400">
-                              #{teeTime.member_id_display}
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteTeeTime(teeTime.id);
-                              }}
-                              className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                              title="Delete tee time"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-sm">
-                    <p>No tee times scheduled for this date.</p>
-                    <p className="mt-2 text-xs">Double-click on a calendar date to create a tee time.</p>
-                  </div>
-                )}
+        {/* Date Navigation */}
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => changeDate('prev')}
+                  className="p-2 hover:bg-gray-100 rounded-md"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-600" />
+                </button>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {formatDate(selectedDate)}
+                </h2>
+                <button
+                  onClick={() => changeDate('next')}
+                  className="p-2 hover:bg-gray-100 rounded-md"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-600" />
+                </button>
               </div>
-            )}            {/* Stats */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {courseNames[activeCourse]} Statistics
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Reservations</span>
-                  <span className="font-medium">
-                    {teeTimes.filter(tt => tt.course_name === activeCourse).length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">This Week</span>
-                  <span className="font-medium">
-                    {teeTimes.filter(tt => {
-                      if (tt.course_name !== activeCourse) return false;
-                      const [year, month, day] = tt.date.split('-').map(Number);
-                      const teeTimeDate = new Date(year, month - 1, day);
-                      const today = new Date();
-                      const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-                      const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
-                      return teeTimeDate >= weekStart && teeTimeDate <= weekEnd;
-                    }).length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">This Month</span>
-                  <span className="font-medium">
-                    {teeTimes.filter(tt => {
-                      if (tt.course_name !== activeCourse) return false;
-                      const [year, month, day] = tt.date.split('-').map(Number);
-                      const teeTimeDate = new Date(year, month - 1, day);
-                      const today = new Date();
-                      return (
-                        teeTimeDate.getMonth() === today.getMonth() &&
-                        teeTimeDate.getFullYear() === today.getFullYear()
-                      );
-                    }).length}
-                  </span>
-                </div>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={goToToday}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  Today
+                </button>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>      {/* Create Modal */}
+
+        {/* Tee Times Grid */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">
+              All Tee Time Slots - {courseNames[activeCourse]}
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              All available time slots from 7:00 AM to 6:00 PM (every 10 minutes)
+            </p>
+          </div>
+          
+          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+            {allTimeSlots.map((timeSlot) => {
+              const teeTime = teeTimesByTime[timeSlot];
+              const isEmpty = !teeTime;
+              
+              return (
+                <div
+                  key={timeSlot}
+                  className={`px-6 py-4 hover:bg-gray-50 ${
+                    isEmpty ? 'text-gray-400' : 'cursor-pointer'
+                  }`}
+                  onClick={() => {
+                    if (teeTime) {
+                      handleTeeTimeClick(teeTime);
+                    }
+                  }}
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                      <div className="font-medium text-gray-900">
+                        {formatTime(timeSlot)}
+                      </div>
+                      {isEmpty ? (
+                        <div className="text-sm text-gray-500">
+                          Available
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {teeTime.first_name} {teeTime.last_name}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {teeTime.players || 1} player{(teeTime.players || 1) !== 1 ? 's' : ''}
+                              {teeTime.notes && ` • ${teeTime.notes}`}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            #{teeTime.member_id_display}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      {isEmpty ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTeeTime(null);
+                            setShowCreateModal(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Book
+                        </button>
+                      ) : (
+                        <>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            teeTime.status === 'active' ? 'bg-green-100 text-green-800' :
+                            teeTime.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {teeTime.status}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTeeTime(teeTime.id);
+                            }}
+                            className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                            title="Delete tee time"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}

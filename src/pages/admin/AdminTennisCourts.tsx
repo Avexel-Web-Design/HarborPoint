@@ -4,13 +4,14 @@ import CreateModal from '../../components/admin/CreateModal';
 import EditModal from '../../components/admin/EditModal';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
-interface DiningReservation {
+interface TennisReservation {
   id: number;
   member_id: number;
   date: string;
   time: string;
-  party_size: number;
-  special_requests?: string;
+  duration: number;
+  court_number: number;
+  notes?: string;
   status: string;
   first_name: string;
   last_name: string;
@@ -20,15 +21,18 @@ interface DiningReservation {
   created_at: string;
 }
 
-const AdminDiningPage = () => {
+const AdminTennisCourtsPage = () => {
   const { } = useAdminAuth();
-  const [reservations, setReservations] = useState<DiningReservation[]>([]);
+  const [reservations, setReservations] = useState<TennisReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedReservation, setSelectedReservation] = useState<DiningReservation | null>(null);
+  const [selectedReservation, setSelectedReservation] = useState<TennisReservation | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [message, setMessage] = useState('');
+  const [selectedCourt, setSelectedCourt] = useState<number>(1);
+
+  const courts = [1, 2, 3, 4]; // Assuming 4 tennis courts
 
   useEffect(() => {
     loadReservations();
@@ -37,7 +41,7 @@ const AdminDiningPage = () => {
   const loadReservations = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/dining?date=${selectedDate}`, {
+      const response = await fetch(`/api/admin/tennis-courts?date=${selectedDate}`, {
         credentials: 'include'
       });
 
@@ -45,7 +49,7 @@ const AdminDiningPage = () => {
         const data = await response.json();
         setReservations(data.reservations || []);
       } else {
-        setMessage('Failed to load dining reservations');
+        setMessage('Failed to load tennis court reservations');
       }
     } catch (error) {
       console.error('Error loading reservations:', error);
@@ -71,7 +75,7 @@ const AdminDiningPage = () => {
 
   const handleCreateReservation = async (data: any) => {
     try {
-      const response = await fetch('/api/admin/dining', {
+      const response = await fetch('/api/admin/tennis-courts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -79,12 +83,13 @@ const AdminDiningPage = () => {
         credentials: 'include',
         body: JSON.stringify({
           ...data,
-          date: selectedDate
+          date: selectedDate,
+          court_number: selectedCourt
         })
       });
 
       if (response.ok) {
-        setMessage('Reservation created successfully!');
+        setMessage('Tennis court reservation created successfully!');
         setShowCreateModal(false);
         loadReservations();
       } else {
@@ -100,7 +105,7 @@ const AdminDiningPage = () => {
 
   const handleUpdateReservation = async (data: any) => {
     try {
-      const response = await fetch('/api/admin/dining', {
+      const response = await fetch('/api/admin/tennis-courts', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -110,7 +115,7 @@ const AdminDiningPage = () => {
       });
 
       if (response.ok) {
-        setMessage('Reservation updated successfully!');
+        setMessage('Tennis court reservation updated successfully!');
         setShowEditModal(false);
         setSelectedReservation(null);
         loadReservations();
@@ -127,13 +132,13 @@ const AdminDiningPage = () => {
 
   const handleDeleteReservation = async (reservationId: number) => {
     try {
-      const response = await fetch(`/api/admin/dining?id=${reservationId}`, {
+      const response = await fetch(`/api/admin/tennis-courts?id=${reservationId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
 
       if (response.ok) {
-        setMessage('Reservation deleted successfully!');
+        setMessage('Tennis court reservation deleted successfully!');
         setShowEditModal(false);
         setSelectedReservation(null);
         loadReservations();
@@ -148,7 +153,7 @@ const AdminDiningPage = () => {
     }
   };
 
-  const handleReservationClick = (reservation: DiningReservation) => {
+  const handleReservationClick = (reservation: TennisReservation) => {
     setSelectedReservation(reservation);
     setShowEditModal(true);
   };
@@ -171,15 +176,14 @@ const AdminDiningPage = () => {
     });
   };
 
-  // Generate all possible reservation time slots for the day
+  // Generate all possible time slots for the day
   const generateAllTimeSlots = () => {
     const slots = [];
-    const startHour = 11; // 11 AM
-    const endHour = 21;   // 9 PM
+    const startHour = 6;  // 6 AM
+    const endHour = 22;   // 10 PM
     
-    for (let hour = startHour; hour <= endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        if (hour === endHour && minute > 0) break; // Stop at 9:00 PM
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 60) { // 1-hour slots
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         slots.push(timeStr);
       }
@@ -187,17 +191,16 @@ const AdminDiningPage = () => {
     return slots;
   };
 
-  // Filter reservations for the selected date
-  const filteredReservations = reservations.filter(r => r.date === selectedDate);
+  // Filter reservations for the selected date and court
+  const filteredReservations = reservations.filter(r => 
+    r.date === selectedDate && r.court_number === selectedCourt
+  );
   
   const allTimeSlots = generateAllTimeSlots();
   const reservationsByTime = filteredReservations.reduce((acc, reservation) => {
-    if (!acc[reservation.time]) {
-      acc[reservation.time] = [];
-    }
-    acc[reservation.time].push(reservation);
+    acc[reservation.time] = reservation;
     return acc;
-  }, {} as { [key: string]: DiningReservation[] });
+  }, {} as { [key: string]: TennisReservation });
 
   if (loading) {
     return (
@@ -215,10 +218,10 @@ const AdminDiningPage = () => {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-2xl font-serif font-bold text-gray-900">
-                Dining Reservations Management
+                Tennis Courts Management - Court {selectedCourt}
               </h1>
               <p className="text-gray-600">
-                Daily view of all dining reservations
+                Daily view of tennis court reservations
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -237,6 +240,27 @@ const AdminDiningPage = () => {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Court Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="-mb-px flex space-x-8">
+            {courts.map((courtNumber) => (
+              <button
+                key={courtNumber}
+                onClick={() => setSelectedCourt(courtNumber)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  selectedCourt === courtNumber
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Court {courtNumber}
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 
@@ -294,92 +318,92 @@ const AdminDiningPage = () => {
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">
-              All Reservation Time Slots
+              Court {selectedCourt} Time Slots
             </h3>
             <p className="text-sm text-gray-600 mt-1">
-              All available time slots from 11:00 AM to 9:00 PM (every 30 minutes)
+              All available time slots from 6:00 AM to 10:00 PM (1-hour slots)
             </p>
           </div>
           
           <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
             {allTimeSlots.map((timeSlot) => {
-              const reservationsAtTime = reservationsByTime[timeSlot] || [];
-              const hasReservations = reservationsAtTime.length > 0;
+              const reservation = reservationsByTime[timeSlot];
+              const isEmpty = !reservation;
               
               return (
                 <div
                   key={timeSlot}
-                  className="px-6 py-4 hover:bg-gray-50"
+                  className={`px-6 py-4 hover:bg-gray-50 ${
+                    isEmpty ? 'text-gray-400' : 'cursor-pointer'
+                  }`}
+                  onClick={() => {
+                    if (reservation) {
+                      handleReservationClick(reservation);
+                    }
+                  }}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-start space-x-4">
-                      <div className="font-medium text-gray-900 min-w-20">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                      <div className="font-medium text-gray-900">
                         {formatTime(timeSlot)}
                       </div>
-                      {!hasReservations ? (
+                      {isEmpty ? (
                         <div className="text-sm text-gray-500">
                           Available
                         </div>
                       ) : (
-                        <div className="flex-1 space-y-2">
-                          {reservationsAtTime.map((reservation) => (
-                            <div
-                              key={reservation.id}
-                              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                              onClick={() => handleReservationClick(reservation)}
-                            >
-                              <div className="flex items-center space-x-4">
-                                <div>
-                                  <div className="font-medium text-gray-900">
-                                    {reservation.first_name} {reservation.last_name}
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    Party of {reservation.party_size}
-                                    {reservation.special_requests && ` • ${reservation.special_requests}`}
-                                  </div>
-                                </div>
-                                <div className="text-xs text-gray-400">
-                                  #{reservation.member_id_display}
-                                </div>
-                              </div>
-                              
-                              <div className="flex items-center space-x-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  reservation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                                  reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  reservation.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {reservation.status}
-                                </span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteReservation(reservation.id);
-                                  }}
-                                  className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                                  title="Delete reservation"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {reservation.first_name} {reservation.last_name}
                             </div>
-                          ))}
+                            <div className="text-sm text-gray-600">
+                              {reservation.duration} hour{reservation.duration !== 1 ? 's' : ''}
+                              {reservation.notes && ` • ${reservation.notes}`}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            #{reservation.member_id_display}
+                          </div>
                         </div>
                       )}
                     </div>
                     
-                    {!hasReservations && (
-                      <button
-                        onClick={() => {
-                          setSelectedReservation(null);
-                          setShowCreateModal(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Book
-                      </button>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {isEmpty ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedReservation(null);
+                            setShowCreateModal(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Book
+                        </button>
+                      ) : (
+                        <>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            reservation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            reservation.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {reservation.status}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteReservation(reservation.id);
+                            }}
+                            className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                            title="Delete reservation"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -388,27 +412,21 @@ const AdminDiningPage = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500">Total Reservations Today</h3>
-            <p className="text-2xl font-bold text-gray-900">{filteredReservations.length}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500">Total Guests</h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {filteredReservations.reduce((sum, reservation) => sum + reservation.party_size, 0)}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500">Confirmed Reservations</h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {filteredReservations.filter(r => r.status === 'confirmed').length}
-            </p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+          {courts.map((courtNumber) => {
+            const courtReservations = reservations.filter(r => 
+              r.date === selectedDate && r.court_number === courtNumber
+            );
+            return (
+              <div key={courtNumber} className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-sm font-medium text-gray-500">Court {courtNumber}</h3>
+                <p className="text-2xl font-bold text-gray-900">{courtReservations.length}</p>
+                <p className="text-xs text-gray-500">reservations</p>
+              </div>
+            );
+          })}
         </div>
-      </div>
-
-      {/* Create Modal */}
+      </div>      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -430,4 +448,4 @@ const AdminDiningPage = () => {
   );
 };
 
-export default AdminDiningPage;
+export default AdminTennisCourtsPage;
