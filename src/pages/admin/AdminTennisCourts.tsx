@@ -435,9 +435,11 @@ const AdminTennisCourtsPage = () => {
                           <div>
                             <div className="font-medium text-gray-900">
                               {reservation.first_name} {reservation.last_name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {reservation.duration} minute{reservation.duration !== 1 ? 's' : ''}
+                            </div>                            <div className="text-sm text-gray-600">
+                              {reservation.duration >= 60 
+                                ? `${(reservation.duration / 60).toFixed(reservation.duration % 60 === 0 ? 0 : 1)} hour${reservation.duration !== 60 ? 's' : ''}`
+                                : `${reservation.duration} minute${reservation.duration !== 1 ? 's' : ''}`
+                              }
                               {reservation.notes && ` • ${reservation.notes}`}
                             </div>
                           </div>
