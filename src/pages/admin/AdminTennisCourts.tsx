@@ -197,13 +197,35 @@ const AdminTennisCourtsPage = () => {
   // Filter reservations for the selected date and court
   const filteredReservations = reservations.filter(r => 
     r.date === selectedDate && r.court_number === selectedCourt
-  );
-  
+  );  
   const allTimeSlots = generateAllTimeSlots();
-  const reservationsByTime = filteredReservations.reduce((acc, reservation) => {
-    acc[reservation.time] = reservation;
-    return acc;
-  }, {} as { [key: string]: TennisReservation });
+  
+  // Create a map of which time slots are occupied by reservations
+  const timeSlotMap = new Map<string, { reservation: TennisReservation | null, isStart: boolean, isMiddle: boolean, isEnd: boolean }>();
+  
+  // Initialize all slots as available
+  allTimeSlots.forEach(slot => {
+    timeSlotMap.set(slot, { reservation: null, isStart: false, isMiddle: false, isEnd: false });
+  });
+    // Fill in reservations across their duration
+  filteredReservations.forEach(reservation => {
+    const startTime = reservation.time;
+    const durationMinutes = reservation.duration;
+    const slotsToFill = Math.ceil(durationMinutes / 30); // Each slot is 30 minutes
+    
+    const startIndex = allTimeSlots.indexOf(startTime);
+    if (startIndex !== -1) {
+      for (let i = 0; i < slotsToFill && startIndex + i < allTimeSlots.length; i++) {
+        const slotTime = allTimeSlots[startIndex + i];
+        timeSlotMap.set(slotTime, {
+          reservation,
+          isStart: i === 0,
+          isMiddle: i > 0 && i < slotsToFill - 1,
+          isEnd: i === slotsToFill - 1 && slotsToFill > 1
+        });
+      }
+    }
+  });
 
   if (loading) {
     return (
@@ -356,18 +378,34 @@ const AdminTennisCourtsPage = () => {
               All available time slots from 6:00 AM to 10:00 PM (30-minute slots)
             </p>
           </div>
-          
-          <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200">
             {allTimeSlots.map((timeSlot) => {
-              const reservation = reservationsByTime[timeSlot];
+              const slotData = timeSlotMap.get(timeSlot);
+              const reservation = slotData?.reservation;
               const isEmpty = !reservation;
               
-              return (
+              // Skip rendering middle and end slots - they're part of the start slot
+              if (slotData?.isMiddle || slotData?.isEnd) {
+                return null;
+              }
+              
+              // Calculate how many slots this reservation spans
+              const slotsSpanned = reservation ? Math.ceil(reservation.duration / 30) : 1;
+                return (
                 <div
                   key={timeSlot}
-                  className={`px-6 py-4 hover:bg-gray-50 ${
+                  className={`px-6 py-4 hover:bg-gray-50 transition-colors ${
                     isEmpty ? 'text-gray-400' : 'cursor-pointer'
+                  } ${
+                    reservation && slotsSpanned > 1 
+                      ? 'border-l-4 border-blue-500 bg-blue-50' 
+                      : reservation 
+                        ? 'border-l-4 border-green-500 bg-green-50'
+                        : ''
                   }`}
+                  style={{
+                    minHeight: reservation && slotsSpanned > 1 ? `${slotsSpanned * 64}px` : '64px'
+                  }}
                   onClick={() => {
                     if (reservation) {
                       handleReservationClick(reservation);
@@ -375,9 +413,22 @@ const AdminTennisCourtsPage = () => {
                   }}
                 >
                   <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-4">
-                      <div className="font-medium text-gray-900">
+                    <div className="flex items-center space-x-4">                      <div className="font-medium text-gray-900">
                         {formatTime(timeSlot)}
+                        {reservation && slotsSpanned > 1 && (
+                          <span className="text-sm text-blue-600 ml-2">
+                            → {(() => {
+                              // Calculate actual end time based on start time + duration
+                              const [startHour, startMinute] = timeSlot.split(':').map(Number);
+                              const startTotalMinutes = startHour * 60 + startMinute;
+                              const endTotalMinutes = startTotalMinutes + reservation.duration;
+                              const endHour = Math.floor(endTotalMinutes / 60);
+                              const endMinute = endTotalMinutes % 60;
+                              const endTimeString = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+                              return formatTime(endTimeString);
+                            })()}
+                          </span>
+                        )}
                       </div>
                       {isEmpty ? (
                         <div className="text-sm text-gray-500">
@@ -388,7 +439,8 @@ const AdminTennisCourtsPage = () => {
                           <div>
                             <div className="font-medium text-gray-900">
                               {reservation.first_name} {reservation.last_name}
-                            </div>                            <div className="text-sm text-gray-600">
+                            </div>
+                            <div className="text-sm text-gray-600">
                               {reservation.duration} minute{reservation.duration !== 1 ? 's' : ''}
                               {reservation.notes && ` • ${reservation.notes}`}
                             </div>
@@ -436,9 +488,8 @@ const AdminTennisCourtsPage = () => {
                       )}
                     </div>
                   </div>
-                </div>
-              );
-            })}          </div>
+                </div>              );
+            }).filter(Boolean)} {/* Filter out null values from skipped slots */}</div>
         </div>
       </div>
 
