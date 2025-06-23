@@ -119,9 +119,7 @@ const MemberOverview = () => {
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-8">
+      </div>      <div className="grid lg:grid-cols-2 gap-8">
         {/* Membership Benefits */}
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 border border-primary-200">
           <h3 className="text-2xl font-serif font-bold text-primary-950 mb-6">
@@ -139,60 +137,57 @@ const MemberOverview = () => {
           </ul>
         </div>
 
-        {/* Recent Activity */}
+        {/* Upcoming Events Preview */}
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 border border-primary-200">
           <h3 className="text-2xl font-serif font-bold text-primary-950 mb-6">
-            Recent Activity
-          </h3>          <div className="space-y-4">
-            <div className="flex items-center space-x-3 text-sm">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-primary-800 font-medium">Account created</span>
-              <span className="text-primary-600">Today</span>
+            Upcoming Club Events
+          </h3>
+          {eventsLoading ? (
+            <div className="text-center p-8">
+              <div className="text-4xl mb-2">⏳</div>
+              <p className="text-gray-600">Loading events...</p>
             </div>
-            <div className="text-sm text-primary-700 mt-2">
-              No recent activity. Start exploring your member benefits!
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upcoming Events Preview */}
-      <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 border border-primary-200">
-        <h3 className="text-2xl font-serif font-bold text-primary-950 mb-6">
-          Upcoming Club Events
-        </h3>
-        {eventsLoading ? (
-          <div className="text-center p-8">
-            <div className="text-4xl mb-2">⏳</div>
-            <p className="text-gray-600">Loading events...</p>
-          </div>
-        ) : upcomingEvents.length > 0 ? (          <div className="space-y-6">
-            {upcomingEvents.map((event, index) => (
-              <div key={event.id || index} className="border-l-4 border-primary-500 pl-6 py-4 bg-primary-50/50 rounded-r-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-serif font-bold text-primary-950 text-lg">{event.title}</h4>
-                    <p className="text-sm text-primary-700 mt-2 leading-relaxed">{event.description}</p>
-                    <div className="flex items-center mt-3 text-sm text-primary-600 space-x-6">
-                      <span className="flex items-center">📅 {new Date(event.date).toLocaleDateString()}</span>
-                      <span className="flex items-center">🕐 {event.time}</span>
-                      <span className="flex items-center">📍 {event.location}</span>
+          ) : upcomingEvents.length > 0 ? (
+            <div className="space-y-6">
+              {upcomingEvents.map((event, index) => (
+                <div key={event.id || index} className="border-l-4 border-primary-500 pl-6 py-4 bg-primary-50/50 rounded-r-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-serif font-bold text-primary-950 text-lg">{event.title}</h4>
+                      <p className="text-sm text-primary-700 mt-2 leading-relaxed">{event.description}</p>
+                      <div className="flex items-center mt-3 text-sm text-primary-600 space-x-6">
+                        <span className="flex items-center">📅 {new Date(event.date).toLocaleDateString()}</span>
+                        <span className="flex items-center">🕐 {event.time}</span>
+                        <span className="flex items-center">📍 {event.location}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-medium text-primary-900">
+                        {event.cost > 0 ? `$${event.cost}` : 'Free'}
+                      </span>
+                      {event.is_registered ? (
+                        <div className="text-sm text-green-700 mt-2 font-medium">✓ Registered</div>
+                      ) : (
+                        <div className="text-sm text-primary-600 mt-2">Not registered</div>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-primary-900">
-                      {event.cost > 0 ? `$${event.cost}` : 'Free'}
-                    </span>
-                    {event.is_registered ? (
-                      <div className="text-sm text-green-700 mt-2 font-medium">✓ Registered</div>
-                    ) : (
-                      <div className="text-sm text-primary-600 mt-2">Not registered</div>
-                    )}
-                  </div>
                 </div>
+              ))}
+              <div className="text-center pt-6 border-t border-primary-200">
+                <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'events' }))}
+                  className="btn-primary"
+                >
+                  View All Events
+                </button>
               </div>
-            ))}
-            <div className="text-center pt-6 border-t border-primary-200">
+            </div>
+          ) : (
+            <div className="text-center p-8">
+              <div className="text-4xl mb-4">📅</div>
+              <h4 className="font-serif font-bold text-primary-950 mb-2 text-lg">No upcoming events</h4>
+              <p className="text-sm text-primary-700 mb-6 leading-relaxed">Check back soon for new events and tournaments</p>
               <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'events' }))}
                 className="btn-primary"
@@ -200,20 +195,8 @@ const MemberOverview = () => {
                 View All Events
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="text-center p-8">
-            <div className="text-4xl mb-4">📅</div>
-            <h4 className="font-serif font-bold text-primary-950 mb-2 text-lg">No upcoming events</h4>
-            <p className="text-sm text-primary-700 mb-6 leading-relaxed">Check back soon for new events and tournaments</p>
-            <button 
-              onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'events' }))}
-              className="btn-primary"
-            >
-              View All Events
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
