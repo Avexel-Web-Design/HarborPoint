@@ -292,8 +292,7 @@ const AdminDiningPage = () => {
         </div>
 
         {/* Reservations Grid */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow">          <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">
               All Reservation Time Slots
             </h3>
@@ -302,7 +301,7 @@ const AdminDiningPage = () => {
             </p>
           </div>
           
-          <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-gray-200">
             {allTimeSlots.map((timeSlot) => {
               const reservationsAtTime = reservationsByTime[timeSlot] || [];
               const hasReservations = reservationsAtTime.length > 0;
@@ -385,28 +384,7 @@ const AdminDiningPage = () => {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500">Total Reservations Today</h3>
-            <p className="text-2xl font-bold text-gray-900">{filteredReservations.length}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500">Total Guests</h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {filteredReservations.reduce((sum, reservation) => sum + reservation.party_size, 0)}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500">Confirmed Reservations</h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {filteredReservations.filter(r => r.status === 'confirmed').length}
-            </p>
-          </div>
-        </div>
+          </div>        </div>
       </div>
 
       {/* Create Modal */}
