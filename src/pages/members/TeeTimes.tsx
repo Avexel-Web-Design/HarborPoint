@@ -50,12 +50,12 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [selectedPlayers, setSelectedPlayers] = useState(1);
   const [allowOthersToJoin, setAllowOthersToJoin] = useState(false);
-  
-  // Edit booking state
+    // Edit booking state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBooking, setEditingBooking] = useState<TeeTimeBooking | null>(null);
   const [editPlayers, setEditPlayers] = useState(1);
   const [editAllowOthersToJoin, setEditAllowOthersToJoin] = useState(false);
+  const [maxEditPlayers, setMaxEditPlayers] = useState(4);
 
   // Initialize courses
   useEffect(() => {
@@ -181,18 +181,54 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
     } finally {
       setBookingLoading(null);
     }
-  };  const openEditBookingModal = (booking: TeeTimeBooking) => {
+  };  const openEditBookingModal = async (booking: TeeTimeBooking) => {
     setEditingBooking(booking);
     setEditPlayers(booking.players);
     setEditAllowOthersToJoin(false); // We'll need to fetch this from the API if needed
+    
+    // Map course display name to course ID
+    const getCourseId = (courseName: string) => {
+      if (courseName.includes('Birches')) return 'birches';
+      if (courseName.includes('Woods')) return 'woods';
+      if (courseName.includes('Farms')) return 'farms';
+      return 'birches'; // Default fallback
+    };
+    
+    // Fetch current tee time capacity to determine max players allowed
+    try {
+      const courseId = getCourseId(booking.courseName);
+      const response = await fetch(`/api/tee-times/available?date=${booking.date}&courseId=${courseId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const teeTime = data.find((t: any) => t.time === booking.time);        if (teeTime) {
+          // Calculate available spots (considering this booking will be removed temporarily)
+          const currentOtherPlayers = teeTime.players - booking.players;
+          const maxAllowedPlayers = Math.min(4, 4 - currentOtherPlayers);
+          setMaxEditPlayers(maxAllowedPlayers);
+          
+          // If current booking exceeds the new limit, adjust it down
+          if (booking.players > maxAllowedPlayers) {
+            setEditPlayers(maxAllowedPlayers);
+          }
+        } else {
+          setMaxEditPlayers(4); // Default if tee time not found
+        }
+      } else {
+        setMaxEditPlayers(4); // Default on error
+      }
+    } catch (error) {
+      console.error('Error fetching tee time capacity:', error);
+      setMaxEditPlayers(4); // Default on error
+    }
+    
     setShowEditModal(true);
   };
-
   const closeEditModal = () => {
     setShowEditModal(false);
     setEditingBooking(null);
     setEditPlayers(1);
     setEditAllowOthersToJoin(false);
+    setMaxEditPlayers(4);
   };
 
   const updateBooking = async (bookingId: string) => {
@@ -634,12 +670,17 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                   onChange={(e) => setEditPlayers(parseInt(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
-                  {[1, 2, 3, 4].map((players) => (
+                  {Array.from({ length: maxEditPlayers }, (_, i) => i + 1).map((players) => (
                     <option key={players} value={players}>
                       {players} player{players !== 1 ? 's' : ''}
                     </option>
                   ))}
                 </select>
+                {maxEditPlayers < 4 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Limited to {maxEditPlayers} player{maxEditPlayers !== 1 ? 's' : ''} due to other bookings at this time slot
+                  </p>
+                )}
               </div>
               
               <div className="flex items-center mb-4">

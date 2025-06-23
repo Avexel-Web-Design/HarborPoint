@@ -2496,7 +2496,7 @@ async function handleUpdateTeeTime2(request, env) {
     });
   }
   const verifyStmt = env.DB.prepare(`
-    SELECT id, players FROM tee_time_bookings WHERE id = ? AND member_id = ?
+    SELECT id, players, course_name, date, time FROM tee_time_bookings WHERE id = ? AND member_id = ?
   `);
   const teeTime = await verifyStmt.bind(teeTimeId, member.id).first();
   if (!teeTime) {
@@ -2505,15 +2505,50 @@ async function handleUpdateTeeTime2(request, env) {
       headers: { "Content-Type": "application/json" }
     });
   }
+  if (body.players !== teeTime.players) {
+    const capacityCheck = env.DB.prepare(`
+      SELECT SUM(players) as total_players FROM tee_time_bookings 
+      WHERE course_name = ? AND date = ? AND time = ? AND status = 'active' AND id != ?
+    `);
+    const capacityResult = await capacityCheck.bind(teeTime.course_name, teeTime.date, teeTime.time, teeTimeId).first();
+    const otherPlayersCount = capacityResult?.total_players || 0;
+    if (otherPlayersCount + body.players > 4) {
+      const maxAllowed = 4 - otherPlayersCount;
+      return new Response(JSON.stringify({
+        error: `This would exceed the 4-player limit. Maximum ${maxAllowed} player${maxAllowed !== 1 ? "s" : ""} allowed for this booking.`
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  }
+  let playerNames = null;
+  if (body.players !== teeTime.players) {
+    const memberQuery = env.DB.prepare(`
+      SELECT first_name, last_name FROM members WHERE id = ?
+    `);
+    const memberResult = await memberQuery.bind(member.id).first();
+    if (memberResult) {
+      const memberName = `${memberResult.first_name} ${memberResult.last_name}`;
+      if (body.players === 1) {
+        playerNames = memberName;
+      } else {
+        const guestNames = Array(body.players - 1).fill(null).map((_, i) => `Guest ${i + 1}`);
+        playerNames = [memberName, ...guestNames].join(", ");
+      }
+    }
+  }
   const updateStmt = env.DB.prepare(`
     UPDATE tee_time_bookings 
     SET players = ?, 
+        player_names = COALESCE(?, player_names),
         allow_additional_players = ?,
         updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
   const result = await updateStmt.bind(
     body.players,
+    playerNames,
     body.allowOthersToJoin ? 1 : 0,
     teeTimeId
   ).run();
