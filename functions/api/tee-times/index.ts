@@ -5,12 +5,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
-
   try {
     if (method === 'GET') {
       return handleGetTeeTimes(request, env);
     } else if (method === 'POST') {
       return handleCreateTeeTime(request, env);
+    } else if (method === 'PUT') {
+      return handleUpdateTeeTime(request, env);
     } else if (method === 'DELETE') {
       return handleDeleteTeeTime(request, env);
     }
@@ -166,6 +167,78 @@ async function handleCreateTeeTime(request: Request, env: Env) {
     });
   } else {
     return new Response(JSON.stringify({ error: 'Failed to create tee time' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+async function handleUpdateTeeTime(request: Request, env: Env) {
+  const member = await verifyAuth(request, env);
+  if (!member) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  const url = new URL(request.url);
+  const teeTimeId = url.searchParams.get('id');
+
+  if (!teeTimeId) {
+    return new Response(JSON.stringify({ error: 'Tee time ID required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  const body = await request.json();
+
+  // Validate input
+  if (!body.players || body.players < 1 || body.players > 4) {
+    return new Response(JSON.stringify({ error: 'Players must be between 1 and 4' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Verify the tee time belongs to the member
+  const verifyStmt = env.DB.prepare(`
+    SELECT id, players FROM tee_times WHERE id = ? AND member_id = ?
+  `);
+  const teeTime = await verifyStmt.bind(teeTimeId, member.id).first();
+
+  if (!teeTime) {
+    return new Response(JSON.stringify({ error: 'Tee time not found or access denied' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Update the tee time
+  const updateStmt = env.DB.prepare(`
+    UPDATE tee_times 
+    SET players = ?, 
+        allow_additional_players = ?,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
+
+  const result = await updateStmt.bind(
+    body.players,
+    body.allowOthersToJoin ? 1 : 0,
+    teeTimeId
+  ).run();
+
+  if (result.success) {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: 'Tee time updated successfully'
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } else {
+    return new Response(JSON.stringify({ error: 'Failed to update tee time' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

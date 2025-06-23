@@ -45,12 +45,17 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  // Booking modal state
+    // Booking modal state
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [selectedPlayers, setSelectedPlayers] = useState(1);
   const [allowOthersToJoin, setAllowOthersToJoin] = useState(false);
+  
+  // Edit booking state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<TeeTimeBooking | null>(null);
+  const [editPlayers, setEditPlayers] = useState(1);
+  const [editAllowOthersToJoin, setEditAllowOthersToJoin] = useState(false);
 
   // Initialize courses
   useEffect(() => {
@@ -104,7 +109,17 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
     } catch (err) {
       console.error('Failed to load bookings:', err);
     }
-  };  const openBookingModal = (teeTime: TeeTime, players: number) => {
+  };  // Helper function to check if user has already booked this tee time
+  const hasUserBookedTeeTime = (teeTime: TeeTime) => {
+    return myBookings.some(booking => 
+      booking.date === teeTime.date && 
+      booking.time === teeTime.time && 
+      booking.courseName === teeTime.courseName &&
+      (booking.status === 'active' || booking.status === 'confirmed')
+    );
+  };
+
+  const openBookingModal = (teeTime: TeeTime, players: number) => {
     setSelectedTeeTime(teeTime);
     setSelectedPlayers(players);
     // Default to allowing others to join unless this booking will fill up the tee time completely
@@ -166,7 +181,53 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
     } finally {
       setBookingLoading(null);
     }
-  };  const cancelBooking = async (bookingId: string) => {
+  };  
+
+  const openEditBookingModal = (booking: TeeTimeBooking) => {
+    setEditingBooking(booking);
+    setEditPlayers(booking.players);
+    setEditAllowOthersToJoin(false); // We'll need to fetch this from the API if needed
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingBooking(null);
+    setEditPlayers(1);
+    setEditAllowOthersToJoin(false);
+  };
+
+  const updateBooking = async (bookingId: string) => {
+    if (!editingBooking) return;
+    
+    try {
+      const response = await fetch(`/api/tee-times?id=${bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          players: editPlayers,
+          allowOthersToJoin: editAllowOthersToJoin
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update booking');
+      }
+      
+      setSuccess('Booking updated successfully!');
+      loadMyBookings();
+      loadAvailableTeeTimes();
+      closeEditModal();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update booking');
+    }
+  };
+
+  const cancelBooking = async (bookingId: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) {
       return;
     }
@@ -344,8 +405,47 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                               </div>
                             )}
                           </div>
-                          {/* Booking options for partial tee times */}
-                          <div className="flex justify-between items-center pt-2">
+                          {/* Booking options for partial tee times - only show if user hasn't already booked */}
+                          {!hasUserBookedTeeTime(teeTime) && (
+                            <div className="flex justify-between items-center pt-2">
+                              <div className="flex items-center space-x-2">
+                                <label htmlFor={`players-${teeTime.id}`} className="text-sm text-gray-600">Players:</label>
+                                <select
+                                  id={`players-${teeTime.id}`}
+                                  className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                  defaultValue="1"
+                                  onChange={(e) => {
+                                    const selectElement = e.target as HTMLSelectElement;
+                                    selectElement.setAttribute('data-selected-players', e.target.value);
+                                  }}
+                                >
+                                  {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
+                                    <option key={players} value={players}>
+                                      {players}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const selectElement = document.getElementById(`players-${teeTime.id}`) as HTMLSelectElement;
+                                  const selectedPlayers = parseInt(selectElement?.getAttribute('data-selected-players') || selectElement?.value || '1');
+                                  openBookingModal(teeTime, selectedPlayers);
+                                }}
+                                disabled={bookingLoading === teeTime.id}
+                                className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
+                              >
+                                {bookingLoading === teeTime.id ? (
+                                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                                ) : (
+                                  'Join Tee Time'
+                                )}
+                              </button>
+                            </div>                          )}
+                        </div>) : (
+                        // Show available tee time booking options - only show if user hasn't already booked
+                        !hasUserBookedTeeTime(teeTime) ? (
+                          <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-2">
                               <label htmlFor={`players-${teeTime.id}`} className="text-sm text-gray-600">Players:</label>
                               <select
@@ -364,58 +464,21 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                                 ))}
                               </select>
                             </div>
-                            <button
+                              <button
                               onClick={() => {
                                 const selectElement = document.getElementById(`players-${teeTime.id}`) as HTMLSelectElement;
                                 const selectedPlayers = parseInt(selectElement?.getAttribute('data-selected-players') || selectElement?.value || '1');
                                 openBookingModal(teeTime, selectedPlayers);
                               }}
-                              disabled={bookingLoading === teeTime.id}
-                              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
+                              disabled={bookingLoading === teeTime.id}                              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
                             >
                               {bookingLoading === teeTime.id ? (
                                 <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                               ) : (
-                                'Join Tee Time'
+                                'Book Tee Time'
                               )}
-                            </button>
-                          </div>
-                        </div>) : (
-                        // Show available tee time booking options
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center space-x-2">
-                            <label htmlFor={`players-${teeTime.id}`} className="text-sm text-gray-600">Players:</label>
-                            <select
-                              id={`players-${teeTime.id}`}
-                              className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                              defaultValue="1"
-                              onChange={(e) => {
-                                const selectElement = e.target as HTMLSelectElement;
-                                selectElement.setAttribute('data-selected-players', e.target.value);
-                              }}
-                            >
-                              {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
-                                <option key={players} value={players}>
-                                  {players}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                            <button
-                            onClick={() => {
-                              const selectElement = document.getElementById(`players-${teeTime.id}`) as HTMLSelectElement;
-                              const selectedPlayers = parseInt(selectElement?.getAttribute('data-selected-players') || selectElement?.value || '1');
-                              openBookingModal(teeTime, selectedPlayers);
-                            }}
-                            disabled={bookingLoading === teeTime.id}                            className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
-                          >
-                            {bookingLoading === teeTime.id ? (
-                              <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                            ) : (
-                              'Book Tee Time'
-                            )}
-                          </button>
-                        </div>
+                            </button>                          </div>
+                        ) : null
                       )}
                     </div>
                   ))}
@@ -450,18 +513,25 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                           {booking.status === 'active' ? 'confirmed' : booking.status}
                         </span>
                       </div>
-                      
-                      <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">
                           {booking.players} player{booking.players !== 1 ? 's' : ''}
                         </span>
                           {(booking.status === 'active' || booking.status === 'confirmed') && (
-                          <button
-                            onClick={() => cancelBooking(booking.id)}
-                            className="text-red-600 hover:text-red-700 text-sm font-medium"
-                          >
-                            Cancel
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => openEditBookingModal(booking)}
+                              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => cancelBooking(booking.id)}
+                              className="text-red-600 hover:text-red-700 text-sm font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -538,6 +608,72 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                   className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md"
                 >
                   Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Booking Modal */}
+        {showEditModal && editingBooking && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50" 
+              onClick={closeEditModal}
+            ></div>
+            
+            {/* Modal */}
+            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/3 relative z-10">
+              <h2 className="text-xl font-semibold mb-4">Edit Booking</h2>
+              
+              <p className="mb-4">
+                Editing your booking for {formatDate(editingBooking.date)} at {formatTime(editingBooking.time)} on {editingBooking.courseName}.
+              </p>
+              
+              <div className="mb-4">
+                <label htmlFor="edit-players" className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of Players
+                </label>
+                <select
+                  id="edit-players"
+                  value={editPlayers}
+                  onChange={(e) => setEditPlayers(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {[1, 2, 3, 4].map((players) => (
+                    <option key={players} value={players}>
+                      {players} player{players !== 1 ? 's' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  id="edit-allow-others-to-join"
+                  checked={editAllowOthersToJoin}
+                  onChange={(e) => setEditAllowOthersToJoin(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="edit-allow-others-to-join" className="text-sm text-gray-700">
+                  Allow others to join my booking
+                </label>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={closeEditModal}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => updateBooking(editingBooking.id)}
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md"
+                >
+                  Update Booking
                 </button>
               </div>
             </div>
