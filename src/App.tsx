@@ -14,11 +14,13 @@ import Community from './pages/Community'
 import Login from './components/auth/Login'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import MemberDashboard from './pages/members/Dashboard'
+import MemberLayout from './components/layout/MemberLayout'
 
 // Admin components
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute'
+import AdminLayout from './components/layout/AdminLayout'
 
 // Auth Context Providers
 import { AuthProvider } from './contexts/AuthContext'
@@ -40,32 +42,34 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/community" element={<Community />} />
-          </Route>
-
-          {/* Member authentication routes (no layout) */}
-          <Route path="/members/login" element={<Login />} />          {/* Protected member area routes */}
-          <Route path="/members/dashboard" element={
+          </Route>          {/* Member authentication routes (no layout) */}
+          <Route path="/members/login" element={<Login />} />
+          
+          {/* Protected member area routes with MemberLayout */}
+          <Route path="/members" element={
             <ProtectedRoute>
-              <MemberDashboard />
+              <MemberLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route path="dashboard" element={<MemberDashboard />} />
+          </Route>
           
           {/* Legacy member routes - redirect to dashboard */}
           <Route path="/members/profile" element={<Navigate to="/members/dashboard" replace />} />
           <Route path="/members/events" element={<Navigate to="/members/dashboard" replace />} />
           <Route path="/members/tee-times" element={<Navigate to="/members/dashboard" replace />} />
-          <Route path="/members/dining" element={<Navigate to="/members/dashboard" replace />} />
-
-          {/* Admin authentication routes */}
-          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/members/dining" element={<Navigate to="/members/dashboard" replace />} />          {/* Admin authentication routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           
-          {/* Protected admin routes */}
-          <Route path="/admin/dashboard" element={
+          {/* Protected admin routes with AdminLayout */}
+          <Route path="/admin" element={
             <AdminProtectedRoute>
-              <AdminDashboard />
+              <AdminLayout />
             </AdminProtectedRoute>
-          } />
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+          </Route>
         </Routes>
       </AdminAuthProvider>
     </AuthProvider>

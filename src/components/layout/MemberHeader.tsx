@@ -6,7 +6,7 @@ import nameLogo from '../../images/name.png'
 
 const MemberHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { member, logout } = useAuth()
+  const { logout } = useAuth()
   
   const handleLogout = async () => {
     await logout()
@@ -23,28 +23,15 @@ const MemberHeader = () => {
               src={logoSvg} 
               alt="Birchwood Farms Golf & Country Club" 
               className="h-12 w-12"
-            />
-            <div className="flex flex-col">
+            />            <div className="flex flex-col">
               <img 
                 src={nameLogo} 
                 alt="Birchwood Farms Golf & Country Club" 
                 className="h-6 hidden sm:block"
               />
-              <span className="text-primary-300 text-sm font-serif font-medium">
-                Member Portal
-              </span>
             </div>
-          </Link>
-
-          {/* Desktop Navigation */}
+          </Link>          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <div className="text-white">
-              <span className="text-sm text-primary-200">Welcome,</span>
-              <span className="ml-1 font-serif font-semibold">{member?.firstName}</span>
-              <div className="text-xs text-primary-300 mt-0.5">
-                {member?.membershipType} • ID: {member?.memberId}
-              </div>
-            </div>
             <Link
               to="/"
               className="text-primary-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
@@ -86,16 +73,8 @@ const MemberHeader = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-primary-900 border-t border-primary-800">
-          <div className="container-width section-padding py-4">
+        <div className="md:hidden bg-primary-900 border-t border-primary-800">          <div className="container-width section-padding py-4">
             <div className="flex flex-col space-y-3">
-              <div className="text-white pb-3 border-b border-primary-800">
-                <span className="text-sm text-primary-200">Welcome,</span>
-                <span className="ml-1 font-serif font-semibold">{member?.firstName}</span>
-                <div className="text-xs text-primary-300 mt-0.5">
-                  {member?.membershipType} • ID: {member?.memberId}
-                </div>
-              </div>
               <Link
                 to="/"
                 className="text-primary-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"

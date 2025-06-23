@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -7,7 +8,9 @@ import {
   faCalendarDays, 
   faUtensils, 
   faUser,
-  faTableTennisPaddleBall
+  faTableTennisPaddleBall,
+  faExternalLinkAlt,
+  faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 import MemberProfile from './Profile';
 import MemberEvents from './Events';
@@ -42,8 +45,16 @@ const UserIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faUser} className={className} />
 );
 
+const ExternalLinkIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faExternalLinkAlt} className={className} />
+);
+
+const LogoutIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faSignOutAlt} className={className} />
+);
+
 const MemberDashboard = () => {
-  const { member } = useAuth();
+  const { member, logout } = useAuth();
   
   // Initialize active tab from localStorage or URL params, fallback to 'overview'
   const getInitialTab = (): TabType => {    // Check URL params first
@@ -152,9 +163,7 @@ const MemberDashboard = () => {
               Access your personalized dashboard to manage tee times, view upcoming events, 
               make dining reservations, and stay connected with your club community.
             </p>
-          </div>
-
-          {/* Navigation Tabs */}
+          </div>          {/* Navigation Tabs */}
           <div className="mt-12">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2">
               <nav className="flex flex-wrap justify-center gap-2">
@@ -179,8 +188,27 @@ const MemberDashboard = () => {
                       />
                       {tab.name}
                     </button>
-                  );
-                })}
+                  );                })}
+                
+                {/* Action Buttons at the very end */}
+                <Link
+                  to="/"
+                  className="group inline-flex items-center px-6 py-3 rounded-md font-medium text-sm transition-all duration-300 text-white hover:bg-white/20 hover:text-primary-200"
+                >
+                  <ExternalLinkIcon
+                    className="-ml-0.5 mr-2 h-5 w-5 text-primary-300 group-hover:text-primary-200"
+                  />
+                  Main Site
+                </Link>
+                <button
+                  onClick={logout}
+                  className="group inline-flex items-center px-6 py-3 rounded-md font-medium text-sm transition-all duration-300 text-white hover:bg-white/20 hover:text-primary-200"
+                >
+                  <LogoutIcon
+                    className="-ml-0.5 mr-2 h-5 w-5 text-primary-300 group-hover:text-primary-200"
+                  />
+                  Logout
+                </button>
               </nav>
             </div>
           </div>

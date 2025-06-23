@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faGolfBallTee, 
   faUsers, 
   faCalendarDays, 
   faUtensils,
-  faTableTennisPaddleBall
+  faTableTennisPaddleBall,
+  faExternalLinkAlt,
+  faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 import AdminTeeTimes from './AdminTeeTimes';
 import AdminEvents from './AdminEvents';
@@ -35,7 +39,16 @@ const DiningIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faUtensils} className={className} />
 );
 
+const ExternalLinkIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faExternalLinkAlt} className={className} />
+);
+
+const LogoutIcon = ({ className }: { className?: string }) => (
+  <FontAwesomeIcon icon={faSignOutAlt} className={className} />
+);
+
 const AdminDashboard = () => {
+  const { logout } = useAdminAuth();
   // Initialize active tab from localStorage or URL params, fallback to 'members'
   const getInitialTab = (): TabType => {
     // Check URL params first
@@ -153,8 +166,27 @@ const AdminDashboard = () => {
                       />
                       {tab.name}
                     </button>
-                  );
-                })}
+                  );                })}
+                
+                {/* Action Buttons at the very end */}
+                <Link
+                  to="/"
+                  className="group inline-flex items-center px-6 py-3 rounded-md font-medium text-sm transition-all duration-300 text-white hover:bg-white/20 hover:text-primary-200"
+                >
+                  <ExternalLinkIcon
+                    className="-ml-0.5 mr-2 h-5 w-5 text-primary-300 group-hover:text-primary-200"
+                  />
+                  Main Site
+                </Link>
+                <button
+                  onClick={logout}
+                  className="group inline-flex items-center px-6 py-3 rounded-md font-medium text-sm transition-all duration-300 text-white hover:bg-white/20 hover:text-primary-200"
+                >
+                  <LogoutIcon
+                    className="-ml-0.5 mr-2 h-5 w-5 text-primary-300 group-hover:text-primary-200"
+                  />
+                  Logout
+                </button>
               </nav>
             </div>
           </div>
