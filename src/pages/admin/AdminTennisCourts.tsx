@@ -390,8 +390,7 @@ const AdminTennisCourtsPage = () => {
               }
               
               // Calculate how many slots this reservation spans
-              const slotsSpanned = reservation ? Math.ceil(reservation.duration / 30) : 1;
-                return (
+              const slotsSpanned = reservation ? Math.ceil(reservation.duration / 30) : 1;                return (
                 <div
                   key={timeSlot}
                   className={`px-6 py-4 hover:bg-gray-50 transition-colors ${
@@ -403,9 +402,6 @@ const AdminTennisCourtsPage = () => {
                         ? 'border-l-4 border-green-500 bg-green-50'
                         : ''
                   }`}
-                  style={{
-                    minHeight: reservation && slotsSpanned > 1 ? `${slotsSpanned * 64}px` : '64px'
-                  }}
                   onClick={() => {
                     if (reservation) {
                       handleReservationClick(reservation);
