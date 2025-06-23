@@ -45,11 +45,17 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-    // Booking modal state
+  // Booking modal state
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedTeeTime, setSelectedTeeTime] = useState<TeeTime | null>(null);
   const [selectedPlayers, setSelectedPlayers] = useState(1);
   const [allowOthersToJoin, setAllowOthersToJoin] = useState(false);
+    // 18-hole booking state
+  const [isEighteenHole, setIsEighteenHole] = useState(false);  const [selectedSecondCourse, setSelectedSecondCourse] = useState('');
+  const [selectedSecondTime, setSelectedSecondTime] = useState('');
+  const [secondCourseOptions, setSecondCourseOptions] = useState<any[]>([]);
+  const [secondCourseOptionsLoading, setSecondCourseOptionsLoading] = useState(false);
+  const [secondCourseError, setSecondCourseError] = useState('');
     // Edit booking state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBooking, setEditingBooking] = useState<TeeTimeBooking | null>(null);
@@ -117,21 +123,28 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
       booking.courseName === teeTime.courseName &&
       (booking.status === 'active' || booking.status === 'confirmed')
     );
-  };
-
-  const openBookingModal = (teeTime: TeeTime, players: number) => {
+  };  const openBookingModal = (teeTime: TeeTime, players: number) => {
     setSelectedTeeTime(teeTime);
     setSelectedPlayers(players);
     // Default to allowing others to join unless this booking will fill up the tee time completely
     const willFillCompletely = (teeTime.players || 0) + players >= teeTime.maxPlayers;
     setAllowOthersToJoin(!willFillCompletely);
+    setIsEighteenHole(false);
+    setSelectedSecondCourse('');
+    setSelectedSecondTime('');
+    setSecondCourseOptions([]);
+    setSecondCourseError('');
     setShowBookingModal(true);
-  };
-  const closeBookingModal = () => {
+  };  const closeBookingModal = () => {
     setShowBookingModal(false);
     setSelectedTeeTime(null);
     setSelectedPlayers(1);
     setAllowOthersToJoin(false);
+    setIsEighteenHole(false);
+    setSelectedSecondCourse('');
+    setSelectedSecondTime('');
+    setSecondCourseOptions([]);
+    setSecondCourseError('');
   };
 
   const confirmBooking = async () => {
@@ -139,12 +152,16 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
       await bookTeeTime(selectedTeeTime, selectedPlayers, allowOthersToJoin);
       closeBookingModal();
     }
-  };
-
-  const bookTeeTime = async (teeTime: any, players: number, allowJoining: boolean = false) => {
+  };  const bookTeeTime = async (teeTime: any, players: number, allowJoining: boolean = false) => {
     // Safety check - don't allow booking already booked times
     if (teeTime.status === 'booked') {
       setError('This tee time is already booked');
+      return;
+    }
+
+    // Check if 18-hole booking is requested but second course time is not selected
+    if (isEighteenHole && (!selectedSecondCourse || !selectedSecondTime)) {
+      setError('Please select a second course and time for your 18-hole round');
       return;
     }
 
@@ -164,7 +181,10 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
           date: teeTime.date,
           time: teeTime.time,
           players: players,
-          allowOthersToJoin: allowJoining
+          allowOthersToJoin: allowJoining,
+          isEighteenHole: isEighteenHole,
+          secondCourseId: isEighteenHole ? selectedSecondCourse : undefined,
+          secondCourseTime: isEighteenHole ? selectedSecondTime : undefined
         })
       });
       
@@ -173,7 +193,13 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
         throw new Error(errorData.error || 'Failed to book tee time');
       }
       
-      setSuccess('Tee time booked successfully!');
+      const result = await response.json();
+      if (result.secondTeeTime) {
+        setSuccess(result.message || '18-hole round booked successfully!');
+      } else {
+        setSuccess('Tee time booked successfully!');
+      }
+      
       loadAvailableTeeTimes();
       loadMyBookings();
     } catch (err) {
@@ -181,7 +207,7 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
     } finally {
       setBookingLoading(null);
     }
-  };  const openEditBookingModal = async (booking: TeeTimeBooking) => {
+  };const openEditBookingModal = async (booking: TeeTimeBooking) => {
     setEditingBooking(booking);
     setEditPlayers(booking.players);
     setEditAllowOthersToJoin(false); // We'll need to fetch this from the API if needed
@@ -312,6 +338,41 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
     maxDate.setDate(maxDate.getDate() + 30); // Allow booking up to 30 days in advance
     return maxDate.toISOString().split('T')[0];
   };
+  const loadSecondCourseOptions = async (
+    firstCourseId: string,
+    secondCourseId: string,
+    date: string,
+    time: string,
+    players: number
+  ) => {
+    if (!secondCourseId || secondCourseId === firstCourseId) {
+      setSecondCourseOptions([]);
+      setSelectedSecondTime('');
+      return;
+    }    setSecondCourseOptionsLoading(true);
+    setSecondCourseOptions([]);
+    setSecondCourseError('');
+    setSelectedSecondTime('');
+
+    try {
+      const response = await fetch(
+        `/api/tee-times/second-course-options?firstCourseId=${firstCourseId}&secondCourseId=${secondCourseId}&date=${date}&time=${time}&players=${players}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSecondCourseOptions(data.options || []);
+      } else {
+        const errorData = await response.json();
+        setSecondCourseError(errorData.error || 'Failed to load second course options');
+      }
+    } catch (err) {
+      setSecondCourseError('Failed to load second course options');
+    } finally {
+      setSecondCourseOptionsLoading(false);
+    }
+  };
+
   return (
     <div className="container-width section-padding py-8">{/* Success/Error Messages */}
         {success && (
@@ -586,8 +647,7 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
               <h2 className="text-xl font-semibold mb-4">Confirm Booking</h2>              <p className="mb-4">
                 You are about to book {selectedPlayers} spot{selectedPlayers !== 1 ? 's' : ''} for the tee time on {formatDate(selectedTeeTime?.date || '')} at {formatTime(selectedTeeTime?.time || '')}.
               </p>
-              
-              {/* Show "Allow others to join" checkbox unless this booking fills up the tee time completely */}
+                {/* Show "Allow others to join" checkbox unless this booking fills up the tee time completely */}
               {selectedTeeTime && ((selectedTeeTime.players || 0) + selectedPlayers) < selectedTeeTime.maxPlayers && (
                 <>
                   <div className="flex items-center mb-4">
@@ -611,6 +671,122 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                   )}
                 </>
               )}
+
+              {/* 18-hole Booking Options */}
+              <div className="mb-4 p-4 border border-gray-200 rounded-md">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="eighteen-hole"
+                    checked={isEighteenHole}                    onChange={(e) => {
+                      setIsEighteenHole(e.target.checked);
+                      if (!e.target.checked) {
+                        setSelectedSecondCourse('');
+                        setSelectedSecondTime('');
+                        setSecondCourseOptions([]);
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <label htmlFor="eighteen-hole" className="text-sm font-medium text-gray-700">
+                    Book 18-hole round (play two 9-hole courses)
+                  </label>
+                </div>                {isEighteenHole && (
+                  <div className="ml-6 space-y-3">
+                    <div>
+                      <label htmlFor="second-course" className="block text-sm font-medium text-gray-700 mb-1">
+                        Select second course for back nine:
+                      </label>
+                      <select
+                        id="second-course"
+                        value={selectedSecondCourse}
+                        onChange={(e) => {
+                          setSelectedSecondCourse(e.target.value);
+                          setSelectedSecondTime(''); // Reset selected time when changing course
+                          if (e.target.value && selectedTeeTime) {
+                            loadSecondCourseOptions(
+                              selectedTeeTime.courseId,
+                              e.target.value,
+                              selectedTeeTime.date,
+                              selectedTeeTime.time,
+                              selectedPlayers
+                            );                          } else {
+                            setSecondCourseOptions([]);
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      >
+                        <option value="">Select a course...</option>
+                        {courses
+                          .filter(course => course.id !== selectedTeeTime?.courseId)
+                          .map(course => (
+                            <option key={course.id} value={course.id}>
+                              {course.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    {secondCourseOptionsLoading && (
+                      <div className="text-sm text-gray-600">
+                        Loading available times for second course...
+                      </div>
+                    )}
+
+                    {selectedSecondCourse && secondCourseOptions.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Select preferred time for second course:
+                        </label>
+                        <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+                          {secondCourseOptions.map((option, index) => (
+                            <label 
+                              key={index} 
+                              className={`flex items-center space-x-3 p-2 rounded cursor-pointer transition-colors ${
+                                selectedSecondTime === option.time 
+                                  ? 'bg-primary-50 border border-primary-200' 
+                                  : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="secondCourseTime"
+                                value={option.time}
+                                checked={selectedSecondTime === option.time}
+                                onChange={(e) => setSelectedSecondTime(e.target.value)}
+                                className="text-primary-600 focus:ring-primary-500"
+                              />                              <div className="flex-1">
+                                <div className="font-medium text-sm">{option.displayTime || option.time}</div>
+                                <div className="text-xs text-gray-600">
+                                  {option.players > 0 ? (
+                                    <>
+                                      {option.players} players booked
+                                      {option.availableSpots > 0 && ` • ${option.availableSpots} spots available`}
+                                      {option.allowOthersToJoin ? ' • Others can join' : ' • Private group'}
+                                    </>
+                                  ) : (
+                                    'Open tee time'
+                                  )}
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}                    {selectedSecondCourse && !secondCourseOptionsLoading && secondCourseOptions.length === 0 && (
+                      <div className="p-3 rounded-md text-sm bg-yellow-50 border border-yellow-200 text-yellow-700">
+                        {secondCourseError || 'No available times found for the selected second course around the recommended time.'}
+                      </div>
+                    )}
+
+                    {selectedSecondCourse && !secondCourseOptionsLoading && !selectedSecondTime && secondCourseOptions.length > 0 && (
+                      <div className="text-sm text-gray-500">
+                        Please select a time for your second course.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               
               {/* Show informational message when joining existing tee time */}
               {selectedTeeTime?.status === 'partial' && (
@@ -628,8 +804,7 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                     This booking will fill up the tee time completely.
                   </p>
                 </div>
-              )}
-              <div className="flex justify-end space-x-2">
+              )}              <div className="flex justify-end space-x-2">
                 <button
                   onClick={closeBookingModal}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md"
@@ -638,9 +813,10 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                 </button>
                 <button
                   onClick={confirmBooking}
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md"
+                  disabled={isEighteenHole && (!selectedSecondCourse || !selectedSecondTime)}
+                  className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md"
                 >
-                  Confirm Booking
+                  {isEighteenHole ? 'Book 18-Hole Round' : 'Confirm Booking'}
                 </button>
               </div>
             </div>

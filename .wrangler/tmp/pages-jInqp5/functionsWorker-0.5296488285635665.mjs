@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-tCYnPi/checked-fetch.js
+// ../.wrangler/tmp/bundle-Tv1X2W/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -1858,8 +1858,383 @@ var onRequest6 = /* @__PURE__ */ __name(async (context) => {
   }
 }, "onRequest");
 
-// api/tennis-courts/available.ts
+// types.ts
+var SECOND_COURSE_TIME_INTERVAL_HOURS = 2;
+
+// api/tee-times/eighteen-hole-utils.ts
+async function findAvailableSecondTeeTime(env, firstCourseDetails, secondCourseId, playersNeeded, firstCourseMembers) {
+  const [firstHour, firstMinute] = firstCourseDetails.time.split(":").map(Number);
+  const firstTimeInMinutes = firstHour * 60 + firstMinute;
+  const preferredTimeInMinutes = firstTimeInMinutes + SECOND_COURSE_TIME_INTERVAL_HOURS * 60;
+  const preferredHour = Math.floor(preferredTimeInMinutes / 60);
+  const preferredMinute = preferredTimeInMinutes % 60;
+  const preferredTimeStr = `${preferredHour.toString().padStart(2, "0")}:${preferredMinute.toString().padStart(2, "0")}`;
+  if (preferredHour < 7 || preferredHour >= 18) {
+    return {
+      success: false,
+      error: "Preferred second tee time falls outside operating hours"
+    };
+  }
+  const preferredTimeResult = await checkTeeTimeAvailability(
+    env,
+    secondCourseId,
+    firstCourseDetails.date,
+    preferredTimeStr,
+    playersNeeded,
+    firstCourseMembers
+  );
+  if (preferredTimeResult.success) {
+    return {
+      success: true,
+      teeTime: {
+        courseId: secondCourseId,
+        date: firstCourseDetails.date,
+        time: preferredTimeStr,
+        actualTimeDifference: SECOND_COURSE_TIME_INTERVAL_HOURS
+      }
+    };
+  }
+  for (let searchMinutes = preferredTimeInMinutes + 10; searchMinutes < 18 * 60; searchMinutes += 10) {
+    const searchHour = Math.floor(searchMinutes / 60);
+    const searchMinute = searchMinutes % 60;
+    const searchTimeStr = `${searchHour.toString().padStart(2, "0")}:${searchMinute.toString().padStart(2, "0")}`;
+    const result = await checkTeeTimeAvailability(
+      env,
+      secondCourseId,
+      firstCourseDetails.date,
+      searchTimeStr,
+      playersNeeded,
+      firstCourseMembers
+    );
+    if (result.success) {
+      const actualTimeDifferenceHours = (searchMinutes - firstTimeInMinutes) / 60;
+      return {
+        success: true,
+        teeTime: {
+          courseId: secondCourseId,
+          date: firstCourseDetails.date,
+          time: searchTimeStr,
+          actualTimeDifference: Math.round(actualTimeDifferenceHours * 100) / 100
+          // Round to 2 decimal places
+        }
+      };
+    }
+  }
+  return {
+    success: false,
+    error: "No suitable tee time available for second course"
+  };
+}
+__name(findAvailableSecondTeeTime, "findAvailableSecondTeeTime");
+async function checkTeeTimeAvailability(env, courseId, date, time, playersNeeded, firstCourseMembers) {
+  const existingCheck = env.DB.prepare(`
+    SELECT id, players, allow_additional_players, member_id 
+    FROM tee_time_bookings 
+    WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
+    ORDER BY created_at ASC
+  `);
+  const existingBookings = await existingCheck.bind(courseId, date, time).all();
+  if (!existingBookings.results || existingBookings.results.length === 0) {
+    return { success: true };
+  }
+  const totalPlayers = existingBookings.results.reduce(
+    (sum, booking) => sum + (booking.players || 1),
+    0
+  );
+  const remainingSpots = 4 - totalPlayers;
+  if (remainingSpots < playersNeeded) {
+    return { success: false, reason: "Insufficient spots available" };
+  }
+  const allowsAdditional = existingBookings.results.some(
+    (booking) => booking.allow_additional_players
+  );
+  if (!allowsAdditional) {
+    return { success: false, reason: "Existing bookings do not allow additional players" };
+  }
+  const existingMemberIds = existingBookings.results.map((booking) => booking.member_id);
+  const hasNonFirstCourseMembers = existingMemberIds.some(
+    (memberId) => !firstCourseMembers.includes(memberId)
+  );
+  if (hasNonFirstCourseMembers) {
+    return { success: false, reason: "Tee time contains members not from first course group" };
+  }
+  return { success: true };
+}
+__name(checkTeeTimeAvailability, "checkTeeTimeAvailability");
+async function bookSecondTeeTime(env, memberId, memberName, teeTimeDetails, players, allowOthersToJoin = false, notes) {
+  const stmt = env.DB.prepare(`
+    INSERT INTO tee_time_bookings (
+      member_id, course_name, date, time, players, player_names, notes, allow_additional_players
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  try {
+    const result = await stmt.bind(
+      memberId,
+      teeTimeDetails.courseId,
+      teeTimeDetails.date,
+      teeTimeDetails.time,
+      players,
+      memberName,
+      notes || `Second course for 18-hole round`,
+      allowOthersToJoin ? 1 : 0
+      // Use the same allow_additional_players setting as first course
+    ).run();
+    if (result.success && result.meta?.last_row_id) {
+      return {
+        success: true,
+        id: result.meta.last_row_id
+      };
+    } else {
+      return {
+        success: false,
+        error: "Failed to create second course booking"
+      };
+    }
+  } catch (error) {
+    console.error("Error booking second tee time:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    };
+  }
+}
+__name(bookSecondTeeTime, "bookSecondTeeTime");
+
+// api/tee-times/second-course-availability.ts
 var onRequest7 = /* @__PURE__ */ __name(async (context) => {
+  const { request, env } = context;
+  if (request.method !== "GET") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+  try {
+    const url = new URL(request.url);
+    const firstCourseId = url.searchParams.get("firstCourseId");
+    const secondCourseId = url.searchParams.get("secondCourseId");
+    const date = url.searchParams.get("date");
+    const time = url.searchParams.get("time");
+    const players = url.searchParams.get("players");
+    if (!firstCourseId || !secondCourseId || !date || !time || !players) {
+      return new Response(JSON.stringify({
+        error: "Missing required parameters: firstCourseId, secondCourseId, date, time, players"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    const playersNeeded = parseInt(players);
+    if (isNaN(playersNeeded) || playersNeeded < 1 || playersNeeded > 4) {
+      return new Response(JSON.stringify({
+        error: "Players must be a number between 1 and 4"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    const result = await findAvailableSecondTeeTime(
+      env,
+      {
+        date,
+        time,
+        players: playersNeeded
+      },
+      secondCourseId,
+      playersNeeded,
+      []
+      // Empty array since this is a pre-booking availability check
+    );
+    if (result.success && result.teeTime) {
+      return new Response(JSON.stringify({
+        available: true,
+        secondTeeTime: result.teeTime,
+        message: result.teeTime.actualTimeDifference !== SECOND_COURSE_TIME_INTERVAL_HOURS ? `Second tee time available at ${result.teeTime.time} (${result.teeTime.actualTimeDifference} hours after first course)` : `Second tee time available at ${result.teeTime.time}`
+      }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    } else {
+      return new Response(JSON.stringify({
+        available: false,
+        error: result.error,
+        message: `Cannot book 18-hole round: ${result.error}`
+      }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } catch (error) {
+    console.error("Second course availability API error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}, "onRequest");
+
+// api/tee-times/second-course-options.ts
+function formatTime12Hour(time24) {
+  const [hour, minute] = time24.split(":").map(Number);
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+}
+__name(formatTime12Hour, "formatTime12Hour");
+var onRequest8 = /* @__PURE__ */ __name(async (context) => {
+  const { request, env } = context;
+  if (request.method !== "GET") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+  try {
+    const url = new URL(request.url);
+    const firstCourseId = url.searchParams.get("firstCourseId");
+    const secondCourseId = url.searchParams.get("secondCourseId");
+    const date = url.searchParams.get("date");
+    const time = url.searchParams.get("time");
+    const players = url.searchParams.get("players");
+    if (!firstCourseId || !secondCourseId || !date || !time || !players) {
+      return new Response(JSON.stringify({
+        error: "Missing required parameters: firstCourseId, secondCourseId, date, time, players"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    const playersNeeded = parseInt(players);
+    if (isNaN(playersNeeded) || playersNeeded < 1 || playersNeeded > 4) {
+      return new Response(JSON.stringify({
+        error: "Players must be a number between 1 and 4"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    const [firstHour, firstMinute] = time.split(":").map(Number);
+    const firstTimeInMinutes = firstHour * 60 + firstMinute;
+    const suggestedTimeInMinutes = firstTimeInMinutes + SECOND_COURSE_TIME_INTERVAL_HOURS * 60;
+    const searchStartMinutes = Math.max(7 * 60, suggestedTimeInMinutes);
+    const searchEndMinutes = Math.min(18 * 60, suggestedTimeInMinutes + 180);
+    const stmt = env.DB.prepare(`
+      SELECT 
+        ttb.time, 
+        ttb.players, 
+        ttb.player_names,
+        ttb.allow_additional_players,
+        m.first_name,
+        m.last_name,
+        m.member_id as member_display_id,
+        ttb.member_id
+      FROM tee_time_bookings ttb
+      JOIN members m ON ttb.member_id = m.id
+      WHERE ttb.course_name = ? AND ttb.date = ? AND ttb.status = 'active'
+      ORDER BY ttb.time ASC, ttb.created_at ASC
+    `);
+    const result = await stmt.bind(secondCourseId, date).all();
+    const allBookings = result.results || [];
+    const bookingsByTime = allBookings.reduce((acc, booking) => {
+      if (!acc[booking.time]) {
+        acc[booking.time] = [];
+      }
+      acc[booking.time].push(booking);
+      return acc;
+    }, {});
+    const availableOptions = [];
+    const maxPlayers = 4;
+    for (let minutes = searchStartMinutes; minutes < searchEndMinutes; minutes += 10) {
+      const hour = Math.floor(minutes / 60);
+      const minute = minutes % 60;
+      const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+      const timeSlotBookings = bookingsByTime[timeStr];
+      const minutesFromSuggested = Math.abs(minutes - suggestedTimeInMinutes);
+      const hoursFromSuggested = Math.round(minutesFromSuggested / 60 * 100) / 100;
+      if (!timeSlotBookings) {
+        availableOptions.push({
+          time: timeStr,
+          displayTime: formatTime12Hour(timeStr),
+          status: "available",
+          players: 0,
+          maxPlayers,
+          availableSpots: maxPlayers,
+          isPreferred: minutes === suggestedTimeInMinutes,
+          hoursFromPreferred: hoursFromSuggested,
+          bookings: []
+        });
+      } else {
+        const totalPlayers = timeSlotBookings.reduce((sum, booking) => sum + (booking.players || 1), 0);
+        const remainingSpots = maxPlayers - totalPlayers;
+        const allowsAdditional = timeSlotBookings.some((booking) => booking.allow_additional_players);
+        const bookingInfo = timeSlotBookings.map((booking) => ({
+          memberName: `${booking.first_name} ${booking.last_name}`,
+          memberId: booking.member_display_id,
+          players: booking.players,
+          playerNames: booking.player_names
+        }));
+        if (remainingSpots >= playersNeeded && allowsAdditional) {
+          availableOptions.push({
+            time: timeStr,
+            displayTime: formatTime12Hour(timeStr),
+            status: "partial",
+            players: totalPlayers,
+            maxPlayers,
+            availableSpots: remainingSpots,
+            isPreferred: minutes === suggestedTimeInMinutes,
+            hoursFromPreferred: hoursFromSuggested,
+            bookings: bookingInfo
+          });
+        } else if (remainingSpots < playersNeeded) {
+          availableOptions.push({
+            time: timeStr,
+            displayTime: formatTime12Hour(timeStr),
+            status: "full",
+            players: totalPlayers,
+            maxPlayers,
+            availableSpots: 0,
+            isPreferred: minutes === suggestedTimeInMinutes,
+            hoursFromPreferred: hoursFromSuggested,
+            bookings: bookingInfo,
+            selectable: false
+          });
+        } else {
+          availableOptions.push({
+            time: timeStr,
+            displayTime: formatTime12Hour(timeStr),
+            status: "private",
+            players: totalPlayers,
+            maxPlayers,
+            availableSpots: remainingSpots,
+            isPreferred: minutes === suggestedTimeInMinutes,
+            hoursFromPreferred: hoursFromSuggested,
+            bookings: bookingInfo,
+            selectable: false
+          });
+        }
+      }
+    }
+    availableOptions.sort((a, b) => {
+      if (a.isPreferred && a.status !== "full" && a.status !== "private") return -1;
+      if (b.isPreferred && b.status !== "full" && b.status !== "private") return 1;
+      return a.time.localeCompare(b.time);
+    });
+    const suggestedTime24 = `${Math.floor(suggestedTimeInMinutes / 60).toString().padStart(2, "0")}:${(suggestedTimeInMinutes % 60).toString().padStart(2, "0")}`;
+    return new Response(JSON.stringify({
+      suggestedTime: suggestedTime24,
+      suggestedTimeDisplay: formatTime12Hour(suggestedTime24),
+      searchWindow: {
+        start: `${Math.floor(searchStartMinutes / 60).toString().padStart(2, "0")}:${(searchStartMinutes % 60).toString().padStart(2, "0")}`,
+        end: `${Math.floor(searchEndMinutes / 60).toString().padStart(2, "0")}:${(searchEndMinutes % 60).toString().padStart(2, "0")}`
+      },
+      options: availableOptions
+    }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    console.error("Second course options API error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}, "onRequest");
+
+// api/tennis-courts/available.ts
+var onRequest9 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1949,7 +2324,7 @@ async function handleGetAvailableSlots(request, env) {
 __name(handleGetAvailableSlots, "handleGetAvailableSlots");
 
 // api/dining/index.ts
-var onRequest8 = /* @__PURE__ */ __name(async (context) => {
+var onRequest10 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -2080,7 +2455,7 @@ async function handleDeleteReservation2(request, env) {
 __name(handleDeleteReservation2, "handleDeleteReservation");
 
 // api/events/index.ts
-var onRequest9 = /* @__PURE__ */ __name(async (context) => {
+var onRequest11 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -2235,7 +2610,7 @@ async function handleUnregisterFromEvent(request, env) {
 __name(handleUnregisterFromEvent, "handleUnregisterFromEvent");
 
 // api/guest-passes/index.ts
-var onRequest10 = /* @__PURE__ */ __name(async (context) => {
+var onRequest12 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -2368,7 +2743,7 @@ async function generatePassCode() {
 __name(generatePassCode, "generatePassCode");
 
 // api/tee-times/index.ts
-var onRequest11 = /* @__PURE__ */ __name(async (context) => {
+var onRequest13 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
@@ -2443,6 +2818,24 @@ async function handleCreateTeeTime2(request, env) {
       headers: { "Content-Type": "application/json" }
     });
   }
+  if (body.isEighteenHole && body.secondCourseId) {
+    if (!body.secondCourseTime) {
+      return new Response(JSON.stringify({
+        error: "Second course time must be selected for 18-hole booking"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    if (body.secondCourseId === body.courseId && body.secondCourseTime === body.time) {
+      return new Response(JSON.stringify({
+        error: "Second course time must be different from first course time"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  }
   const existingCheck = env.DB.prepare(`
     SELECT id, players, allow_additional_players, member_id FROM tee_time_bookings 
     WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
@@ -2469,6 +2862,45 @@ async function handleCreateTeeTime2(request, env) {
         body.notes || null,
         body.allowOthersToJoin ? 1 : 0
       ).run();
+      if (result2.success && body.isEighteenHole && body.secondCourseId && body.secondCourseTime) {
+        const secondBookingResult = await bookSecondTeeTime(
+          env,
+          member.id,
+          memberName2,
+          {
+            courseId: body.secondCourseId,
+            date: body.date,
+            time: body.secondCourseTime
+          },
+          body.players,
+          body.allowOthersToJoin || false,
+          `Second course for 18-hole round starting at ${body.time}`
+        );
+        if (secondBookingResult.success) {
+          return new Response(JSON.stringify({
+            success: true,
+            firstTeeTimeId: result2.meta.last_row_id,
+            secondTeeTimeId: secondBookingResult.id,
+            secondTeeTime: {
+              courseId: body.secondCourseId,
+              date: body.date,
+              time: body.secondCourseTime
+            },
+            message: "18-hole round booked successfully!"
+          }), {
+            status: 201,
+            headers: { "Content-Type": "application/json" }
+          });
+        } else {
+          await env.DB.prepare('UPDATE tee_time_bookings SET status = "cancelled" WHERE id = ?').bind(result2.meta.last_row_id).run();
+          return new Response(JSON.stringify({
+            error: `Failed to book second course: ${secondBookingResult.error}`
+          }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+      }
       if (result2.success) {
         return new Response(JSON.stringify({
           success: true,
@@ -2503,6 +2935,45 @@ async function handleCreateTeeTime2(request, env) {
     body.allowOthersToJoin ? 1 : 0
   ).run();
   if (result.success) {
+    if (body.isEighteenHole && body.secondCourseId && body.secondCourseTime) {
+      const secondBookingResult = await bookSecondTeeTime(
+        env,
+        member.id,
+        memberName,
+        {
+          courseId: body.secondCourseId,
+          date: body.date,
+          time: body.secondCourseTime
+        },
+        body.players,
+        body.allowOthersToJoin || false,
+        `Second course for 18-hole round starting at ${body.time}`
+      );
+      if (secondBookingResult.success) {
+        return new Response(JSON.stringify({
+          success: true,
+          firstTeeTimeId: result.meta.last_row_id,
+          secondTeeTimeId: secondBookingResult.id,
+          secondTeeTime: {
+            courseId: body.secondCourseId,
+            date: body.date,
+            time: body.secondCourseTime
+          },
+          message: "18-hole round booked successfully!"
+        }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" }
+        });
+      } else {
+        await env.DB.prepare('UPDATE tee_time_bookings SET status = "cancelled" WHERE id = ?').bind(result.meta.last_row_id).run();
+        return new Response(JSON.stringify({
+          error: `Failed to book second course: ${secondBookingResult.error}`
+        }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
     return new Response(JSON.stringify({
       success: true,
       id: result.meta.last_row_id,
@@ -2662,7 +3133,7 @@ async function handleDeleteTeeTime2(request, env) {
 __name(handleDeleteTeeTime2, "handleDeleteTeeTime");
 
 // api/tennis-courts/index.ts
-var onRequest12 = /* @__PURE__ */ __name(async (context) => {
+var onRequest14 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
@@ -2873,7 +3344,7 @@ async function handleDeleteCourtReservation2(request, env) {
 }
 __name(handleDeleteCourtReservation2, "handleDeleteCourtReservation");
 
-// ../.wrangler/tmp/pages-bpe46u/functionsRoutes-0.20765671157062404.mjs
+// ../.wrangler/tmp/pages-jInqp5/functionsRoutes-0.9008216923625645.mjs
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -2967,46 +3438,60 @@ var routes = [
     modules: [onRequest6]
   },
   {
+    routePath: "/api/tee-times/second-course-availability",
+    mountPath: "/api/tee-times",
+    method: "",
+    middlewares: [],
+    modules: [onRequest7]
+  },
+  {
+    routePath: "/api/tee-times/second-course-options",
+    mountPath: "/api/tee-times",
+    method: "",
+    middlewares: [],
+    modules: [onRequest8]
+  },
+  {
     routePath: "/api/tennis-courts/available",
     mountPath: "/api/tennis-courts",
     method: "",
     middlewares: [],
-    modules: [onRequest7]
+    modules: [onRequest9]
   },
   {
     routePath: "/api/dining",
     mountPath: "/api/dining",
     method: "",
     middlewares: [],
-    modules: [onRequest8]
+    modules: [onRequest10]
   },
   {
     routePath: "/api/events",
     mountPath: "/api/events",
     method: "",
     middlewares: [],
-    modules: [onRequest9]
+    modules: [onRequest11]
   },
   {
     routePath: "/api/guest-passes",
     mountPath: "/api/guest-passes",
     method: "",
     middlewares: [],
-    modules: [onRequest10]
+    modules: [onRequest12]
   },
   {
     routePath: "/api/tee-times",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest11]
+    modules: [onRequest13]
   },
   {
     routePath: "/api/tennis-courts",
     mountPath: "/api/tennis-courts",
     method: "",
     middlewares: [],
-    modules: [onRequest12]
+    modules: [onRequest14]
   }
 ];
 
@@ -3497,7 +3982,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-tCYnPi/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-Tv1X2W/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -3529,7 +4014,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-tCYnPi/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-Tv1X2W/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -3629,4 +4114,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default as default
 };
-//# sourceMappingURL=functionsWorker-0.409072974478665.mjs.map
+//# sourceMappingURL=functionsWorker-0.5296488285635665.mjs.map

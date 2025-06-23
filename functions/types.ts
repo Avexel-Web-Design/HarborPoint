@@ -73,6 +73,10 @@ export interface TeeTimeRequest {
   playerNames?: string;
   notes?: string;
   allowOthersToJoin?: boolean;
+  // New fields for 18-hole bookings
+  secondCourseId?: string; // Optional second course for 18-hole play
+  secondCourseTime?: string; // User-selected time for second course
+  isEighteenHole?: boolean; // Flag to indicate this is an 18-hole booking
 }
 
 export interface DiningReservation {
@@ -205,3 +209,6 @@ declare global {
     waitUntil: (promise: Promise<any>) => void;
   }) => Response | Promise<Response>;
 }
+
+// Configuration for 18-hole tee times
+export const SECOND_COURSE_TIME_INTERVAL_HOURS = 2; // This can be easily changed to adjust the time gap

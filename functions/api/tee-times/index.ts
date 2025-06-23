@@ -1,5 +1,6 @@
-import { Env, TeeTime, TeeTimeRequest } from '../../types';
+import { Env, TeeTime, TeeTimeRequest, SECOND_COURSE_TIME_INTERVAL_HOURS } from '../../types';
 import { verifyAuth } from '../auth/utils';
+import { bookSecondTeeTime } from './eighteen-hole-utils';
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
@@ -87,13 +88,38 @@ async function handleCreateTeeTime(request: Request, env: Env) {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
-  }  // Check if the tee time slot is available or has space for additional players
+  }
+  // If this is an 18-hole booking, validate that second course time is provided
+  if (body.isEighteenHole && body.secondCourseId) {
+    if (!body.secondCourseTime) {
+      return new Response(JSON.stringify({ 
+        error: 'Second course time must be selected for 18-hole booking'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Basic validation that second course time is different from first
+    if (body.secondCourseId === body.courseId && body.secondCourseTime === body.time) {
+      return new Response(JSON.stringify({ 
+        error: 'Second course time must be different from first course time'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  // Check if the tee time slot is available or has space for additional players
   const existingCheck = env.DB.prepare(`
     SELECT id, players, allow_additional_players, member_id FROM tee_time_bookings 
     WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
     ORDER BY created_at ASC
   `);
-  const existingBookings = await existingCheck.bind(body.courseId, body.date, body.time).all();  if (existingBookings.results && existingBookings.results.length > 0) {
+  const existingBookings = await existingCheck.bind(body.courseId, body.date, body.time).all();
+
+  if (existingBookings.results && existingBookings.results.length > 0) {
     // Calculate total players across all bookings
     const totalPlayers = existingBookings.results.reduce((sum: number, booking: any) => sum + (booking.players || 1), 0);
     const maxPlayers = 4;
@@ -101,7 +127,7 @@ async function handleCreateTeeTime(request: Request, env: Env) {
     // Check if the first booking allows additional players and there's space
     const firstBooking = existingBookings.results[0];
     if (firstBooking.allow_additional_players && totalPlayers + body.players <= maxPlayers) {
-      // Create a new individual booking for this member
+      // Create the first tee time booking
       const memberName = `${member.first_name} ${member.last_name}`;
       const stmt = env.DB.prepare(`
         INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
@@ -117,7 +143,48 @@ async function handleCreateTeeTime(request: Request, env: Env) {
         memberName,
         body.notes || null,
         body.allowOthersToJoin ? 1 : 0
-      ).run();
+      ).run();      if (result.success && body.isEighteenHole && body.secondCourseId && body.secondCourseTime) {
+        // Book the second tee time directly at user-selected time
+        const secondBookingResult = await bookSecondTeeTime(
+          env,
+          member.id,
+          memberName,
+          {
+            courseId: body.secondCourseId,
+            date: body.date,
+            time: body.secondCourseTime
+          },
+          body.players,
+          body.allowOthersToJoin || false,
+          `Second course for 18-hole round starting at ${body.time}`
+        );
+
+        if (secondBookingResult.success) {
+          return new Response(JSON.stringify({ 
+            success: true, 
+            firstTeeTimeId: result.meta.last_row_id,
+            secondTeeTimeId: secondBookingResult.id,
+            secondTeeTime: {
+              courseId: body.secondCourseId,
+              date: body.date,
+              time: body.secondCourseTime
+            },
+            message: '18-hole round booked successfully!'
+          }), {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else {
+          // Rollback first booking if second booking fails
+          await env.DB.prepare('UPDATE tee_time_bookings SET status = "cancelled" WHERE id = ?').bind(result.meta.last_row_id).run();
+          return new Response(JSON.stringify({ 
+            error: `Failed to book second course: ${secondBookingResult.error}` 
+          }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }
 
       if (result.success) {
         return new Response(JSON.stringify({ 
@@ -128,17 +195,19 @@ async function handleCreateTeeTime(request: Request, env: Env) {
           status: 201,
           headers: { 'Content-Type': 'application/json' }
         });
-      }    } else {
+      }
+    } else {
       return new Response(JSON.stringify({ error: 'Tee time slot is full or not accepting additional players' }), {
         status: 409,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  }  // Create the tee time booking
+  }
+
+  // Create the first tee time booking (new slot)
   const memberName = `${member.first_name} ${member.last_name}`;
-  // Always use the actual number of players, not inflated count
   const playersToBook = body.players;
-    const stmt = env.DB.prepare(`
+  const stmt = env.DB.prepare(`
     INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
@@ -153,8 +222,50 @@ async function handleCreateTeeTime(request: Request, env: Env) {
     body.notes || null,
     body.allowOthersToJoin ? 1 : 0
   ).run();
-
   if (result.success) {
+    // Handle 18-hole booking for new slot
+    if (body.isEighteenHole && body.secondCourseId && body.secondCourseTime) {
+      const secondBookingResult = await bookSecondTeeTime(
+        env,
+        member.id,
+        memberName,
+        {
+          courseId: body.secondCourseId,
+          date: body.date,
+          time: body.secondCourseTime
+        },
+        body.players,
+        body.allowOthersToJoin || false,
+        `Second course for 18-hole round starting at ${body.time}`
+      );
+
+      if (secondBookingResult.success) {
+        return new Response(JSON.stringify({ 
+          success: true, 
+          firstTeeTimeId: result.meta.last_row_id,
+          secondTeeTimeId: secondBookingResult.id,
+          secondTeeTime: {
+            courseId: body.secondCourseId,
+            date: body.date,
+            time: body.secondCourseTime
+          },
+          message: '18-hole round booked successfully!'
+        }), {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } else {
+        // Rollback first booking if second booking fails
+        await env.DB.prepare('UPDATE tee_time_bookings SET status = "cancelled" WHERE id = ?').bind(result.meta.last_row_id).run();
+        return new Response(JSON.stringify({ 
+          error: `Failed to book second course: ${secondBookingResult.error}` 
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       id: result.meta.last_row_id,

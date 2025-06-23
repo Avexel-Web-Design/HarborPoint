@@ -11,6 +11,8 @@ import { onRequest as __api_admin_members_index_ts_onRequest } from "C:\\Users\\
 import { onRequest as __api_admin_tee_times_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\tee-times\\index.ts"
 import { onRequest as __api_admin_tennis_courts_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\tennis-courts\\index.ts"
 import { onRequest as __api_tee_times_available_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tee-times\\available.ts"
+import { onRequest as __api_tee_times_second_course_availability_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tee-times\\second-course-availability.ts"
+import { onRequest as __api_tee_times_second_course_options_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tee-times\\second-course-options.ts"
 import { onRequest as __api_tennis_courts_available_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\tennis-courts\\available.ts"
 import { onRequest as __api_dining_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\dining\\index.ts"
 import { onRequest as __api_events_index_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\events\\index.ts"
@@ -109,6 +111,20 @@ export const routes = [
       method: "",
       middlewares: [],
       modules: [__api_tee_times_available_ts_onRequest],
+    },
+  {
+      routePath: "/api/tee-times/second-course-availability",
+      mountPath: "/api/tee-times",
+      method: "",
+      middlewares: [],
+      modules: [__api_tee_times_second_course_availability_ts_onRequest],
+    },
+  {
+      routePath: "/api/tee-times/second-course-options",
+      mountPath: "/api/tee-times",
+      method: "",
+      middlewares: [],
+      modules: [__api_tee_times_second_course_options_ts_onRequest],
     },
   {
       routePath: "/api/tennis-courts/available",
