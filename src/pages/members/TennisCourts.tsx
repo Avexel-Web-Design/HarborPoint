@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import CourtVisualization from '../../components/members/CourtVisualization';
 
 interface CourtReservation {
   id: number;
@@ -20,10 +21,10 @@ const MemberTennisCourts = () => {
   const [selectedCourt, setSelectedCourt] = useState<number | ''>('');
   const [notes, setNotes] = useState('');
   const [myReservations, setMyReservations] = useState<CourtReservation[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [bookingLoading, setBookingLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
 
   // Load user's reservations on component mount
   useEffect(() => {
@@ -72,11 +73,12 @@ const MemberTennisCourts = () => {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to book court');
-      }
-
-      const data = await response.json();
+      }      const data = await response.json();
       setSuccess(data.message);
       loadMyReservations();
+      
+      // Trigger court visualization refresh
+      setRefreshTrigger(prev => prev + 1);
       
       // Reset form
       setSelectedCourt('');
@@ -101,10 +103,11 @@ const MemberTennisCourts = () => {
 
       if (!response.ok) {
         throw new Error('Failed to cancel reservation');
-      }
-
-      setSuccess('Reservation cancelled successfully');
+      }      setSuccess('Reservation cancelled successfully');
       loadMyReservations();
+      
+      // Trigger court visualization refresh
+      setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel reservation');
     }
@@ -313,9 +316,7 @@ const MemberTennisCourts = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Any additional notes or requests..."
                 />
-              </div>
-
-              <button
+              </div>              <button
                 type="submit"
                 disabled={bookingLoading}
                 className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-md transition-colors duration-200"
@@ -323,7 +324,13 @@ const MemberTennisCourts = () => {
                 {bookingLoading ? 'Booking Court...' : 'Book Court'}
               </button>
             </form>
-          </div>
+          </div>          {/* Court Visualization */}
+          <CourtVisualization 
+            key={`${selectedDate}-${selectedCourtType}`}
+            selectedDate={selectedDate}
+            selectedCourtType={selectedCourtType}
+            refreshTrigger={refreshTrigger}
+          />
         </div>
 
         {/* My Reservations */}
