@@ -1,25 +1,26 @@
 import { Link } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGolfBallTee, faUtensils, faCalendarCheck } from '@fortawesome/free-solid-svg-icons';
 
-const Features = () => {
-  const features = [
+const Features = () => {  const features = [
     {
       title: "Championship Golf Course",
       description: "Our 18-hole championship course offers a challenging yet enjoyable experience for golfers of all skill levels. Designed by renowned architect Robert Trent Jones, each hole presents unique challenges while showcasing the natural beauty of our birch-lined fairways.",
-      image: "🏌️",
+      image: <FontAwesomeIcon icon={faGolfBallTee} />,
       link: "/golf",
       highlights: ["18 Championship Holes", "Par 72, 7,200 Yards", "PGA Professional Staff", "Practice Facilities"]
     },
     {
       title: "Fine Dining Experience",
       description: "Savor exquisite cuisine in our award-winning restaurants. From casual lunch on the terrace to elegant dinner in our formal dining room, every meal is crafted with the finest ingredients and attention to detail.",
-      image: "🍽️",
+      image: <FontAwesomeIcon icon={faUtensils} />,
       link: "/dining",
       highlights: ["Award-Winning Cuisine", "Seasonal Menus", "Private Dining Rooms", "Extensive Wine Selection"]
     },
     {
       title: "Exclusive Events",
       description: "Host your most important celebrations in our stunning event spaces. Whether it's a wedding, corporate gathering, or private party, our experienced team will ensure your event is unforgettable.",
-      image: "🎉",
+      image: <FontAwesomeIcon icon={faCalendarCheck} />,
       link: "/events",
       highlights: ["Wedding Ceremonies", "Corporate Events", "Private Parties", "Tournament Hosting"]
     }
@@ -49,7 +50,7 @@ const Features = () => {
             >
               {/* Content */}
               <div className={`space-y-6 ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
-                <div className="text-6xl mb-4">{feature.image}</div>
+                <div className="text-6xl mb-4 text-primary-600">{feature.image}</div>
                 <h3 className="text-3xl font-bold text-primary-950 font-serif">
                   {feature.title}
                 </h3>

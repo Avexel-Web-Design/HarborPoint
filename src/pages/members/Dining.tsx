@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUtensils } from '@fortawesome/free-solid-svg-icons';
 
 interface DiningReservation {
   id: number;
@@ -256,9 +258,10 @@ const MemberDining = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
                   <p className="mt-2 text-gray-500">Loading...</p>
                 </div>
-              ) : reservations.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">🍽️</div>
+              ) : reservations.length === 0 ? (                <div className="text-center py-8">
+                  <div className="text-4xl mb-4 text-primary-600">
+                    <FontAwesomeIcon icon={faUtensils} />
+                  </div>
                   <p className="text-gray-500 mb-4">No upcoming reservations</p>
                   <button
                     onClick={() => setIsBooking(true)}

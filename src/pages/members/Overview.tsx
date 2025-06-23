@@ -1,4 +1,15 @@
 import { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faGolfBallTee, 
+  faCalendarDays, 
+  faUtensils, 
+  faCog,
+  faClock,
+  faMapMarkerAlt,
+  faCheck,
+  faSpinner
+} from '@fortawesome/free-solid-svg-icons';
 
 interface EventWithRegistration {
   id: number;
@@ -44,34 +55,33 @@ const MemberOverview = () => {
       setEventsLoading(false);
     }
   };
-
   const quickActions = [
     {
       title: 'Book Tee Time',
       description: 'Reserve your spot on our championship courses',
       tabId: 'tee-times',
-      icon: '🏌️',
+      icon: <FontAwesomeIcon icon={faGolfBallTee} />,
       color: 'bg-green-500'
     },
     {
       title: 'Member Events',
       description: 'View and register for upcoming club events',
       tabId: 'events',
-      icon: '📅',
+      icon: <FontAwesomeIcon icon={faCalendarDays} />,
       color: 'bg-blue-500'
     },
     {
       title: 'Dining Reservations',
       description: 'Make reservations at our clubhouse restaurant',
       tabId: 'dining',
-      icon: '🍽️',
+      icon: <FontAwesomeIcon icon={faUtensils} />,
       color: 'bg-orange-500'
     },
     {
       title: 'Account Settings',
       description: 'Update your profile and preferences',
       tabId: 'profile',
-      icon: '⚙️',
+      icon: <FontAwesomeIcon icon={faCog} />,
       color: 'bg-gray-500'
     }
   ];
@@ -109,7 +119,7 @@ const MemberOverview = () => {
               onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: action.tabId }))}
               className="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-primary-200 group text-left hover:scale-105 hover:bg-white"
             >
-              <div className="text-4xl mb-4">{action.icon}</div>
+              <div className="text-4xl mb-4 text-primary-600">{action.icon}</div>
               <h4 className="font-serif font-bold text-primary-950 mb-3 group-hover:text-primary-700 text-lg">
                 {action.title}
               </h4>
@@ -141,10 +151,11 @@ const MemberOverview = () => {
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 border border-primary-200">
           <h3 className="text-2xl font-serif font-bold text-primary-950 mb-6">
             Upcoming Club Events
-          </h3>
-          {eventsLoading ? (
+          </h3>          {eventsLoading ? (
             <div className="text-center p-8">
-              <div className="text-4xl mb-2">⏳</div>
+              <div className="text-4xl mb-2 text-primary-600">
+                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+              </div>
               <p className="text-gray-600">Loading events...</p>
             </div>
           ) : upcomingEvents.length > 0 ? (
@@ -154,19 +165,29 @@ const MemberOverview = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-serif font-bold text-primary-950 text-lg">{event.title}</h4>
-                      <p className="text-sm text-primary-700 mt-2 leading-relaxed">{event.description}</p>
-                      <div className="flex items-center mt-3 text-sm text-primary-600 space-x-6">
-                        <span className="flex items-center">📅 {new Date(event.date).toLocaleDateString()}</span>
-                        <span className="flex items-center">🕐 {event.time}</span>
-                        <span className="flex items-center">📍 {event.location}</span>
+                      <p className="text-sm text-primary-700 mt-2 leading-relaxed">{event.description}</p>                      <div className="flex items-center mt-3 text-sm text-primary-600 space-x-6">
+                        <span className="flex items-center">
+                          <FontAwesomeIcon icon={faCalendarDays} className="mr-1" /> 
+                          {new Date(event.date).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center">
+                          <FontAwesomeIcon icon={faClock} className="mr-1" /> 
+                          {event.time}
+                        </span>
+                        <span className="flex items-center">
+                          <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1" /> 
+                          {event.location}
+                        </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-medium text-primary-900">
                         {event.cost > 0 ? `$${event.cost}` : 'Free'}
-                      </span>
-                      {event.is_registered ? (
-                        <div className="text-sm text-green-700 mt-2 font-medium">✓ Registered</div>
+                      </span>                      {event.is_registered ? (
+                        <div className="text-sm text-green-700 mt-2 font-medium flex items-center">
+                          <FontAwesomeIcon icon={faCheck} className="mr-1" /> 
+                          Registered
+                        </div>
                       ) : (
                         <div className="text-sm text-primary-600 mt-2">Not registered</div>
                       )}
@@ -182,10 +203,11 @@ const MemberOverview = () => {
                   View All Events
                 </button>
               </div>
-            </div>
-          ) : (
+            </div>          ) : (
             <div className="text-center p-8">
-              <div className="text-4xl mb-4">📅</div>
+              <div className="text-4xl mb-4 text-primary-600">
+                <FontAwesomeIcon icon={faCalendarDays} />
+              </div>
               <h4 className="font-serif font-bold text-primary-950 mb-2 text-lg">No upcoming events</h4>
               <p className="text-sm text-primary-700 mb-6 leading-relaxed">Check back soon for new events and tournaments</p>
               <button 
