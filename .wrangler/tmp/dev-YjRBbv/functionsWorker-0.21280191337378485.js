@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-GfTTA8/checked-fetch.js
+// .wrangler/tmp/bundle-legodD/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -27,7 +27,7 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
   }
 });
 
-// .wrangler/tmp/pages-298D23/functionsWorker-0.7101054036389114.mjs
+// .wrangler/tmp/pages-JtZUKE/functionsWorker-0.21280191337378485.mjs
 var __defProp2 = Object.defineProperty;
 var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 var urls2 = /* @__PURE__ */ new Set();
@@ -1250,41 +1250,42 @@ async function handleGetAllTeeTimes(request, env) {
   const endDate = url.searchParams.get("endDate");
   let query = `
     SELECT 
-      tt.*,
+      ttb.*,
       m.first_name,
       m.last_name,
       m.email,
       m.phone,
       m.member_id as member_id_display
-    FROM tee_times tt
-    JOIN members m ON tt.member_id = m.id
-    WHERE tt.status = 'active'
+    FROM tee_time_bookings ttb
+    JOIN members m ON ttb.member_id = m.id
+    WHERE ttb.status = 'active'
   `;
   let params = [];
   if (startDate && endDate) {
-    query += ` AND tt.date BETWEEN ? AND ?`;
+    query += ` AND ttb.date BETWEEN ? AND ?`;
     params.push(startDate, endDate);
   }
-  query += ` ORDER BY tt.date ASC, tt.time ASC`;
+  query += ` ORDER BY ttb.date ASC, ttb.time ASC`;
   const stmt = env.DB.prepare(query);
   const result = await stmt.bind(...params).all();
-  const formattedTeeTimes = result.results?.map((teeTime) => ({
-    id: teeTime.id,
-    member_id: teeTime.member_id,
-    member_id_display: teeTime.member_id_display,
-    date: teeTime.date,
-    time: teeTime.time,
-    course_name: teeTime.course_name,
-    players: teeTime.players || 1,
-    player_names: teeTime.player_names,
-    notes: teeTime.notes,
-    status: teeTime.status,
-    first_name: teeTime.first_name,
-    last_name: teeTime.last_name,
-    email: teeTime.email,
-    phone: teeTime.phone,
-    created_at: teeTime.created_at,
-    updated_at: teeTime.updated_at
+  const formattedTeeTimes = result.results?.map((booking) => ({
+    id: booking.id,
+    member_id: booking.member_id,
+    member_id_display: booking.member_id_display,
+    date: booking.date,
+    time: booking.time,
+    course_name: booking.course_name,
+    players: booking.players || 1,
+    player_names: booking.player_names,
+    notes: booking.notes,
+    status: booking.status,
+    first_name: booking.first_name,
+    last_name: booking.last_name,
+    email: booking.email,
+    phone: booking.phone,
+    created_at: booking.created_at,
+    updated_at: booking.updated_at,
+    allow_additional_players: booking.allow_additional_players
   })) || [];
   return new Response(JSON.stringify({
     teeTimes: formattedTeeTimes,
@@ -1297,26 +1298,26 @@ __name(handleGetAllTeeTimes, "handleGetAllTeeTimes");
 __name2(handleGetAllTeeTimes, "handleGetAllTeeTimes");
 async function handleDeleteTeeTime(request, env) {
   const url = new URL(request.url);
-  const teeTimeId = url.searchParams.get("id");
-  if (!teeTimeId) {
-    return new Response(JSON.stringify({ error: "Tee time ID required" }), {
+  const bookingId = url.searchParams.get("id");
+  if (!bookingId) {
+    return new Response(JSON.stringify({ error: "Booking ID required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
   }
   const stmt = env.DB.prepare(`
-    UPDATE tee_times 
+    UPDATE tee_time_bookings 
     SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
   try {
-    await stmt.bind(teeTimeId).run();
+    await stmt.bind(bookingId).run();
     return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json" }
     });
   } catch (error) {
-    console.error("Error cancelling tee time:", error);
-    return new Response(JSON.stringify({ error: "Failed to cancel tee time" }), {
+    console.error("Error cancelling booking:", error);
+    return new Response(JSON.stringify({ error: "Failed to cancel booking" }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
@@ -1325,62 +1326,111 @@ async function handleDeleteTeeTime(request, env) {
 __name(handleDeleteTeeTime, "handleDeleteTeeTime");
 __name2(handleDeleteTeeTime, "handleDeleteTeeTime");
 async function handleUpdateTeeTime(request, env) {
-  const { id, memberIds, courseId, date, time, notes } = await request.json();
+  const { id, memberIds, courseId, date, time, notes, players } = await request.json();
+  console.log("Admin update request:", { id, memberIds, courseId, date, time, notes, players });
   if (!id) {
-    return new Response(JSON.stringify({ error: "Tee time ID required" }), {
+    return new Response(JSON.stringify({ error: "Booking ID required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
   }
-  if (memberIds && Array.isArray(memberIds) && memberIds.length > 0) {
-    const memberQuery = env.DB.prepare(`
-      SELECT first_name, last_name FROM members WHERE id IN (${memberIds.map(() => "?").join(",")})
+  if (memberIds && Array.isArray(memberIds) && memberIds.length > 1) {
+    return new Response(JSON.stringify({ error: "Please select only one member per booking" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  try {
+    const currentBookingStmt = env.DB.prepare(`
+      SELECT * FROM tee_time_bookings WHERE id = ?
     `);
-    const memberResult = await memberQuery.bind(...memberIds).all();
-    const memberNames = memberResult.results?.map((m) => `${m.first_name} ${m.last_name}`).join(", ") || "";
+    const currentBooking = await currentBookingStmt.bind(id).first();
+    if (!currentBooking) {
+      return new Response(JSON.stringify({ error: "Booking not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    let memberId = null;
+    let finalPlayerNames = currentBooking.player_names;
+    if (memberIds && Array.isArray(memberIds) && memberIds.length > 0) {
+      memberId = memberIds[0];
+      const memberQuery = env.DB.prepare(`
+        SELECT first_name, last_name FROM members WHERE id = ?
+      `);
+      const memberResult = await memberQuery.bind(memberId).first();
+      if (memberResult) {
+        const memberName = `${memberResult.first_name} ${memberResult.last_name}`;
+        const playersCount = players || currentBooking.players;
+        if (playersCount === 1) {
+          finalPlayerNames = memberName;
+        } else {
+          const guestNames = Array(playersCount - 1).fill(null).map((_, i) => `Guest ${i + 1}`);
+          finalPlayerNames = [memberName, ...guestNames].join(", ");
+        }
+      }
+    } else if (players && players !== currentBooking.players) {
+      const currentPrimary = currentBooking.player_names?.split(",")[0]?.trim() || "Unknown Member";
+      if (players === 1) {
+        finalPlayerNames = currentPrimary;
+      } else {
+        const guestNames = Array(players - 1).fill(null).map((_, i) => `Guest ${i + 1}`);
+        finalPlayerNames = [currentPrimary, ...guestNames].join(", ");
+      }
+    }
     const stmt = env.DB.prepare(`
-      UPDATE tee_times 
-      SET member_id = ?, course_name = ?, date = ?, time = ?, players = ?, player_names = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      UPDATE tee_time_bookings 
+      SET member_id = COALESCE(?, member_id),
+          course_name = COALESCE(?, course_name),
+          date = COALESCE(?, date),
+          time = COALESCE(?, time),
+          players = COALESCE(?, players),
+          player_names = COALESCE(?, player_names),
+          notes = COALESCE(?, notes),
+          updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    try {
-      await stmt.bind(memberIds[0], courseId || "birches", date, time, memberIds.length, memberNames, notes, id).run();
+    const result = await stmt.bind(
+      memberId,
+      courseId,
+      date,
+      time,
+      players || null,
+      finalPlayerNames,
+      notes || null,
+      id
+    ).run();
+    console.log("Update result:", result);
+    if (result.success) {
       return new Response(JSON.stringify({ success: true }), {
         headers: { "Content-Type": "application/json" }
       });
-    } catch (error) {
-      console.error("Error updating tee time:", error);
-      return new Response(JSON.stringify({ error: "Failed to update tee time" }), {
+    } else {
+      return new Response(JSON.stringify({ error: "Update failed" }), {
         status: 500,
         headers: { "Content-Type": "application/json" }
       });
     }
-  } else {
-    const stmt = env.DB.prepare(`
-      UPDATE tee_times 
-      SET course_name = ?, date = ?, time = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `);
-    try {
-      await stmt.bind(courseId || "birches", date, time, notes, id).run();
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { "Content-Type": "application/json" }
-      });
-    } catch (error) {
-      console.error("Error updating tee time:", error);
-      return new Response(JSON.stringify({ error: "Failed to update tee time" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    return new Response(JSON.stringify({ error: `Failed to update booking: ${error.message}` }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
 __name(handleUpdateTeeTime, "handleUpdateTeeTime");
 __name2(handleUpdateTeeTime, "handleUpdateTeeTime");
 async function handleCreateTeeTime(request, env) {
-  const { memberIds, courseId, date, time, notes } = await request.json();
+  const { memberIds, courseId, date, time, notes, players } = await request.json();
   if (!memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
-    return new Response(JSON.stringify({ error: "At least one member ID is required" }), {
+    return new Response(JSON.stringify({ error: "A member ID is required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  if (memberIds.length > 1) {
+    return new Response(JSON.stringify({ error: "Please select only one member per booking. Create separate bookings for additional members." }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
@@ -1391,56 +1441,84 @@ async function handleCreateTeeTime(request, env) {
       headers: { "Content-Type": "application/json" }
     });
   }
+  const memberId = memberIds[0];
+  const playersCount = players || 1;
   const conflictCheck = env.DB.prepare(`
-    SELECT id FROM tee_times 
-    WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
+    SELECT id FROM tee_time_bookings 
+    WHERE course_name = ? AND date = ? AND time = ? AND member_id = ? AND status = 'active'
   `);
-  const existing = await conflictCheck.bind(courseId, date, time).first();
+  const existing = await conflictCheck.bind(courseId, date, time, memberId).first();
   if (existing) {
-    return new Response(JSON.stringify({ error: "Tee time slot is already booked" }), {
+    return new Response(JSON.stringify({ error: "This member already has a booking for this time slot" }), {
       status: 409,
       headers: { "Content-Type": "application/json" }
     });
   }
-  const primaryMemberId = memberIds[0];
-  const players = memberIds.length;
-  const memberQuery = env.DB.prepare(`
-    SELECT first_name, last_name FROM members WHERE id IN (${memberIds.map(() => "?").join(",")})
+  const capacityCheck = env.DB.prepare(`
+    SELECT SUM(players) as total_players FROM tee_time_bookings 
+    WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
   `);
-  const memberResult = await memberQuery.bind(...memberIds).all();
-  const memberNames = memberResult.results?.map((m) => `${m.first_name} ${m.last_name}`).join(", ") || "";
-  const stmt = env.DB.prepare(`
-    INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, allow_additional_players, created_by_admin)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1)
-  `);
+  const capacityResult = await capacityCheck.bind(courseId, date, time).first();
+  const currentPlayers = capacityResult?.total_players || 0;
+  if (currentPlayers + playersCount > 4) {
+    const remainingSpots = 4 - currentPlayers;
+    return new Response(JSON.stringify({
+      error: `This booking would exceed the 4-player limit. Only ${remainingSpots} spot${remainingSpots !== 1 ? "s" : ""} remaining.`
+    }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
   try {
+    const memberQuery = env.DB.prepare(`
+      SELECT first_name, last_name FROM members WHERE id = ?
+    `);
+    const memberResult = await memberQuery.bind(memberId).first();
+    if (!memberResult) {
+      return new Response(JSON.stringify({ error: "Member not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    const memberName = `${memberResult.first_name} ${memberResult.last_name}`;
+    let playerNames = memberName;
+    if (playersCount > 1) {
+      const guestNames = Array(playersCount - 1).fill(null).map((_, i) => `Guest ${i + 1}`);
+      playerNames = [memberName, ...guestNames].join(", ");
+    }
+    const stmt = env.DB.prepare(`
+      INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
     const result = await stmt.bind(
-      primaryMemberId,
+      memberId,
       courseId,
       date,
       time,
-      players,
-      memberNames,
-      notes || null
+      playersCount,
+      playerNames,
+      notes || null,
+      1
+      // Allow additional players by default for admin-created bookings
     ).run();
     if (result.success) {
       return new Response(JSON.stringify({
         success: true,
         id: result.meta.last_row_id,
-        message: "Tee time created successfully"
+        message: "Tee time booking created successfully"
       }), {
         status: 201,
         headers: { "Content-Type": "application/json" }
       });
     } else {
-      return new Response(JSON.stringify({ error: "Failed to create tee time" }), {
+      return new Response(JSON.stringify({ error: "Failed to create tee time booking" }), {
         status: 500,
         headers: { "Content-Type": "application/json" }
       });
     }
   } catch (error) {
-    console.error("Error creating tee time:", error);
-    return new Response(JSON.stringify({ error: "Failed to create tee time" }), {
+    console.error("Error creating tee time booking:", error);
+    return new Response(JSON.stringify({ error: "Failed to create tee time booking" }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
@@ -1727,21 +1805,29 @@ var onRequest6 = /* @__PURE__ */ __name2(async (context) => {
     }
     const stmt = env.DB.prepare(`
       SELECT 
-        tt.time, 
-        tt.players, 
-        tt.player_names,
-        tt.allow_additional_players,
+        ttb.time, 
+        ttb.players, 
+        ttb.player_names,
+        ttb.allow_additional_players,
         m.first_name,
         m.last_name,
-        m.member_id as member_display_id
-      FROM tee_times tt
-      JOIN members m ON tt.member_id = m.id
-      WHERE tt.course_name = ? AND tt.date = ? AND tt.status = 'active'
-      ORDER BY tt.time ASC
+        m.member_id as member_display_id,
+        ttb.member_id
+      FROM tee_time_bookings ttb
+      JOIN members m ON ttb.member_id = m.id
+      WHERE ttb.course_name = ? AND ttb.date = ? AND ttb.status = 'active'
+      ORDER BY ttb.time ASC, ttb.created_at ASC
     `);
     const result = await stmt.bind(course, date).all();
-    const bookedTeeTimes = result.results || [];
-    const bookedTimes = bookedTeeTimes.map((row) => row.time);
+    const allBookings = result.results || [];
+    const bookingsByTime = allBookings.reduce((acc, booking) => {
+      if (!acc[booking.time]) {
+        acc[booking.time] = [];
+      }
+      acc[booking.time].push(booking);
+      return acc;
+    }, {});
+    const bookedTimes = Object.keys(bookingsByTime);
     const allTimes = [];
     const startHour = 7;
     const endHour = 18;
@@ -1755,31 +1841,33 @@ var onRequest6 = /* @__PURE__ */ __name2(async (context) => {
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 10) {
         const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-        const bookedTeeTime = bookedTeeTimes.find((bt) => bt.time === timeStr);
-        if (bookedTeeTime) {
-          const currentPlayers = bookedTeeTime.players || 1;
-          const remainingSpots = maxPlayers - currentPlayers;
-          const allowsAdditional = bookedTeeTime.allow_additional_players;
+        const timeSlotBookings = bookingsByTime[timeStr];
+        if (timeSlotBookings) {
+          const totalPlayers = timeSlotBookings.reduce((sum, booking) => sum + (booking.players || 1), 0);
+          const remainingSpots = maxPlayers - totalPlayers;
+          const allowsAdditional = timeSlotBookings.some((booking) => booking.allow_additional_players);
           let status = "booked";
           if (remainingSpots > 0 && allowsAdditional) {
             status = "partial";
           }
+          const allPlayerNames = timeSlotBookings.map((booking) => booking.player_names).filter((names) => names).join(", ");
+          const primaryBooking = timeSlotBookings[0];
           allTimes.push({
             id: `${course}-${date}-${timeStr}`,
             courseId: course,
             courseName: courseNames[course] || course,
             date,
             time: timeStr,
-            players: currentPlayers,
+            players: totalPlayers,
             maxPlayers,
             price: basePrice,
             status,
             availableSpots: allowsAdditional ? remainingSpots : 0,
             bookedBy: {
-              firstName: bookedTeeTime.first_name,
-              lastName: bookedTeeTime.last_name,
-              memberId: bookedTeeTime.member_display_id,
-              playerNames: bookedTeeTime.player_names
+              firstName: primaryBooking.first_name,
+              lastName: primaryBooking.last_name,
+              memberId: primaryBooking.member_display_id,
+              playerNames: allPlayerNames
             }
           });
         } else {
@@ -2266,7 +2354,7 @@ async function handleGetTeeTimes(request, env) {
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
   let query = `
-    SELECT * FROM tee_times 
+    SELECT * FROM tee_time_bookings 
     WHERE member_id = ? AND status = 'active'
   `;
   let params = [member.id];
@@ -2308,37 +2396,35 @@ async function handleCreateTeeTime2(request, env) {
     });
   }
   const existingCheck = env.DB.prepare(`
-    SELECT id, players, allow_additional_players FROM tee_times 
+    SELECT id, players, allow_additional_players, member_id FROM tee_time_bookings 
     WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
+    ORDER BY created_at ASC
   `);
-  const existing = await existingCheck.bind(body.courseId, body.date, body.time).first();
-  if (existing) {
-    const currentPlayers = existing.players || 1;
+  const existingBookings = await existingCheck.bind(body.courseId, body.date, body.time).all();
+  if (existingBookings.results && existingBookings.results.length > 0) {
+    const totalPlayers = existingBookings.results.reduce((sum, booking) => sum + (booking.players || 1), 0);
     const maxPlayers = 4;
-    if (existing.allow_additional_players && currentPlayers + body.players <= maxPlayers) {
-      const updateStmt = env.DB.prepare(`
-        UPDATE tee_times 
-        SET players = players + ?, 
-            player_names = CASE 
-              WHEN player_names IS NULL THEN ? 
-              ELSE player_names || ', ' || ? 
-            END,
-            allow_additional_players = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `);
+    const firstBooking = existingBookings.results[0];
+    if (firstBooking.allow_additional_players && totalPlayers + body.players <= maxPlayers) {
       const memberName2 = `${member.first_name} ${member.last_name}`;
-      const result2 = await updateStmt.bind(
+      const stmt2 = env.DB.prepare(`
+        INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      const result2 = await stmt2.bind(
+        member.id,
+        body.courseId,
+        body.date,
+        body.time,
         body.players,
         memberName2,
-        memberName2,
-        body.allowOthersToJoin ? 1 : 0,
-        existing.id
+        body.notes || null,
+        body.allowOthersToJoin ? 1 : 0
       ).run();
       if (result2.success) {
         return new Response(JSON.stringify({
           success: true,
-          id: existing.id,
+          id: result2.meta.last_row_id,
           message: "Successfully joined the tee time"
         }), {
           status: 201,
@@ -2355,7 +2441,7 @@ async function handleCreateTeeTime2(request, env) {
   const memberName = `${member.first_name} ${member.last_name}`;
   const playersToBook = body.players;
   const stmt = env.DB.prepare(`
-    INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
+    INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = await stmt.bind(
@@ -2410,17 +2496,17 @@ async function handleUpdateTeeTime2(request, env) {
     });
   }
   const verifyStmt = env.DB.prepare(`
-    SELECT id, players FROM tee_times WHERE id = ? AND member_id = ?
+    SELECT id, players FROM tee_time_bookings WHERE id = ? AND member_id = ?
   `);
   const teeTime = await verifyStmt.bind(teeTimeId, member.id).first();
   if (!teeTime) {
-    return new Response(JSON.stringify({ error: "Tee time not found or access denied" }), {
+    return new Response(JSON.stringify({ error: "Tee time booking not found or access denied" }), {
       status: 404,
       headers: { "Content-Type": "application/json" }
     });
   }
   const updateStmt = env.DB.prepare(`
-    UPDATE tee_times 
+    UPDATE tee_time_bookings 
     SET players = ?, 
         allow_additional_players = ?,
         updated_at = CURRENT_TIMESTAMP
@@ -2464,17 +2550,17 @@ async function handleDeleteTeeTime2(request, env) {
     });
   }
   const verifyStmt = env.DB.prepare(`
-    SELECT id FROM tee_times WHERE id = ? AND member_id = ?
+    SELECT id FROM tee_time_bookings WHERE id = ? AND member_id = ?
   `);
   const teeTime = await verifyStmt.bind(teeTimeId, member.id).first();
   if (!teeTime) {
-    return new Response(JSON.stringify({ error: "Tee time not found or unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Tee time booking not found or unauthorized" }), {
       status: 404,
       headers: { "Content-Type": "application/json" }
     });
   }
   const stmt = env.DB.prepare(`
-    UPDATE tee_times SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
+    UPDATE tee_time_bookings SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
     WHERE id = ?
   `);
   const result = await stmt.bind(teeTimeId).run();
@@ -3500,7 +3586,7 @@ var jsonError2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default2 = jsonError2;
 
-// .wrangler/tmp/bundle-GfTTA8/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-legodD/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
   middleware_ensure_req_body_drained_default2,
   middleware_miniflare3_json_error_default2
@@ -3532,7 +3618,7 @@ function __facade_invoke__2(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__2, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-GfTTA8/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-legodD/middleware-loader.entry.ts
 var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -3632,4 +3718,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default2 as default
 };
-//# sourceMappingURL=functionsWorker-0.7101054036389114.js.map
+//# sourceMappingURL=functionsWorker-0.21280191337378485.js.map

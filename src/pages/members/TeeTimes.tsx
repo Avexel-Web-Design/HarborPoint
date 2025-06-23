@@ -181,9 +181,7 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
     } finally {
       setBookingLoading(null);
     }
-  };  
-
-  const openEditBookingModal = (booking: TeeTimeBooking) => {
+  };  const openEditBookingModal = (booking: TeeTimeBooking) => {
     setEditingBooking(booking);
     setEditPlayers(booking.players);
     setEditAllowOthersToJoin(false); // We'll need to fetch this from the API if needed
@@ -513,9 +511,8 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                           {booking.status === 'active' ? 'confirmed' : booking.status}
                         </span>
                       </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">
-                          {booking.players} player{booking.players !== 1 ? 's' : ''}
+                        <div className="flex justify-between items-center">                        <span className="text-sm text-gray-600">
+                          {booking.players} player{booking.players !== 1 ? 's' : ''} • Your booking
                         </span>
                           {(booking.status === 'active' || booking.status === 'confirmed') && (
                           <div className="flex space-x-2">
@@ -612,9 +609,7 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
               </div>
             </div>
           </div>
-        )}
-
-        {/* Edit Booking Modal */}
+        )}        {/* Edit Booking Modal */}
         {showEditModal && editingBooking && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             {/* Backdrop */}
@@ -629,9 +624,7 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
               
               <p className="mb-4">
                 Editing your booking for {formatDate(editingBooking.date)} at {formatTime(editingBooking.time)} on {editingBooking.courseName}.
-              </p>
-              
-              <div className="mb-4">
+              </p>              <div className="mb-4">
                 <label htmlFor="edit-players" className="block text-sm font-medium text-gray-700 mb-2">
                   Number of Players
                 </label>

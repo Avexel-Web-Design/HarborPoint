@@ -34,12 +34,11 @@ async function handleGetTeeTimes(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
   const url = new URL(request.url);
   const startDate = url.searchParams.get('startDate');
   const endDate = url.searchParams.get('endDate');
   let query = `
-    SELECT * FROM tee_times 
+    SELECT * FROM tee_time_bookings 
     WHERE member_id = ? AND status = 'active'
   `;
   let params: any[] = [member.id];
@@ -90,41 +89,40 @@ async function handleCreateTeeTime(request: Request, env: Env) {
     });
   }  // Check if the tee time slot is available or has space for additional players
   const existingCheck = env.DB.prepare(`
-    SELECT id, players, allow_additional_players FROM tee_times 
+    SELECT id, players, allow_additional_players, member_id FROM tee_time_bookings 
     WHERE course_name = ? AND date = ? AND time = ? AND status = 'active'
+    ORDER BY created_at ASC
   `);
-  const existing = await existingCheck.bind(body.courseId, body.date, body.time).first();  if (existing) {
-    const currentPlayers = existing.players || 1;
+  const existingBookings = await existingCheck.bind(body.courseId, body.date, body.time).all();  if (existingBookings.results && existingBookings.results.length > 0) {
+    // Calculate total players across all bookings
+    const totalPlayers = existingBookings.results.reduce((sum: number, booking: any) => sum + (booking.players || 1), 0);
     const maxPlayers = 4;
     
-    // Check if additional players are allowed and there's space
-    if (existing.allow_additional_players && currentPlayers + body.players <= maxPlayers) {
-      // Update the existing tee time to add more players and update the allow_additional_players preference
-      const updateStmt = env.DB.prepare(`
-        UPDATE tee_times 
-        SET players = players + ?, 
-            player_names = CASE 
-              WHEN player_names IS NULL THEN ? 
-              ELSE player_names || ', ' || ? 
-            END,
-            allow_additional_players = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `);
-      
+    // Check if the first booking allows additional players and there's space
+    const firstBooking = existingBookings.results[0];
+    if (firstBooking.allow_additional_players && totalPlayers + body.players <= maxPlayers) {
+      // Create a new individual booking for this member
       const memberName = `${member.first_name} ${member.last_name}`;
-      const result = await updateStmt.bind(
+      const stmt = env.DB.prepare(`
+        INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const result = await stmt.bind(
+        member.id,
+        body.courseId,
+        body.date,
+        body.time,
         body.players,
         memberName,
-        memberName,
-        body.allowOthersToJoin ? 1 : 0,
-        existing.id
+        body.notes || null,
+        body.allowOthersToJoin ? 1 : 0
       ).run();
 
       if (result.success) {
         return new Response(JSON.stringify({ 
           success: true, 
-          id: existing.id,
+          id: result.meta.last_row_id,
           message: 'Successfully joined the tee time'
         }), {
           status: 201,
@@ -136,12 +134,12 @@ async function handleCreateTeeTime(request: Request, env: Env) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  }  // Create the tee time
+  }  // Create the tee time booking
   const memberName = `${member.first_name} ${member.last_name}`;
   // Always use the actual number of players, not inflated count
   const playersToBook = body.players;
     const stmt = env.DB.prepare(`
-    INSERT INTO tee_times (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
+    INSERT INTO tee_time_bookings (member_id, course_name, date, time, players, player_names, notes, allow_additional_players)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -201,23 +199,22 @@ async function handleUpdateTeeTime(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
-  // Verify the tee time belongs to the member
+  // Verify the tee time booking belongs to the member
   const verifyStmt = env.DB.prepare(`
-    SELECT id, players FROM tee_times WHERE id = ? AND member_id = ?
+    SELECT id, players FROM tee_time_bookings WHERE id = ? AND member_id = ?
   `);
   const teeTime = await verifyStmt.bind(teeTimeId, member.id).first();
 
   if (!teeTime) {
-    return new Response(JSON.stringify({ error: 'Tee time not found or access denied' }), {
+    return new Response(JSON.stringify({ error: 'Tee time booking not found or access denied' }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  // Update the tee time
+  // Update the tee time booking
   const updateStmt = env.DB.prepare(`
-    UPDATE tee_times 
+    UPDATE tee_time_bookings 
     SET players = ?, 
         allow_additional_players = ?,
         updated_at = CURRENT_TIMESTAMP
@@ -263,23 +260,22 @@ async function handleDeleteTeeTime(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
-  // Verify the tee time belongs to the member
+  // Verify the tee time booking belongs to the member
   const verifyStmt = env.DB.prepare(`
-    SELECT id FROM tee_times WHERE id = ? AND member_id = ?
+    SELECT id FROM tee_time_bookings WHERE id = ? AND member_id = ?
   `);
   const teeTime = await verifyStmt.bind(teeTimeId, member.id).first();
 
   if (!teeTime) {
-    return new Response(JSON.stringify({ error: 'Tee time not found or unauthorized' }), {
+    return new Response(JSON.stringify({ error: 'Tee time booking not found or unauthorized' }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  // Cancel the tee time (soft delete)
+  // Cancel the tee time booking (soft delete)
   const stmt = env.DB.prepare(`
-    UPDATE tee_times SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
+    UPDATE tee_time_bookings SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP 
     WHERE id = ?
   `);
   

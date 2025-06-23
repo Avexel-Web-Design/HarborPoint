@@ -9,7 +9,7 @@ interface TeeTime {
   member_id: number;
   date: string;
   time: string;
-  guests: number;
+  players: number;
   notes?: string;
   status: string;
   first_name: string;
@@ -18,8 +18,9 @@ interface TeeTime {
   phone?: string;
   member_id_display: string;
   created_at: string;
-  players?: number;
   course_name?: string;
+  player_names?: string;
+  allow_additional_players?: boolean;
 }
 
 type CourseType = 'birches' | 'woods' | 'farms';
@@ -206,17 +207,21 @@ const AdminTeeTimesPage = () => {
     }
     return slots;
   };
-
   // Get tee times for the selected course and date
   const filteredTeeTimes = teeTimes.filter(tt => 
     tt.course_name === activeCourse && tt.date === selectedDate
   );
   
   const allTimeSlots = generateAllTeeTimeSlots();
-  const teeTimesByTime = filteredTeeTimes.reduce((acc, tt) => {
-    acc[tt.time] = tt;
+  
+  // Group bookings by time slots
+  const bookingsByTime = filteredTeeTimes.reduce((acc, booking) => {
+    if (!acc[booking.time]) {
+      acc[booking.time] = [];
+    }
+    acc[booking.time].push(booking);
     return acc;
-  }, {} as { [key: string]: TeeTime });
+  }, {} as { [key: string]: TeeTime[] });
 
   if (loading) {
     return (
@@ -336,26 +341,23 @@ const AdminTeeTimesPage = () => {
               All Tee Time Slots - {courseNames[activeCourse]}
             </h3>
             <p className="text-sm text-gray-600 mt-1">
-              All available time slots from 7:00 AM to 6:00 PM (every 10 minutes)
+              All available time slots from 7:00 AM to 6:00 PM (every 10 minutes). Each booking is for one member plus guests.
             </p>
           </div>
-          
-          <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200">
             {allTimeSlots.map((timeSlot) => {
-              const teeTime = teeTimesByTime[timeSlot];
-              const isEmpty = !teeTime;
+              const bookings = bookingsByTime[timeSlot] || [];
+              const isEmpty = bookings.length === 0;
+              const totalPlayers = bookings.reduce((sum, booking) => sum + (booking.players || 1), 0);
+              const maxPlayers = 4;
+              const isFullyBooked = totalPlayers >= maxPlayers;
               
               return (
                 <div
                   key={timeSlot}
                   className={`px-6 py-4 hover:bg-gray-50 ${
-                    isEmpty ? 'text-gray-400' : 'cursor-pointer'
+                    isEmpty ? 'text-gray-400' : ''
                   }`}
-                  onClick={() => {
-                    if (teeTime) {
-                      handleTeeTimeClick(teeTime);
-                    }
-                  }}
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
@@ -367,28 +369,69 @@ const AdminTeeTimesPage = () => {
                           Available
                         </div>
                       ) : (
-                        <div className="flex items-center space-x-4">
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {teeTime.first_name} {teeTime.last_name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {teeTime.players || 1} player{(teeTime.players || 1) !== 1 ? 's' : ''}
-                              {teeTime.notes && ` • ${teeTime.notes}`}
-                            </div>
+                        <div className="space-y-2">                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              isFullyBooked ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {totalPlayers}/{maxPlayers} players
+                            </span>
+                            {!isFullyBooked && (
+                              <span className="text-xs text-green-600">
+                                {maxPlayers - totalPlayers} spot{maxPlayers - totalPlayers !== 1 ? 's' : ''} available
+                              </span>
+                            )}
+                            {isFullyBooked && (
+                              <span className="text-xs text-red-600">FULL</span>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-400">
-                            #{teeTime.member_id_display}
+                          <div className="grid gap-2">
+                            {bookings.map((booking) => (
+                              <div key={booking.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">                                <div className="flex items-center space-x-3">
+                                  <div>
+                                    <div className="font-medium text-gray-900">
+                                      {booking.player_names || `${booking.first_name} ${booking.last_name}`}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      {booking.players || 1} player{(booking.players || 1) !== 1 ? 's' : ''}
+                                      {booking.notes && ` • ${booking.notes}`}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    #{booking.member_id_display}
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    booking.status === 'active' ? 'bg-green-100 text-green-800' :
+                                    booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {booking.status}
+                                  </span>
+                                  <button
+                                    onClick={() => handleTeeTimeClick(booking)}
+                                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTeeTime(booking.id)}
+                                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                                    title="Cancel booking"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
                     </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {isEmpty ? (
+                      <div className="flex items-center space-x-2">
+                      {isEmpty && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             setSelectedTeeTime(null);
                             setShowCreateModal(true);
                           }}
@@ -396,26 +439,17 @@ const AdminTeeTimesPage = () => {
                         >
                           Book
                         </button>
-                      ) : (
-                        <>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            teeTime.status === 'active' ? 'bg-green-100 text-green-800' :
-                            teeTime.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {teeTime.status}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTeeTime(teeTime.id);
-                            }}
-                            className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                            title="Delete tee time"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
+                      )}
+                      {!isEmpty && !isFullyBooked && (
+                        <button
+                          onClick={() => {
+                            setSelectedTeeTime(null);
+                            setShowCreateModal(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Book Another
+                        </button>
                       )}
                     </div>
                   </div>

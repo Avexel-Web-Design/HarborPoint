@@ -16,25 +16,36 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
-    }    // Get booked tee times with member information for the specified course and date
+    }    // Get all individual bookings for the specified course and date
     const stmt = env.DB.prepare(`
       SELECT 
-        tt.time, 
-        tt.players, 
-        tt.player_names,
-        tt.allow_additional_players,
+        ttb.time, 
+        ttb.players, 
+        ttb.player_names,
+        ttb.allow_additional_players,
         m.first_name,
         m.last_name,
-        m.member_id as member_display_id
-      FROM tee_times tt
-      JOIN members m ON tt.member_id = m.id
-      WHERE tt.course_name = ? AND tt.date = ? AND tt.status = 'active'
-      ORDER BY tt.time ASC
+        m.member_id as member_display_id,
+        ttb.member_id
+      FROM tee_time_bookings ttb
+      JOIN members m ON ttb.member_id = m.id
+      WHERE ttb.course_name = ? AND ttb.date = ? AND ttb.status = 'active'
+      ORDER BY ttb.time ASC, ttb.created_at ASC
     `);
     
     const result = await stmt.bind(course, date).all();
-    const bookedTeeTimes = result.results || [];
-    const bookedTimes = bookedTeeTimes.map((row: any) => row.time);// Generate all time slots (every 10 minutes from 7:00 AM to 6:00 PM)
+    const allBookings = result.results || [];
+    
+    // Group bookings by time slot
+    const bookingsByTime = allBookings.reduce((acc: any, booking: any) => {
+      if (!acc[booking.time]) {
+        acc[booking.time] = [];
+      }
+      acc[booking.time].push(booking);
+      return acc;
+    }, {});
+    
+    const bookedTimes = Object.keys(bookingsByTime);// Generate all time slots (every 10 minutes from 7:00 AM to 6:00 PM)
     const allTimes: any[] = [];
     const startHour = 7;
     const endHour = 18;
@@ -51,13 +62,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 10) {
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
-        // Check if this time slot is booked
-        const bookedTeeTime = bookedTeeTimes.find((bt: any) => bt.time === timeStr);        if (bookedTeeTime) {
+          // Check if this time slot has any bookings
+        const timeSlotBookings = bookingsByTime[timeStr];        if (timeSlotBookings) {
           // This time slot has some bookings
-          const currentPlayers = bookedTeeTime.players || 1;
-          const remainingSpots = maxPlayers - currentPlayers;
-          const allowsAdditional = bookedTeeTime.allow_additional_players;
+          const totalPlayers = timeSlotBookings.reduce((sum: number, booking: any) => sum + (booking.players || 1), 0);
+          const remainingSpots = maxPlayers - totalPlayers;
+          
+          // Check if any booking allows additional players (usually the first one)
+          const allowsAdditional = timeSlotBookings.some((booking: any) => booking.allow_additional_players);
           
           // Status logic: if no remaining spots OR additional players not allowed, mark as booked
           let status = 'booked';
@@ -65,22 +77,31 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             status = 'partial';
           }
           
+          // Get all player names from all bookings
+          const allPlayerNames = timeSlotBookings
+            .map((booking: any) => booking.player_names)
+            .filter((names: string) => names)
+            .join(', ');
+          
+          // Use the first booking's member info as the primary booker for display
+          const primaryBooking = timeSlotBookings[0];
+          
           allTimes.push({
             id: `${course}-${date}-${timeStr}`,
             courseId: course,
             courseName: courseNames[course as keyof typeof courseNames] || course,
             date: date,
             time: timeStr,
-            players: currentPlayers,
+            players: totalPlayers,
             maxPlayers: maxPlayers,
             price: basePrice,
             status: status,
             availableSpots: allowsAdditional ? remainingSpots : 0,
             bookedBy: {
-              firstName: bookedTeeTime.first_name,
-              lastName: bookedTeeTime.last_name,
-              memberId: bookedTeeTime.member_display_id,
-              playerNames: bookedTeeTime.player_names
+              firstName: primaryBooking.first_name,
+              lastName: primaryBooking.last_name,
+              memberId: primaryBooking.member_display_id,
+              playerNames: allPlayerNames
             }
           });
         } else {

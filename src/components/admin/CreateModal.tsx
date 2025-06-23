@@ -23,9 +23,9 @@ const CreateModal: React.FC<CreateModalProps> = ({
 }) => {  const [formData, setFormData] = useState<any>({
     date: selectedDate,
     time: '',
-    memberIds: [],
-    // Tee time specific
+    memberIds: [],    // Tee time specific
     courseId: defaultCourse,
+    players: 1,
     notes: '',
     // Event specific
     title: '',
@@ -58,9 +58,14 @@ const CreateModal: React.FC<CreateModalProps> = ({
     setLoading(true);
     setError('');    try {
       if (type !== 'event' && formData.memberIds.length === 0) {
-        setError('Please select at least one member');
+        setError('Please select a member');
         return;
-      }      // Ensure courseId is included for tee times
+      }
+
+      if (type === 'tee-time' && formData.memberIds.length > 1) {
+        setError('Please select only one member per booking');
+        return;
+      }// Ensure courseId is included for tee times
       if (type === 'tee-time') {
         formData.courseId = formData.courseId || defaultCourse;
       }
@@ -158,24 +163,25 @@ const CreateModal: React.FC<CreateModalProps> = ({
                   required
                 />
               </div>
-            </div>
-
-            {/* Member selection for tee times and reservations */}
+            </div>            {/* Member selection for tee times and reservations */}
             {type !== 'event' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {type === 'tee-time' ? 'Players *' : 'Primary Member *'}
+                  {type === 'tee-time' ? 'Member *' : 'Primary Member *'}
                 </label>
                 <MemberSelect
                   selectedMembers={formData.memberIds}
                   onMembersChange={(memberIds) => handleInputChange('memberIds', memberIds)}
-                  multiple={type === 'tee-time'}
-                  placeholder={`Select ${type === 'tee-time' ? 'players' : 'member'}...`}
+                  multiple={false}
+                  placeholder={`Select ${type === 'tee-time' ? 'member' : 'member'}...`}
                 />
+                {type === 'tee-time' && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Select one member per booking. Create separate bookings for additional members playing at the same time.
+                  </p>
+                )}
               </div>
-            )}
-
-            {/* Tee time specific fields */}
+            )}{/* Tee time specific fields */}
             {type === 'tee-time' && (
               <>
                 <div>
@@ -192,6 +198,25 @@ const CreateModal: React.FC<CreateModalProps> = ({
                     <option value="woods">The Woods</option>
                     <option value="farms">The Farms</option>
                   </select>
+                </div>
+                  <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Players *
+                  </label>
+                  <select
+                    value={formData.players || 1}
+                    onChange={(e) => handleInputChange('players', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value={1}>1 Player</option>
+                    <option value={2}>2 Players</option>
+                    <option value={3}>3 Players</option>
+                    <option value={4}>4 Players</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Total players including the selected member and any guests
+                  </p>
                 </div>
                 
                 <div>
