@@ -34,7 +34,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     
     const result = await stmt.bind(course, date).all();
     const bookedTeeTimes = result.results || [];
-    const bookedTimes = bookedTeeTimes.map((row: any) => row.time);    // Generate all time slots (every 10 minutes from 7:00 AM to 6:00 PM)
+    const bookedTimes = bookedTeeTimes.map((row: any) => row.time);// Generate all time slots (every 10 minutes from 7:00 AM to 6:00 PM)
     const allTimes: any[] = [];
     const startHour = 7;
     const endHour = 18;

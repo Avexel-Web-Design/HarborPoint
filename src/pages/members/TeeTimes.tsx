@@ -300,37 +300,87 @@ const MemberTeeTimes = () => {  const [selectedDate, setSelectedDate] = useState
                           <p className="font-semibold text-lg">{formatTime(teeTime.time)}</p>
                           <p className="text-sm text-gray-600">{teeTime.courseName}</p>
                         </div>
-                        {(teeTime.status === 'available' || teeTime.status === 'partial') && (
+                        {teeTime.status === 'available' && (
                           <div className="text-right">
-                            <p className="font-semibold text-primary-600">{teeTime.players}/{teeTime.maxPlayers} players</p>
-                            <p className="text-sm text-gray-500">spots taken</p>
+                            <p className="font-semibold text-green-600">Available</p>
+                            <p className="text-sm text-gray-500">{teeTime.maxPlayers} spots open</p>
                           </div>
                         )}
-                      </div>
-                      
-                      {teeTime.status === 'booked' ? (
+                        {teeTime.status === 'partial' && (
+                          <div className="text-right">
+                            <p className="font-semibold text-yellow-600">{teeTime.players}/{teeTime.maxPlayers} taken</p>
+                            <p className="text-sm text-gray-500">{teeTime.maxPlayers - teeTime.players} spots available</p>
+                          </div>
+                        )}
+                        {teeTime.status === 'booked' && (
+                          <div className="text-right">
+                            <p className="font-semibold text-red-600">Full</p>
+                            <p className="text-sm text-gray-500">{teeTime.players}/{teeTime.maxPlayers} players</p>
+                          </div>
+                        )}
+                      </div>                        {teeTime.status === 'booked' ? (
                         // Show booked tee time information
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-red-700">BOOKED</span>
-                            <span className="text-sm text-gray-600">
-                              {teeTime.players}/{teeTime.maxPlayers} players
-                            </span>
-                          </div>
                           <div className="text-sm text-gray-700">
-                            <p className="font-medium">
-                              {teeTime.bookedBy?.firstName} {teeTime.bookedBy?.lastName}
-                            </p>
                             {teeTime.bookedBy?.playerNames && (
-                              <p className="text-gray-600 mt-1">
-                                Group: {teeTime.bookedBy.playerNames}
-                              </p>
+                              <div>
+                                <p className="font-medium mb-1">Players:</p>
+                                <p className="text-gray-600">
+                                  {teeTime.bookedBy.playerNames}
+                                </p>
+                              </div>
                             )}
-                            <p className="text-xs text-gray-500 mt-1">
-                              Member ID: {teeTime.bookedBy?.memberId}
-                            </p>
                           </div>
-                        </div>                      ) : (
+                        </div>                      ) : teeTime.status === 'partial' ? (
+                        // Show partial booking information
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-700">
+                            {teeTime.bookedBy?.playerNames && (
+                              <div>
+                                <p className="font-medium mb-1">Players:</p>
+                                <p className="text-gray-600">
+                                  {teeTime.bookedBy.playerNames}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          {/* Booking options for partial tee times */}
+                          <div className="flex justify-between items-center pt-2">
+                            <div className="flex items-center space-x-2">
+                              <label htmlFor={`players-${teeTime.id}`} className="text-sm text-gray-600">Players:</label>
+                              <select
+                                id={`players-${teeTime.id}`}
+                                className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                defaultValue="1"
+                                onChange={(e) => {
+                                  const selectElement = e.target as HTMLSelectElement;
+                                  selectElement.setAttribute('data-selected-players', e.target.value);
+                                }}
+                              >
+                                {[1, 2, 3, 4].slice(0, teeTime.maxPlayers - teeTime.players).map((players) => (
+                                  <option key={players} value={players}>
+                                    {players}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const selectElement = document.getElementById(`players-${teeTime.id}`) as HTMLSelectElement;
+                                const selectedPlayers = parseInt(selectElement?.getAttribute('data-selected-players') || selectElement?.value || '1');
+                                openBookingModal(teeTime, selectedPlayers);
+                              }}
+                              disabled={bookingLoading === teeTime.id}
+                              className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
+                            >
+                              {bookingLoading === teeTime.id ? (
+                                <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                              ) : (
+                                'Join Tee Time'
+                              )}
+                            </button>
+                          </div>
+                        </div>) : (
                         // Show available tee time booking options
                         <div className="flex justify-between items-center">
                           <div className="flex items-center space-x-2">
