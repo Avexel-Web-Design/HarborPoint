@@ -89,7 +89,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: 'members' as TabType, name: 'Members', icon: UsersIcon },
     { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
-    { id: 'tennis-courts' as TabType, name: 'Tennis & Pickleball', icon: TennisIcon },
+    { id: 'tennis-courts' as TabType, name: 'Courts', icon: TennisIcon },
     { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
     { id: 'dining' as TabType, name: 'Dining', icon: DiningIcon },
   ];

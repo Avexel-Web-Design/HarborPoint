@@ -109,7 +109,7 @@ const MemberDashboard = () => {
   const tabs = [
     { id: 'overview' as TabType, name: 'Overview', icon: HomeIcon },
     { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
-    { id: 'tennis-courts' as TabType, name: 'Tennis & Pickleball', icon: TennisIcon },
+    { id: 'tennis-courts' as TabType, name: 'Courts', icon: TennisIcon },
     { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
     { id: 'dining' as TabType, name: 'Dining', icon: DiningIcon },
     { id: 'profile' as TabType, name: 'Profile', icon: UserIcon },
