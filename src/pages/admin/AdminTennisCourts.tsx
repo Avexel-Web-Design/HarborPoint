@@ -23,14 +23,14 @@ interface TennisReservation {
 }
 
 const AdminTennisCourtsPage = () => {
-  const { } = useAdminAuth();
-  const [reservations, setReservations] = useState<TennisReservation[]>([]);
+  const { } = useAdminAuth();  const [reservations, setReservations] = useState<TennisReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedReservation, setSelectedReservation] = useState<TennisReservation | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [message, setMessage] = useState('');  const [selectedCourtType, setSelectedCourtType] = useState<'tennis' | 'pickleball'>('tennis');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  const [message, setMessage] = useState('');const [selectedCourtType, setSelectedCourtType] = useState<'tennis' | 'pickleball'>('tennis');
   const [selectedCourt, setSelectedCourt] = useState<number>(1);
 
   const getTennisCourtCount = () => 9;
@@ -251,10 +251,10 @@ const AdminTennisCourtsPage = () => {
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
                 {filteredReservations.length} reservations today
-              </div>
-              <button
+              </div>              <button
                 onClick={() => {
                   setSelectedReservation(null);
+                  setSelectedTimeSlot('');
                   setShowCreateModal(true);
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center space-x-2"
@@ -450,12 +450,12 @@ const AdminTennisCourtsPage = () => {
                       )}
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      {isEmpty ? (
+                    <div className="flex items-center space-x-2">                      {isEmpty ? (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedReservation(null);
+                            setSelectedTimeSlot(timeSlot);
                             setShowCreateModal(true);
                           }}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -489,17 +489,16 @@ const AdminTennisCourtsPage = () => {
                 </div>              );
             }).filter(Boolean)} {/* Filter out null values from skipped slots */}</div>
         </div>
-      </div>
-
-      {/* Create Modal */}
+      </div>      {/* Create Modal */}
       <CreateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         type="court-reservation"
         selectedDate={selectedDate}
         courtType={selectedCourtType}
+        defaultTime={selectedTimeSlot}
         onCreate={handleCreateReservation}
-      />      {/* Edit Modal */}
+      />{/* Edit Modal */}
       <EditModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
