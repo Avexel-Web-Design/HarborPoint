@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-Tv1X2W/checked-fetch.js
+// ../.wrangler/tmp/bundle-UkarO9/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -31,14 +31,17 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
 async function verifyAuth(request, env) {
   try {
     const cookieHeader = request.headers.get("Cookie");
-    console.log("Cookie header:", cookieHeader);
+    console.log("Auth verification - Cookie header:", cookieHeader ? "present" : "missing");
+    console.log("Auth verification - Environment:", env.ENVIRONMENT || "unknown");
+    console.log("Auth verification - Has DB:", !!env.DB);
+    console.log("Auth verification - Has JWT_SECRET:", !!env.JWT_SECRET);
     if (!cookieHeader) {
       console.log("No cookie header found");
       return null;
     }
     const cookies = parseCookies(cookieHeader);
     const sessionToken = cookies["session"];
-    console.log("Session token from cookie:", sessionToken);
+    console.log("Session token from cookie:", sessionToken ? "present" : "missing");
     if (!sessionToken) {
       console.log("No session token found in cookies");
       return null;
@@ -53,6 +56,7 @@ async function verifyAuth(request, env) {
         JOIN members m ON ms.member_id = m.id
         WHERE ms.session_token = ? AND ms.expires_at > CURRENT_TIMESTAMP AND m.is_active = 1
       `).bind(sessionToken).first();
+      console.log("Database session lookup result:", sessionResult ? "found" : "not found");
       if (!sessionResult) {
         console.log("No active session found in database");
         return null;
@@ -73,7 +77,13 @@ async function verifyAuth(request, env) {
       };
     }
   } catch (error) {
-    console.error("Auth verification error:", error);
+    console.error("Auth verification error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : void 0,
+      environment: env.ENVIRONMENT || "unknown",
+      hasDB: !!env.DB,
+      hasJWTSecret: !!env.JWT_SECRET
+    });
     return null;
   }
 }
@@ -1749,20 +1759,44 @@ async function handleDeleteCourtReservation(request, env) {
 __name(handleDeleteCourtReservation, "handleDeleteCourtReservation");
 
 // api/tee-times/available.ts
+function addCORSHeaders(response) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+  headers.set("Access-Control-Allow-Credentials", "true");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+__name(addCORSHeaders, "addCORSHeaders");
 var onRequest6 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
+  if (request.method === "OPTIONS") {
+    return addCORSHeaders(new Response(null, { status: 200 }));
+  }
+  console.log("Tee times available API called:", {
+    method: request.method,
+    url: request.url,
+    environment: env.ENVIRONMENT || "unknown",
+    hasDB: !!env.DB
+  });
   if (request.method !== "GET") {
-    return new Response("Method not allowed", { status: 405 });
+    return addCORSHeaders(new Response("Method not allowed", { status: 405 }));
   }
   try {
     const url = new URL(request.url);
     const course = url.searchParams.get("course") || url.searchParams.get("courseId");
     const date = url.searchParams.get("date");
+    console.log("Tee times available parameters:", { course, date });
     if (!course || !date) {
-      return new Response(JSON.stringify({ error: "Course and date parameters required" }), {
+      const errorResponse = new Response(JSON.stringify({ error: "Course and date parameters required" }), {
         status: 400,
         headers: { "Content-Type": "application/json" }
       });
+      return addCORSHeaders(errorResponse);
     }
     const stmt = env.DB.prepare(`
       SELECT 
@@ -1846,15 +1880,25 @@ var onRequest6 = /* @__PURE__ */ __name(async (context) => {
         }
       }
     }
-    return new Response(JSON.stringify(allTimes), {
+    const successResponse = new Response(JSON.stringify(allTimes), {
       headers: { "Content-Type": "application/json" }
     });
+    return addCORSHeaders(successResponse);
   } catch (error) {
-    console.error("Available times API error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    console.error("Tee times available API error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : void 0,
+      url: request.url,
+      environment: env.ENVIRONMENT || "unknown"
+    });
+    const errorResponse = new Response(JSON.stringify({
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
+    return addCORSHeaders(errorResponse);
   }
 }, "onRequest");
 
@@ -2234,20 +2278,55 @@ var onRequest8 = /* @__PURE__ */ __name(async (context) => {
 }, "onRequest");
 
 // api/tennis-courts/available.ts
+function addCORSHeaders2(response) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+  headers.set("Access-Control-Allow-Credentials", "true");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+__name(addCORSHeaders2, "addCORSHeaders");
 var onRequest9 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
+  if (method === "OPTIONS") {
+    return addCORSHeaders2(new Response(null, { status: 200 }));
+  }
+  console.log("Tennis courts available API called:", {
+    method,
+    url: request.url,
+    environment: env.ENVIRONMENT || "unknown",
+    hasDB: !!env.DB
+  });
   try {
+    let response;
     if (method === "GET") {
-      return handleGetAvailableSlots(request, env);
+      response = await handleGetAvailableSlots(request, env);
+    } else {
+      response = new Response("Method not allowed", { status: 405 });
     }
-    return new Response("Method not allowed", { status: 405 });
+    return addCORSHeaders2(response);
   } catch (error) {
-    console.error("Tennis courts available API error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    console.error("Tennis courts available API error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : void 0,
+      method,
+      url: request.url,
+      environment: env.ENVIRONMENT || "unknown"
+    });
+    const errorResponse = new Response(JSON.stringify({
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
+    return addCORSHeaders2(errorResponse);
   }
 }, "onRequest");
 async function handleGetAvailableSlots(request, env) {
@@ -2743,27 +2822,63 @@ async function generatePassCode() {
 __name(generatePassCode, "generatePassCode");
 
 // api/tee-times/index.ts
+function addCORSHeaders3(response) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+  headers.set("Access-Control-Allow-Credentials", "true");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+__name(addCORSHeaders3, "addCORSHeaders");
 var onRequest13 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
+  if (method === "OPTIONS") {
+    return addCORSHeaders3(new Response(null, { status: 200 }));
+  }
+  console.log("Tee times API called:", {
+    method,
+    url: url.toString(),
+    environment: env.ENVIRONMENT || "unknown",
+    hasDB: !!env.DB,
+    hasJWTSecret: !!env.JWT_SECRET
+  });
   try {
+    let response;
     if (method === "GET") {
-      return handleGetTeeTimes(request, env);
+      response = await handleGetTeeTimes(request, env);
     } else if (method === "POST") {
-      return handleCreateTeeTime2(request, env);
+      response = await handleCreateTeeTime2(request, env);
     } else if (method === "PUT") {
-      return handleUpdateTeeTime2(request, env);
+      response = await handleUpdateTeeTime2(request, env);
     } else if (method === "DELETE") {
-      return handleDeleteTeeTime2(request, env);
+      response = await handleDeleteTeeTime2(request, env);
+    } else {
+      response = new Response("Method not allowed", { status: 405 });
     }
-    return new Response("Method not allowed", { status: 405 });
+    return addCORSHeaders3(response);
   } catch (error) {
-    console.error("Tee times API error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    console.error("Tee times API error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : void 0,
+      method,
+      url: url.toString(),
+      environment: env.ENVIRONMENT || "unknown"
+    });
+    const errorResponse = new Response(JSON.stringify({
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
+    return addCORSHeaders3(errorResponse);
   }
 }, "onRequest");
 async function handleGetTeeTimes(request, env) {
@@ -3133,25 +3248,61 @@ async function handleDeleteTeeTime2(request, env) {
 __name(handleDeleteTeeTime2, "handleDeleteTeeTime");
 
 // api/tennis-courts/index.ts
+function addCORSHeaders4(response) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+  headers.set("Access-Control-Allow-Credentials", "true");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+__name(addCORSHeaders4, "addCORSHeaders");
 var onRequest14 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
+  if (method === "OPTIONS") {
+    return addCORSHeaders4(new Response(null, { status: 200 }));
+  }
+  console.log("Tennis courts API called:", {
+    method,
+    url: url.toString(),
+    environment: env.ENVIRONMENT || "unknown",
+    hasDB: !!env.DB,
+    hasJWTSecret: !!env.JWT_SECRET
+  });
   try {
+    let response;
     if (method === "GET") {
-      return handleGetCourtReservations2(request, env);
+      response = await handleGetCourtReservations2(request, env);
     } else if (method === "POST") {
-      return handleCreateCourtReservation2(request, env);
+      response = await handleCreateCourtReservation2(request, env);
     } else if (method === "DELETE") {
-      return handleDeleteCourtReservation2(request, env);
+      response = await handleDeleteCourtReservation2(request, env);
+    } else {
+      response = new Response("Method not allowed", { status: 405 });
     }
-    return new Response("Method not allowed", { status: 405 });
+    return addCORSHeaders4(response);
   } catch (error) {
-    console.error("Tennis courts API error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    console.error("Tennis courts API error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : void 0,
+      method,
+      url: url.toString(),
+      environment: env.ENVIRONMENT || "unknown"
+    });
+    const errorResponse = new Response(JSON.stringify({
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error)
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
+    return addCORSHeaders4(errorResponse);
   }
 }, "onRequest");
 async function handleGetCourtReservations2(request, env) {
@@ -3982,7 +4133,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-Tv1X2W/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-UkarO9/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -4014,7 +4165,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-Tv1X2W/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-UkarO9/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

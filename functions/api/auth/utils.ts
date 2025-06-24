@@ -4,7 +4,10 @@ import { Env, Member } from '../../types';
 export async function verifyAuth(request: Request, env: Env): Promise<Member | null> {
   try {
     const cookieHeader = request.headers.get('Cookie');
-    console.log('Cookie header:', cookieHeader); // Debug log
+    console.log('Auth verification - Cookie header:', cookieHeader ? 'present' : 'missing');
+    console.log('Auth verification - Environment:', env.ENVIRONMENT || 'unknown');
+    console.log('Auth verification - Has DB:', !!env.DB);
+    console.log('Auth verification - Has JWT_SECRET:', !!env.JWT_SECRET);
     
     if (!cookieHeader) {
       console.log('No cookie header found');
@@ -14,7 +17,7 @@ export async function verifyAuth(request: Request, env: Env): Promise<Member | n
     // Extract session token from cookies
     const cookies = parseCookies(cookieHeader);
     const sessionToken = cookies['session'];
-    console.log('Session token from cookie:', sessionToken); // Debug log
+    console.log('Session token from cookie:', sessionToken ? 'present' : 'missing');
     
     if (!sessionToken) {
       console.log('No session token found in cookies');
@@ -34,6 +37,8 @@ export async function verifyAuth(request: Request, env: Env): Promise<Member | n
         WHERE ms.session_token = ? AND ms.expires_at > CURRENT_TIMESTAMP AND m.is_active = 1
       `).bind(sessionToken).first();
 
+      console.log('Database session lookup result:', sessionResult ? 'found' : 'not found');
+
       if (!sessionResult) {
         console.log('No active session found in database');
         return null;
@@ -52,10 +57,15 @@ export async function verifyAuth(request: Request, env: Env): Promise<Member | n
         created_at: sessionResult.created_at,
         updated_at: sessionResult.updated_at,
         last_login: sessionResult.last_login
-      };
-    }
+      };    }
   } catch (error) {
-    console.error('Auth verification error:', error);
+    console.error('Auth verification error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      environment: env.ENVIRONMENT || 'unknown',
+      hasDB: !!env.DB,
+      hasJWTSecret: !!env.JWT_SECRET
+    });
     return null;
   }
 }

@@ -1,27 +1,72 @@
 import { Env, CourtReservation, CourtReservationRequest } from '../../types';
 import { verifyAuth } from '../auth/utils';
 
+// Helper function to add CORS headers
+function addCORSHeaders(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
 
+  // Handle OPTIONS requests for CORS
+  if (method === 'OPTIONS') {
+    return addCORSHeaders(new Response(null, { status: 200 }));
+  }
+
+  // Add debugging logs
+  console.log('Tennis courts API called:', {
+    method,
+    url: url.toString(),
+    environment: env.ENVIRONMENT || 'unknown',
+    hasDB: !!env.DB,
+    hasJWTSecret: !!env.JWT_SECRET
+  });
+
   try {
+    let response: Response;
+    
     if (method === 'GET') {
-      return handleGetCourtReservations(request, env);
+      response = await handleGetCourtReservations(request, env);
     } else if (method === 'POST') {
-      return handleCreateCourtReservation(request, env);
+      response = await handleCreateCourtReservation(request, env);
     } else if (method === 'DELETE') {
-      return handleDeleteCourtReservation(request, env);
+      response = await handleDeleteCourtReservation(request, env);
+    } else {
+      response = new Response('Method not allowed', { status: 405 });
     }
 
-    return new Response('Method not allowed', { status: 405 });
+    return addCORSHeaders(response);
   } catch (error) {
-    console.error('Tennis courts API error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error('Tennis courts API error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      method,
+      url: url.toString(),
+      environment: env.ENVIRONMENT || 'unknown'
+    });
+    
+    const errorResponse = new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
+    
+    return addCORSHeaders(errorResponse);
   }
 };
 
