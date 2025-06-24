@@ -24,12 +24,45 @@ interface EventWithRegistration {
   registered_count?: number;
 }
 
+interface TeeTime {
+  id: number;
+  course_name: string;
+  courseName: string;
+  date: string;
+  time: string;
+  status: string;
+  players: string;
+}
+
+interface CourtReservation {
+  id: number;
+  court_type: string;
+  court_number: number;
+  date: string;
+  time: string;
+  status: string;
+  duration: number;
+}
+
+interface DiningReservation {
+  id: number;
+  date: string;
+  time: string;
+  party_size: number;
+  status: string;
+  special_requests?: string;
+}
+
 const MemberOverview = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<EventWithRegistration[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
-
+  const [upcomingTeeTimes, setUpcomingTeeTimes] = useState<TeeTime[]>([]);
+  const [upcomingCourtReservations, setUpcomingCourtReservations] = useState<CourtReservation[]>([]);
+  const [upcomingDiningReservations, setUpcomingDiningReservations] = useState<DiningReservation[]>([]);
+  const [reservationsLoading, setReservationsLoading] = useState(true);
   useEffect(() => {
     loadUpcomingEvents();
+    loadUpcomingReservations();
   }, []);
 
   const loadUpcomingEvents = async () => {
@@ -53,6 +86,53 @@ const MemberOverview = () => {
       console.error('Failed to load upcoming events:', error);
     } finally {
       setEventsLoading(false);
+    }
+  };
+
+  const loadUpcomingReservations = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const endDate = nextMonth.toISOString().split('T')[0];
+
+      // Load tee times
+      const teeTimesResponse = await fetch(`/api/tee-times?startDate=${today}&endDate=${endDate}`, {
+        credentials: 'include'
+      });
+      if (teeTimesResponse.ok) {
+        const teeTimesData = await teeTimesResponse.json();
+        setUpcomingTeeTimes(teeTimesData.teeTimes?.slice(0, 3) || []);
+      }
+
+      // Load court reservations
+      const courtsResponse = await fetch(`/api/tennis-courts?startDate=${today}&endDate=${endDate}`, {
+        credentials: 'include'
+      });
+      if (courtsResponse.ok) {
+        const courtsData = await courtsResponse.json();
+        setUpcomingCourtReservations(courtsData.reservations?.slice(0, 3) || []);
+      }
+
+      // Load dining reservations
+      const diningResponse = await fetch('/api/dining', {
+        credentials: 'include'
+      });
+      if (diningResponse.ok) {
+        const diningData = await diningResponse.json();
+        // Filter for upcoming reservations and limit to 3
+        const upcomingDining = diningData.reservations?.filter((res: DiningReservation) => {
+          const resDate = new Date(res.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return resDate >= today;
+        }).slice(0, 3) || [];
+        setUpcomingDiningReservations(upcomingDining);
+      }
+    } catch (error) {
+      console.error('Failed to load upcoming reservations:', error);
+    } finally {
+      setReservationsLoading(false);
     }
   };  const quickActions = [
     {
@@ -84,14 +164,19 @@ const MemberOverview = () => {
     }
   ];
 
-  const membershipBenefits = [
-    'Unlimited golf on all three courses',
-    'Priority tee time reservations',
-    'Clubhouse dining privileges',
-    'Access to fitness center and pool',
-    'Participation in member tournaments',
-    'Reciprocal club privileges'
-  ];
+  const formatDate = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString();
+  };
+
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
   return (
     <div className="container-width section-padding py-12">
       {/* Welcome Section */}
@@ -128,21 +213,124 @@ const MemberOverview = () => {
           ))}
         </div>
       </div>      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Membership Benefits */}
+        {/* Upcoming Reservations */}
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl p-8 border border-primary-200">
           <h3 className="text-2xl font-serif font-bold text-primary-950 mb-6">
-            Your Membership Benefits
+            Your Upcoming Reservations
           </h3>
-          <ul className="space-y-4">
-            {membershipBenefits.map((benefit, index) => (
-              <li key={index} className="flex items-start">
-                <svg className="w-6 h-6 text-green-600 mr-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-primary-800 font-medium">{benefit}</span>
-              </li>
-            ))}
-          </ul>
+          {reservationsLoading ? (
+            <div className="text-center p-8">
+              <div className="text-4xl mb-2 text-primary-600">
+                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+              </div>
+              <p className="text-gray-600">Loading reservations...</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Tee Times */}
+              {upcomingTeeTimes.length > 0 && (
+                <div>
+                  <h4 className="font-serif font-bold text-primary-800 mb-3 flex items-center">
+                    <FontAwesomeIcon icon={faGolfBallTee} className="mr-2 text-green-600" />
+                    Golf Tee Times
+                  </h4>
+                  <div className="space-y-3">
+                    {upcomingTeeTimes.map((teeTime) => (
+                      <div key={teeTime.id} className="border-l-4 border-green-500 pl-4 py-2 bg-green-50/50 rounded-r-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-primary-950">{teeTime.courseName}</p>
+                            <p className="text-sm text-primary-700">
+                              {formatDate(teeTime.date)} at {formatTime(teeTime.time)}
+                            </p>
+                            <p className="text-xs text-primary-600">{teeTime.players} players</p>
+                          </div>
+                          <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
+                            {teeTime.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Court Reservations */}
+              {upcomingCourtReservations.length > 0 && (
+                <div>
+                  <h4 className="font-serif font-bold text-primary-800 mb-3 flex items-center">
+                    <FontAwesomeIcon icon={faTableTennisPaddleBall} className="mr-2 text-purple-600" />
+                    Court Reservations
+                  </h4>
+                  <div className="space-y-3">
+                    {upcomingCourtReservations.map((reservation) => (
+                      <div key={reservation.id} className="border-l-4 border-purple-500 pl-4 py-2 bg-purple-50/50 rounded-r-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-primary-950 capitalize">
+                              {reservation.court_type} Court {reservation.court_number}
+                            </p>
+                            <p className="text-sm text-primary-700">
+                              {formatDate(reservation.date)} at {formatTime(reservation.time)}
+                            </p>
+                            <p className="text-xs text-primary-600">{reservation.duration} minutes</p>
+                          </div>
+                          <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded">
+                            {reservation.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dining Reservations */}
+              {upcomingDiningReservations.length > 0 && (
+                <div>
+                  <h4 className="font-serif font-bold text-primary-800 mb-3 flex items-center">
+                    <FontAwesomeIcon icon={faUtensils} className="mr-2 text-orange-600" />
+                    Dining Reservations
+                  </h4>
+                  <div className="space-y-3">
+                    {upcomingDiningReservations.map((reservation) => (
+                      <div key={reservation.id} className="border-l-4 border-orange-500 pl-4 py-2 bg-orange-50/50 rounded-r-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-primary-950">
+                              Party of {reservation.party_size}
+                            </p>
+                            <p className="text-sm text-primary-700">
+                              {formatDate(reservation.date)} at {formatTime(reservation.time)}
+                            </p>
+                            {reservation.special_requests && (
+                              <p className="text-xs text-primary-600">{reservation.special_requests}</p>
+                            )}
+                          </div>
+                          <span className="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">
+                            {reservation.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* No reservations message */}
+              {upcomingTeeTimes.length === 0 && upcomingCourtReservations.length === 0 && upcomingDiningReservations.length === 0 && (
+                <div className="text-center p-8">
+                  <div className="text-4xl mb-4 text-primary-600">
+                    <FontAwesomeIcon icon={faCalendarDays} />
+                  </div>
+                  <h4 className="font-serif font-bold text-primary-950 mb-2 text-lg">No upcoming reservations</h4>
+                  <p className="text-sm text-primary-700 mb-6 leading-relaxed">
+                    Book a tee time, reserve a court, or make a dining reservation to get started
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Upcoming Events Preview */}
