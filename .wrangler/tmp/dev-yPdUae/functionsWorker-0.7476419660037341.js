@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-yVEkbn/checked-fetch.js
+// .wrangler/tmp/bundle-RrpP2W/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -27,7 +27,7 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
   }
 });
 
-// .wrangler/tmp/pages-Esrogj/functionsWorker-0.3256356652770229.mjs
+// .wrangler/tmp/pages-nD6pRV/functionsWorker-0.7476419660037341.mjs
 var __defProp2 = Object.defineProperty;
 var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 var urls2 = /* @__PURE__ */ new Set();
@@ -1084,25 +1084,34 @@ __name(handleGetMembers, "handleGetMembers");
 __name2(handleGetMembers, "handleGetMembers");
 async function handleCreateMember(request, env) {
   const body = await request.json();
-  const { email, password, firstName, lastName, membershipType, phone } = body;
+  const { email, password, firstName, lastName, membershipType, memberId, phone } = body;
   if (!email || !password || !firstName || !lastName || !membershipType) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
   }
-  const memberId = generateMemberId2();
+  const finalMemberId = memberId && memberId.trim() !== "" ? memberId.trim() : generateMemberId2();
+  const existingMember = await env.DB.prepare(`
+    SELECT id FROM members WHERE member_id = ?
+  `).bind(finalMemberId).first();
+  if (existingMember) {
+    return new Response(JSON.stringify({ error: "Member ID already exists" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
   const passwordHash = await hashPassword3(password);
   const stmt = env.DB.prepare(`
     INSERT INTO members (email, password_hash, first_name, last_name, membership_type, member_id, phone)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
-  const result = await stmt.bind(email, passwordHash, firstName, lastName, membershipType, memberId, phone || null).run();
+  const result = await stmt.bind(email, passwordHash, firstName, lastName, membershipType, finalMemberId, phone || null).run();
   if (result.success) {
     return new Response(JSON.stringify({
       success: true,
       id: result.meta.last_row_id,
-      memberId,
+      memberId: finalMemberId,
       message: "Member created successfully"
     }), {
       status: 201,
@@ -1119,12 +1128,23 @@ __name(handleCreateMember, "handleCreateMember");
 __name2(handleCreateMember, "handleCreateMember");
 async function handleUpdateMember(request, env) {
   const body = await request.json();
-  const { id, email, firstName, lastName, membershipType, phone, isActive, password } = body;
+  const { id, email, firstName, lastName, membershipType, memberId, phone, isActive, password } = body;
   if (!id) {
     return new Response(JSON.stringify({ error: "Member ID required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
+  }
+  if (memberId && memberId.trim() !== "") {
+    const existingMember = await env.DB.prepare(`
+      SELECT id FROM members WHERE member_id = ? AND id != ?
+    `).bind(memberId.trim(), id).first();
+    if (existingMember) {
+      return new Response(JSON.stringify({ error: "Member ID already exists" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
   }
   let stmt;
   let params;
@@ -1132,17 +1152,17 @@ async function handleUpdateMember(request, env) {
     const passwordHash = await hashPassword3(password);
     stmt = env.DB.prepare(`
       UPDATE members 
-      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, member_id = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, passwordHash, id];
+    params = [email, firstName, lastName, membershipType, memberId, phone, isActive ? 1 : 0, passwordHash, id];
   } else {
     stmt = env.DB.prepare(`
       UPDATE members 
-      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, member_id = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, id];
+    params = [email, firstName, lastName, membershipType, memberId, phone, isActive ? 1 : 0, id];
   }
   const result = await stmt.bind(...params).run();
   if (result.success && result.meta.changes > 0) {
@@ -4366,7 +4386,7 @@ var jsonError2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default2 = jsonError2;
 
-// .wrangler/tmp/bundle-yVEkbn/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-RrpP2W/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
   middleware_ensure_req_body_drained_default2,
   middleware_miniflare3_json_error_default2
@@ -4398,7 +4418,7 @@ function __facade_invoke__2(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__2, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-yVEkbn/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-RrpP2W/middleware-loader.entry.ts
 var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -4498,4 +4518,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default2 as default
 };
-//# sourceMappingURL=functionsWorker-0.3256356652770229.js.map
+//# sourceMappingURL=functionsWorker-0.7476419660037341.js.map

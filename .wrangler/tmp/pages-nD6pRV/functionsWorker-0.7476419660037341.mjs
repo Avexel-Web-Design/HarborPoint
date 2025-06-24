@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-wZHoQd/checked-fetch.js
+// ../.wrangler/tmp/bundle-Zzvt5O/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -1054,25 +1054,34 @@ async function handleGetMembers(request, env) {
 __name(handleGetMembers, "handleGetMembers");
 async function handleCreateMember(request, env) {
   const body = await request.json();
-  const { email, password, firstName, lastName, membershipType, phone } = body;
+  const { email, password, firstName, lastName, membershipType, memberId, phone } = body;
   if (!email || !password || !firstName || !lastName || !membershipType) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
   }
-  const memberId = generateMemberId2();
+  const finalMemberId = memberId && memberId.trim() !== "" ? memberId.trim() : generateMemberId2();
+  const existingMember = await env.DB.prepare(`
+    SELECT id FROM members WHERE member_id = ?
+  `).bind(finalMemberId).first();
+  if (existingMember) {
+    return new Response(JSON.stringify({ error: "Member ID already exists" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
   const passwordHash = await hashPassword3(password);
   const stmt = env.DB.prepare(`
     INSERT INTO members (email, password_hash, first_name, last_name, membership_type, member_id, phone)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
-  const result = await stmt.bind(email, passwordHash, firstName, lastName, membershipType, memberId, phone || null).run();
+  const result = await stmt.bind(email, passwordHash, firstName, lastName, membershipType, finalMemberId, phone || null).run();
   if (result.success) {
     return new Response(JSON.stringify({
       success: true,
       id: result.meta.last_row_id,
-      memberId,
+      memberId: finalMemberId,
       message: "Member created successfully"
     }), {
       status: 201,
@@ -1088,12 +1097,23 @@ async function handleCreateMember(request, env) {
 __name(handleCreateMember, "handleCreateMember");
 async function handleUpdateMember(request, env) {
   const body = await request.json();
-  const { id, email, firstName, lastName, membershipType, phone, isActive, password } = body;
+  const { id, email, firstName, lastName, membershipType, memberId, phone, isActive, password } = body;
   if (!id) {
     return new Response(JSON.stringify({ error: "Member ID required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" }
     });
+  }
+  if (memberId && memberId.trim() !== "") {
+    const existingMember = await env.DB.prepare(`
+      SELECT id FROM members WHERE member_id = ? AND id != ?
+    `).bind(memberId.trim(), id).first();
+    if (existingMember) {
+      return new Response(JSON.stringify({ error: "Member ID already exists" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
   }
   let stmt;
   let params;
@@ -1101,17 +1121,17 @@ async function handleUpdateMember(request, env) {
     const passwordHash = await hashPassword3(password);
     stmt = env.DB.prepare(`
       UPDATE members 
-      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, member_id = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, passwordHash, id];
+    params = [email, firstName, lastName, membershipType, memberId, phone, isActive ? 1 : 0, passwordHash, id];
   } else {
     stmt = env.DB.prepare(`
       UPDATE members 
-      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, member_id = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, id];
+    params = [email, firstName, lastName, membershipType, memberId, phone, isActive ? 1 : 0, id];
   }
   const result = await stmt.bind(...params).run();
   if (result.success && result.meta.changes > 0) {
@@ -3508,7 +3528,7 @@ async function handleDeleteCourtReservation2(request, env) {
 }
 __name(handleDeleteCourtReservation2, "handleDeleteCourtReservation");
 
-// ../.wrangler/tmp/pages-Esrogj/functionsRoutes-0.19784341238268865.mjs
+// ../.wrangler/tmp/pages-nD6pRV/functionsRoutes-0.12866953194493758.mjs
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -4146,7 +4166,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-wZHoQd/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-Zzvt5O/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -4178,7 +4198,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-wZHoQd/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-Zzvt5O/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -4278,4 +4298,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default as default
 };
-//# sourceMappingURL=functionsWorker-0.3256356652770229.mjs.map
+//# sourceMappingURL=functionsWorker-0.7476419660037341.mjs.map

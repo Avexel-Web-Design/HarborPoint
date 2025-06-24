@@ -75,7 +75,7 @@ async function handleGetMembers(request: Request, env: Env) {
 
 async function handleCreateMember(request: Request, env: Env) {
   const body = await request.json();
-  const { email, password, firstName, lastName, membershipType, phone } = body;
+  const { email, password, firstName, lastName, membershipType, memberId, phone } = body;
 
   if (!email || !password || !firstName || !lastName || !membershipType) {
     return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -84,8 +84,20 @@ async function handleCreateMember(request: Request, env: Env) {
     });
   }
 
-  // Generate member ID
-  const memberId = generateMemberId();
+  // Use provided member ID or generate one
+  const finalMemberId = memberId && memberId.trim() !== '' ? memberId.trim() : generateMemberId();
+  
+  // Check if member ID already exists
+  const existingMember = await env.DB.prepare(`
+    SELECT id FROM members WHERE member_id = ?
+  `).bind(finalMemberId).first();
+
+  if (existingMember) {
+    return new Response(JSON.stringify({ error: 'Member ID already exists' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   
   // Hash password
   const passwordHash = await hashPassword(password);
@@ -95,13 +107,13 @@ async function handleCreateMember(request: Request, env: Env) {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const result = await stmt.bind(email, passwordHash, firstName, lastName, membershipType, memberId, phone || null).run();
+  const result = await stmt.bind(email, passwordHash, firstName, lastName, membershipType, finalMemberId, phone || null).run();
 
   if (result.success) {
     return new Response(JSON.stringify({
       success: true,
       id: result.meta.last_row_id,
-      memberId,
+      memberId: finalMemberId,
       message: 'Member created successfully'
     }), {
       status: 201,
@@ -117,13 +129,27 @@ async function handleCreateMember(request: Request, env: Env) {
 
 async function handleUpdateMember(request: Request, env: Env) {
   const body = await request.json();
-  const { id, email, firstName, lastName, membershipType, phone, isActive, password } = body;
+  const { id, email, firstName, lastName, membershipType, memberId, phone, isActive, password } = body;
 
   if (!id) {
     return new Response(JSON.stringify({ error: 'Member ID required' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
+  }
+
+  // Check if member ID already exists for a different member
+  if (memberId && memberId.trim() !== '') {
+    const existingMember = await env.DB.prepare(`
+      SELECT id FROM members WHERE member_id = ? AND id != ?
+    `).bind(memberId.trim(), id).first();
+
+    if (existingMember) {
+      return new Response(JSON.stringify({ error: 'Member ID already exists' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 
   let stmt: any;
@@ -134,18 +160,18 @@ async function handleUpdateMember(request: Request, env: Env) {
     const passwordHash = await hashPassword(password);
     stmt = env.DB.prepare(`
       UPDATE members 
-      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, member_id = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, passwordHash, id];
+    params = [email, firstName, lastName, membershipType, memberId, phone, isActive ? 1 : 0, passwordHash, id];
   } else {
     // Update without changing password
     stmt = env.DB.prepare(`
       UPDATE members 
-      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, member_id = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
-    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, id];
+    params = [email, firstName, lastName, membershipType, memberId, phone, isActive ? 1 : 0, id];
   }
 
   const result = await stmt.bind(...params).run();

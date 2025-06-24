@@ -27,6 +27,7 @@ interface MemberForm {
   firstName: string;
   lastName: string;
   membershipType: string;
+  memberId: string;
   phone: string;
   isActive: boolean;
 }
@@ -45,6 +46,7 @@ const AdminMembers = () => {
     firstName: '',
     lastName: '',
     membershipType: 'general',
+    memberId: '',
     phone: '',
     isActive: true
   });
@@ -86,13 +88,13 @@ const AdminMembers = () => {
       setLoading(false);
     }
   };
-  const resetForm = () => {
-    setMemberForm({
+  const resetForm = () => {    setMemberForm({
       email: '',
       password: '',
       firstName: '',
       lastName: '',
       membershipType: 'general',
+      memberId: '',
       phone: '',
       isActive: true
     });
@@ -136,16 +138,16 @@ const AdminMembers = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
-        },
-        credentials: 'include',
+        },        credentials: 'include',
         body: JSON.stringify({
           id: editingMember.id,
           email: memberForm.email,
           firstName: memberForm.firstName,
           lastName: memberForm.lastName,
           membershipType: memberForm.membershipType,
+          memberId: memberForm.memberId,
           phone: memberForm.phone,
-          isActive: memberForm.isActive,
+          isActive: editingMember.is_active, // Preserve current active status
           password: memberForm.password // Include password in update request
         })
       });
@@ -165,21 +167,13 @@ const AdminMembers = () => {
       setMessage('Error updating member');
     }
   };
-
   const handleDeactivateMember = async (memberId: number) => {
     if (!confirm('Are you sure you want to deactivate this member?')) return;
 
     try {
-      const response = await fetch('/api/admin/members', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          id: memberId,
-          isActive: false
-        })
+      const response = await fetch(`/api/admin/members?id=${memberId}`, {
+        method: 'DELETE',
+        credentials: 'include'
       });
 
       const data = await response.json();
@@ -196,16 +190,50 @@ const AdminMembers = () => {
     }
   };
 
+  const handleActivateMember = async (member: Member) => {
+    if (!confirm('Are you sure you want to activate this member?')) return;
+
+    try {
+      const response = await fetch('/api/admin/members', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: member.id,
+          email: member.email,
+          firstName: member.first_name,
+          lastName: member.last_name,
+          membershipType: member.membership_type,
+          phone: member.phone,
+          isActive: true
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(data.message || 'Member activated successfully!');
+        loadMembers();
+      } else {
+        setMessage(data.error || 'Failed to activate member');
+      }
+    } catch (error) {
+      console.error('Activate member error:', error);
+      setMessage('Error activating member');
+    }
+  };
   const startEdit = (member: Member) => {
-    setEditingMember(member);
-    setMemberForm({
+    setEditingMember(member);    setMemberForm({
       email: member.email,
       password: '',
       firstName: member.first_name,
       lastName: member.last_name,
       membershipType: member.membership_type,
+      memberId: member.member_id,
       phone: member.phone || '',
-      isActive: member.is_active
+      isActive: true // Default value, not used in editing
     });
   };
 
@@ -343,33 +371,32 @@ const AdminMembers = () => {
                       >
                         <option value="general">General</option>
                         <option value="property">Property</option>
-                        <option value="social">Social</option>
-                        <option value="associate">Associate</option>
+                        <option value="social">Social</option>                        <option value="associate">Associate</option>
                         <option value="junior">Junior</option>
                         <option value="emeritus">Emeritus</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-primary-900 mb-2">Phone</label>
+                      <label className="block text-sm font-medium text-primary-900 mb-2">
+                        Member ID {isCreating && <span className="text-primary-600 font-normal">(leave blank to auto-generate)</span>}
+                      </label>
                       <input
-                        type="tel"
-                        value={memberForm.phone}
-                        onChange={(e) => setMemberForm({ ...memberForm, phone: e.target.value })}
+                        type="text"
+                        value={memberForm.memberId}
+                        onChange={(e) => setMemberForm({ ...memberForm, memberId: e.target.value })}
                         className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
+                        placeholder={isCreating ? "Auto-generated if left blank" : "Enter custom Member ID"}
                       />
                     </div>
 
-                    <div className="flex items-center">
-                      <input                        type="checkbox"
-                        id="isActive"
-                        checked={memberForm.isActive}
-                        onChange={(e) => setMemberForm({ ...memberForm, isActive: e.target.checked })}
-                        className="h-5 w-5 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
+                    <div>
+                      <label className="block text-sm font-medium text-primary-900 mb-2">Phone</label>
+                      <input
+                        type="tel"
+                        value={memberForm.phone}                        onChange={(e) => setMemberForm({ ...memberForm, phone: e.target.value })}
+                        className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                       />
-                      <label htmlFor="isActive" className="ml-3 block text-sm text-primary-900 font-medium">
-                        Active Member
-                      </label>
                     </div>
                   </div>
 
@@ -462,12 +489,19 @@ const AdminMembers = () => {
                               className="text-primary-600 hover:text-primary-800 mr-4 px-3 py-1 rounded-md hover:bg-primary-100 transition-colors duration-200"
                             >                              Edit
                             </button>
-                            {member.is_active && (
+                            {member.is_active ? (
                               <button
                                 onClick={() => handleDeactivateMember(member.id)}
                                 className="text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-100 transition-colors duration-200"
                               >
                                 Deactivate
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleActivateMember(member)}
+                                className="text-green-600 hover:text-green-800 px-3 py-1 rounded-md hover:bg-green-100 transition-colors duration-200"
+                              >
+                                Activate
                               </button>
                             )}
                           </td>
