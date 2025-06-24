@@ -27,12 +27,25 @@ const MemberDining = () => {
     time: '',
     partySize: 2,
     specialRequests: ''
-  });
-  const [message, setMessage] = useState('');
+  });  const [message, setMessage] = useState('');
 
-  const timeSlots = [
-    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
-  ];
+  // Generate time slots from 11:00 AM to 9:00 PM (every 30 minutes)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 11; // 11 AM
+    const endHour = 21;   // 9 PM
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        if (hour === endHour && minute > 0) break; // Stop at 9:00 PM
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeStr);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   useEffect(() => {
     loadReservations();
@@ -326,13 +339,12 @@ const MemberDining = () => {
           {/* Restaurant Information */}
           <div className="mt-8 bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Restaurant Information</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
+            <div className="grid md:grid-cols-2 gap-6">              <div>
                 <h4 className="font-medium text-gray-900 mb-2">Hours</h4>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>Monday - Thursday: 5:00 PM - 9:00 PM</p>
-                  <p>Friday - Saturday: 5:00 PM - 10:00 PM</p>
-                  <p>Sunday: 4:00 PM - 8:00 PM</p>
+                  <p>Monday - Thursday: 11:00 AM - 9:00 PM</p>
+                  <p>Friday - Saturday: 11:00 AM - 10:00 PM</p>
+                  <p>Sunday: 11:00 AM - 8:00 PM</p>
                 </div>
               </div>
               <div>
