@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-Zzvt5O/checked-fetch.js
+// ../.wrangler/tmp/bundle-xvGDqX/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -366,6 +366,97 @@ function parseCookies3(cookieHeader) {
 }
 __name(parseCookies3, "parseCookies");
 
+// api/admin/members/delete.ts
+var onRequest = /* @__PURE__ */ __name(async (context) => {
+  const { request, env } = context;
+  const method = request.method;
+  try {
+    const admin = await verifyAdminAuth2(request, env.DB);
+    if (!admin) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    if (method === "DELETE") {
+      return handlePermanentDeleteMember(request, env);
+    }
+    return new Response("Method not allowed", { status: 405 });
+  } catch (error) {
+    console.error("Admin members permanent delete API error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}, "onRequest");
+async function handlePermanentDeleteMember(request, env) {
+  const url = new URL(request.url);
+  const memberId = url.searchParams.get("id");
+  if (!memberId) {
+    return new Response(JSON.stringify({ error: "Member ID required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+  try {
+    const stmt = env.DB.prepare(`
+      DELETE FROM members WHERE id = ?
+    `);
+    const result = await stmt.bind(memberId).run();
+    if (result.success && result.meta.changes > 0) {
+      return new Response(JSON.stringify({
+        success: true,
+        message: "Member permanently deleted successfully"
+      }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    } else {
+      return new Response(JSON.stringify({ error: "Member not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } catch (error) {
+    console.error("Permanent delete error:", error);
+    return new Response(JSON.stringify({ error: "Failed to delete member" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(handlePermanentDeleteMember, "handlePermanentDeleteMember");
+async function verifyAdminAuth2(request, DB) {
+  const cookieHeader = request.headers.get("Cookie");
+  if (!cookieHeader) return null;
+  const cookies = parseCookies4(cookieHeader);
+  const sessionToken = cookies["admin_session"];
+  if (!sessionToken) return null;
+  const sessionResult = await DB.prepare(`
+    SELECT ase.*, au.* FROM admin_sessions ase
+    JOIN admin_users au ON ase.admin_id = au.id
+    WHERE ase.session_token = ? AND ase.expires_at > CURRENT_TIMESTAMP AND au.is_active = 1
+  `).bind(sessionToken).first();
+  return sessionResult ? {
+    id: sessionResult.id,
+    username: sessionResult.username,
+    fullName: sessionResult.full_name,
+    role: sessionResult.role
+  } : null;
+}
+__name(verifyAdminAuth2, "verifyAdminAuth");
+function parseCookies4(cookieHeader) {
+  const cookies = {};
+  cookieHeader.split(";").forEach((cookie) => {
+    const [name, value] = cookie.trim().split("=");
+    if (name && value) {
+      cookies[name] = decodeURIComponent(value);
+    }
+  });
+  return cookies;
+}
+__name(parseCookies4, "parseCookies");
+
 // api/auth/login.ts
 var onRequestPost3 = /* @__PURE__ */ __name(async (context) => {
   try {
@@ -629,13 +720,13 @@ async function generateMemberId(DB) {
 __name(generateMemberId, "generateMemberId");
 
 // api/admin/auth/utils.ts
-async function verifyAdminAuth2(request, env) {
+async function verifyAdminAuth3(request, env) {
   try {
     const cookieHeader = request.headers.get("Cookie");
     if (!cookieHeader) {
       return null;
     }
-    const cookies = parseCookies4(cookieHeader);
+    const cookies = parseCookies5(cookieHeader);
     const sessionToken = cookies["admin_session"];
     if (!sessionToken) {
       return null;
@@ -662,8 +753,8 @@ async function verifyAdminAuth2(request, env) {
     return null;
   }
 }
-__name(verifyAdminAuth2, "verifyAdminAuth");
-function parseCookies4(cookieHeader) {
+__name(verifyAdminAuth3, "verifyAdminAuth");
+function parseCookies5(cookieHeader) {
   const cookies = {};
   cookieHeader.split(";").forEach((cookie) => {
     const [name, value] = cookie.trim().split("=");
@@ -673,14 +764,14 @@ function parseCookies4(cookieHeader) {
   });
   return cookies;
 }
-__name(parseCookies4, "parseCookies");
+__name(parseCookies5, "parseCookies");
 
 // api/admin/dining/index.ts
-var onRequest = /* @__PURE__ */ __name(async (context) => {
+var onRequest2 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
-    const admin = await verifyAdminAuth2(request, env);
+    const admin = await verifyAdminAuth3(request, env);
     if (!admin) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -845,11 +936,11 @@ async function handleDeleteReservation(request, env) {
 __name(handleDeleteReservation, "handleDeleteReservation");
 
 // api/admin/events/index.ts
-var onRequest2 = /* @__PURE__ */ __name(async (context) => {
+var onRequest3 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
-    const admin = await verifyAdminAuth2(request, env);
+    const admin = await verifyAdminAuth3(request, env);
     if (!admin) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -988,11 +1079,11 @@ async function handleDeleteEvent(request, env) {
 __name(handleDeleteEvent, "handleDeleteEvent");
 
 // api/admin/members/index.ts
-var onRequest3 = /* @__PURE__ */ __name(async (context) => {
+var onRequest4 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
-    const admin = await verifyAdminAuth3(request, env.DB);
+    const admin = await verifyAdminAuth4(request, env.DB);
     if (!admin) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -1177,10 +1268,10 @@ async function handleDeleteMember(request, env) {
   }
 }
 __name(handleDeleteMember, "handleDeleteMember");
-async function verifyAdminAuth3(request, DB) {
+async function verifyAdminAuth4(request, DB) {
   const cookieHeader = request.headers.get("Cookie");
   if (!cookieHeader) return null;
-  const cookies = parseCookies5(cookieHeader);
+  const cookies = parseCookies6(cookieHeader);
   const sessionToken = cookies["admin_session"];
   if (!sessionToken) return null;
   const sessionResult = await DB.prepare(`
@@ -1195,8 +1286,8 @@ async function verifyAdminAuth3(request, DB) {
     role: sessionResult.role
   } : null;
 }
-__name(verifyAdminAuth3, "verifyAdminAuth");
-function parseCookies5(cookieHeader) {
+__name(verifyAdminAuth4, "verifyAdminAuth");
+function parseCookies6(cookieHeader) {
   const cookies = {};
   cookieHeader.split(";").forEach((cookie) => {
     const [name, value] = cookie.trim().split("=");
@@ -1206,7 +1297,7 @@ function parseCookies5(cookieHeader) {
   });
   return cookies;
 }
-__name(parseCookies5, "parseCookies");
+__name(parseCookies6, "parseCookies");
 async function hashPassword3(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -1223,11 +1314,11 @@ function generateMemberId2() {
 __name(generateMemberId2, "generateMemberId");
 
 // api/admin/tee-times/index.ts
-var onRequest4 = /* @__PURE__ */ __name(async (context) => {
+var onRequest5 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
-    const admin = await verifyAdminAuth2(request, env);
+    const admin = await verifyAdminAuth3(request, env);
     if (!admin) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -1532,7 +1623,7 @@ async function handleCreateTeeTime(request, env) {
 __name(handleCreateTeeTime, "handleCreateTeeTime");
 
 // api/admin/tennis-courts/index.ts
-var onRequest5 = /* @__PURE__ */ __name(async (context) => {
+var onRequest6 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -1555,7 +1646,7 @@ var onRequest5 = /* @__PURE__ */ __name(async (context) => {
   }
 }, "onRequest");
 async function handleGetCourtReservations(request, env) {
-  const admin = await verifyAdminAuth2(request, env);
+  const admin = await verifyAdminAuth3(request, env);
   if (!admin) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
@@ -1586,7 +1677,7 @@ async function handleGetCourtReservations(request, env) {
 }
 __name(handleGetCourtReservations, "handleGetCourtReservations");
 async function handleCreateCourtReservation(request, env) {
-  const admin = await verifyAdminAuth2(request, env);
+  const admin = await verifyAdminAuth3(request, env);
   if (!admin) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
@@ -1703,7 +1794,7 @@ async function handleCreateCourtReservation(request, env) {
 }
 __name(handleCreateCourtReservation, "handleCreateCourtReservation");
 async function handleUpdateCourtReservation(request, env) {
-  const admin = await verifyAdminAuth2(request, env);
+  const admin = await verifyAdminAuth3(request, env);
   if (!admin) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
@@ -1755,7 +1846,7 @@ async function handleUpdateCourtReservation(request, env) {
 }
 __name(handleUpdateCourtReservation, "handleUpdateCourtReservation");
 async function handleDeleteCourtReservation(request, env) {
-  const admin = await verifyAdminAuth2(request, env);
+  const admin = await verifyAdminAuth3(request, env);
   if (!admin) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
@@ -1805,7 +1896,7 @@ function addCORSHeaders(response) {
   });
 }
 __name(addCORSHeaders, "addCORSHeaders");
-var onRequest6 = /* @__PURE__ */ __name(async (context) => {
+var onRequest7 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   if (request.method === "OPTIONS") {
     return addCORSHeaders(new Response(null, { status: 200 }));
@@ -2079,7 +2170,7 @@ async function bookSecondTeeTime(env, memberId, memberName, teeTimeDetails, play
 __name(bookSecondTeeTime, "bookSecondTeeTime");
 
 // api/tee-times/second-course-availability.ts
-var onRequest7 = /* @__PURE__ */ __name(async (context) => {
+var onRequest8 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
@@ -2154,7 +2245,7 @@ function formatTime12Hour(time24) {
   return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
 }
 __name(formatTime12Hour, "formatTime12Hour");
-var onRequest8 = /* @__PURE__ */ __name(async (context) => {
+var onRequest9 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
@@ -2324,7 +2415,7 @@ function addCORSHeaders2(response) {
   });
 }
 __name(addCORSHeaders2, "addCORSHeaders");
-var onRequest9 = /* @__PURE__ */ __name(async (context) => {
+var onRequest10 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   if (method === "OPTIONS") {
@@ -2436,7 +2527,7 @@ async function handleGetAvailableSlots(request, env) {
 __name(handleGetAvailableSlots, "handleGetAvailableSlots");
 
 // api/dining/index.ts
-var onRequest10 = /* @__PURE__ */ __name(async (context) => {
+var onRequest11 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -2567,7 +2658,7 @@ async function handleDeleteReservation2(request, env) {
 __name(handleDeleteReservation2, "handleDeleteReservation");
 
 // api/events/index.ts
-var onRequest11 = /* @__PURE__ */ __name(async (context) => {
+var onRequest12 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -2722,7 +2813,7 @@ async function handleUnregisterFromEvent(request, env) {
 __name(handleUnregisterFromEvent, "handleUnregisterFromEvent");
 
 // api/guest-passes/index.ts
-var onRequest12 = /* @__PURE__ */ __name(async (context) => {
+var onRequest13 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const method = request.method;
   try {
@@ -2868,7 +2959,7 @@ function addCORSHeaders3(response) {
   });
 }
 __name(addCORSHeaders3, "addCORSHeaders");
-var onRequest13 = /* @__PURE__ */ __name(async (context) => {
+var onRequest14 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
@@ -3294,7 +3385,7 @@ function addCORSHeaders4(response) {
   });
 }
 __name(addCORSHeaders4, "addCORSHeaders");
-var onRequest14 = /* @__PURE__ */ __name(async (context) => {
+var onRequest15 = /* @__PURE__ */ __name(async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
   const method = request.method;
@@ -3528,7 +3619,7 @@ async function handleDeleteCourtReservation2(request, env) {
 }
 __name(handleDeleteCourtReservation2, "handleDeleteCourtReservation");
 
-// ../.wrangler/tmp/pages-nD6pRV/functionsRoutes-0.12866953194493758.mjs
+// ../.wrangler/tmp/pages-giqlOk/functionsRoutes-0.8394659073689621.mjs
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -3550,6 +3641,13 @@ var routes = [
     method: "GET",
     middlewares: [],
     modules: [onRequestGet]
+  },
+  {
+    routePath: "/api/admin/members/delete",
+    mountPath: "/api/admin/members",
+    method: "",
+    middlewares: [],
+    modules: [onRequest]
   },
   {
     routePath: "/api/auth/login",
@@ -3584,98 +3682,98 @@ var routes = [
     mountPath: "/api/admin/dining",
     method: "",
     middlewares: [],
-    modules: [onRequest]
+    modules: [onRequest2]
   },
   {
     routePath: "/api/admin/events",
     mountPath: "/api/admin/events",
     method: "",
     middlewares: [],
-    modules: [onRequest2]
+    modules: [onRequest3]
   },
   {
     routePath: "/api/admin/members",
     mountPath: "/api/admin/members",
     method: "",
     middlewares: [],
-    modules: [onRequest3]
+    modules: [onRequest4]
   },
   {
     routePath: "/api/admin/tee-times",
     mountPath: "/api/admin/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest4]
+    modules: [onRequest5]
   },
   {
     routePath: "/api/admin/tennis-courts",
     mountPath: "/api/admin/tennis-courts",
     method: "",
     middlewares: [],
-    modules: [onRequest5]
+    modules: [onRequest6]
   },
   {
     routePath: "/api/tee-times/available",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest6]
+    modules: [onRequest7]
   },
   {
     routePath: "/api/tee-times/second-course-availability",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest7]
+    modules: [onRequest8]
   },
   {
     routePath: "/api/tee-times/second-course-options",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest8]
+    modules: [onRequest9]
   },
   {
     routePath: "/api/tennis-courts/available",
     mountPath: "/api/tennis-courts",
     method: "",
     middlewares: [],
-    modules: [onRequest9]
+    modules: [onRequest10]
   },
   {
     routePath: "/api/dining",
     mountPath: "/api/dining",
     method: "",
     middlewares: [],
-    modules: [onRequest10]
+    modules: [onRequest11]
   },
   {
     routePath: "/api/events",
     mountPath: "/api/events",
     method: "",
     middlewares: [],
-    modules: [onRequest11]
+    modules: [onRequest12]
   },
   {
     routePath: "/api/guest-passes",
     mountPath: "/api/guest-passes",
     method: "",
     middlewares: [],
-    modules: [onRequest12]
+    modules: [onRequest13]
   },
   {
     routePath: "/api/tee-times",
     mountPath: "/api/tee-times",
     method: "",
     middlewares: [],
-    modules: [onRequest13]
+    modules: [onRequest14]
   },
   {
     routePath: "/api/tennis-courts",
     mountPath: "/api/tennis-courts",
     method: "",
     middlewares: [],
-    modules: [onRequest14]
+    modules: [onRequest15]
   }
 ];
 
@@ -4166,7 +4264,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-Zzvt5O/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-xvGDqX/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -4198,7 +4296,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-Zzvt5O/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-xvGDqX/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -4298,4 +4396,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default as default
 };
-//# sourceMappingURL=functionsWorker-0.7476419660037341.mjs.map
+//# sourceMappingURL=functionsWorker-0.5078911678400169.mjs.map

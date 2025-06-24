@@ -1,6 +1,7 @@
 import { onRequestPost as __api_admin_auth_login_ts_onRequestPost } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\auth\\login.ts"
 import { onRequestPost as __api_admin_auth_logout_ts_onRequestPost } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\auth\\logout.ts"
 import { onRequestGet as __api_admin_auth_me_ts_onRequestGet } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\auth\\me.ts"
+import { onRequest as __api_admin_members_delete_ts_onRequest } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\admin\\members\\delete.ts"
 import { onRequestPost as __api_auth_login_ts_onRequestPost } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\auth\\login.ts"
 import { onRequestPost as __api_auth_logout_ts_onRequestPost } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\auth\\logout.ts"
 import { onRequestGet as __api_auth_me_ts_onRequestGet } from "C:\\Users\\gavin\\OneDrive\\Documents\\Github\\BirchwoodCC\\functions\\api\\auth\\me.ts"
@@ -41,6 +42,13 @@ export const routes = [
       method: "GET",
       middlewares: [],
       modules: [__api_admin_auth_me_ts_onRequestGet],
+    },
+  {
+      routePath: "/api/admin/members/delete",
+      mountPath: "/api/admin/members",
+      method: "",
+      middlewares: [],
+      modules: [__api_admin_members_delete_ts_onRequest],
     },
   {
       routePath: "/api/auth/login",

@@ -127,11 +127,19 @@ const AdminMembers = () => {
       console.error('Create member error:', error);
       setMessage('Error creating member');
     }
-  };
-  const handleUpdateMember = async (e: React.FormEvent) => {
+  };  const handleUpdateMember = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!editingMember) return;
+
+    // Check if Member ID has been changed
+    if (memberForm.memberId !== editingMember.member_id) {
+      const confirmMessage = `⚠️ WARNING: You are about to change the Member ID from "${editingMember.member_id}" to "${memberForm.memberId}"\n\nThis may break:\n- Existing tee time reservations\n- Dining bookings\n- Tennis court reservations\n- Event registrations\n- Guest passes\n- Other linked data\n\nThis action could cause data inconsistencies and should only be done if absolutely necessary.\n\nAre you sure you want to proceed with this change?`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+    }
 
     try {
       const response = await fetch('/api/admin/members', {
@@ -222,6 +230,35 @@ const AdminMembers = () => {
     } catch (error) {
       console.error('Activate member error:', error);
       setMessage('Error activating member');
+    }
+  };
+  const handleDeleteMember = async (member: Member) => {
+    const confirmMessage = `Are you sure you want to PERMANENTLY DELETE ${member.first_name} ${member.last_name}?\n\nThis will:\n- Delete the member account completely\n- Remove ALL their reservations (tee times, dining, courts)\n- Remove ALL their event registrations\n- Remove ALL their guest passes\n- Delete ALL their data permanently\n\nThis action CANNOT be undone!\n\nType "DELETE" to confirm:`;
+    
+    const confirmation = prompt(confirmMessage);
+    if (confirmation !== 'DELETE') {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/members/delete?id=${member.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('Member permanently deleted successfully!');
+        setEditingMember(null);
+        resetForm();
+        loadMembers();
+      } else {
+        setMessage(data.error || 'Failed to delete member');
+      }
+    } catch (error) {
+      console.error('Delete member error:', error);
+      setMessage('Error deleting member');
     }
   };
   const startEdit = (member: Member) => {
@@ -375,9 +412,7 @@ const AdminMembers = () => {
                         <option value="junior">Junior</option>
                         <option value="emeritus">Emeritus</option>
                       </select>
-                    </div>
-
-                    <div>
+                    </div>                    <div>
                       <label className="block text-sm font-medium text-primary-900 mb-2">
                         Member ID {isCreating && <span className="text-primary-600 font-normal">(leave blank to auto-generate)</span>}
                       </label>
@@ -397,8 +432,35 @@ const AdminMembers = () => {
                         value={memberForm.phone}                        onChange={(e) => setMemberForm({ ...memberForm, phone: e.target.value })}
                         className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                       />
+                    </div>                  </div>
+
+                  {/* Danger Zone for Editing Members */}
+                  {editingMember && (
+                    <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h5 className="text-lg font-medium text-red-900 mb-3">Danger Zone</h5>
+                      <div className="bg-red-100 border border-red-300 rounded-lg p-3 mb-4">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-red-800">
+                              <strong>Permanent Deletion:</strong> This will completely remove the member and ALL associated data including reservations, event registrations, and guest passes. This action cannot be undone.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => editingMember && handleDeleteMember(editingMember)}
+                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+                      >
+                        Permanently Delete Member
+                      </button>
                     </div>
-                  </div>
+                  )}
 
                   <div className="flex space-x-4 pt-4">
                     <button
@@ -504,6 +566,12 @@ const AdminMembers = () => {
                                 Activate
                               </button>
                             )}
+                            <button
+                              onClick={() => handleDeleteMember(member)}
+                              className="text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-100 transition-colors duration-200"
+                            >
+                              Delete
+                            </button>
                           </td>
                         </tr>
                       ))}

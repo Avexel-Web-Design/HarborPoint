@@ -130,19 +130,7 @@ VALUES ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720
 INSERT OR IGNORE INTO admin_users (username, password_hash, full_name, role) 
 VALUES ('admin@birchwoodcc.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'Admin User', 'admin');
 
--- Insert test member accounts for development
-INSERT OR IGNORE INTO members (email, password_hash, first_name, last_name, membership_type, member_id, phone, is_active) 
-VALUES ('member@birchwoodcc.com', 'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f', 'John', 'Doe', 'Full', 'BW001', '(231) 555-0123', 1);
-
-INSERT OR IGNORE INTO members (email, password_hash, first_name, last_name, membership_type, member_id, phone, is_active) 
-VALUES ('premium@birchwoodcc.com', 'c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646', 'Jane', 'Smith', 'Premium', 'BW002', '(231) 555-0124', 1);
-
-INSERT OR IGNORE INTO members (email, password_hash, first_name, last_name, membership_type, member_id, phone, is_active) 
-VALUES ('basic@birchwoodcc.com', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'Bob', 'Johnson', 'Basic', 'BW003', '(231) 555-0125', 1);
-
--- Insert member preferences for test accounts
-INSERT OR IGNORE INTO member_preferences (member_id, newsletter_opt_in, event_notifications, preferred_communication)
-VALUES (1, 1, 1, 'email'), (2, 1, 0, 'email'), (3, 0, 1, 'phone');
+-- Test member accounts removed - use admin panel to create members as needed
 
 -- Admin sessions table
 CREATE TABLE IF NOT EXISTS admin_sessions (
