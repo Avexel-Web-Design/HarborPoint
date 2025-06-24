@@ -333,37 +333,39 @@ const MemberDining = () => {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Restaurant Information */}
+          </div>          {/* Restaurant Information */}
           <div className="mt-8 bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Restaurant Information</h3>
-            <div className="grid md:grid-cols-2 gap-6">              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Hours</h4>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Grill Room (Dinner Reservations Required)</h4>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>Monday - Thursday: 11:00 AM - 9:00 PM</p>
-                  <p>Friday - Saturday: 11:00 AM - 10:00 PM</p>
-                  <p>Sunday: 11:00 AM - 8:00 PM</p>
+                  <p>Tuesday - Sunday: 5:00 PM - 9:00 PM</p>
+                  <p>Monday: Closed</p>
+                  <p className="text-red-600 font-medium">Reservations Required</p>
                 </div>
               </div>
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Contact</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Casual Bar (First Come, First Serve)</h4>
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>Phone: (231) 526-2166</p>
-                  <p>Email: dining@birchwoodcc.com</p>
+                  <p>Tuesday - Saturday: 11:00 AM - 9:00 PM</p>
+                  <p>Sunday: 10:00 AM - 9:00 PM (Brunch starts at 10 AM)</p>
+                  <p>Monday: Closed</p>
                 </div>
               </div>
             </div>
-            <div className="mt-4">
-              <h4 className="font-medium text-gray-900 mb-2">About Our Restaurant</h4>
-              <p className="text-gray-600 text-sm">
-                Experience fine dining with a view of our championship golf courses. Our menu features 
-                locally sourced ingredients and seasonal specialties. The restaurant offers both indoor 
-                seating and a beautiful outdoor terrace overlooking the 18th green.
-              </p>
+            <div className="mt-6">
+              <h4 className="font-medium text-gray-900 mb-2">Contact & Same Day Reservations</h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>Phone: (231) 526-2166</p>
+                <p>Email: dining@birchwoodcc.com</p>
+                <p className="text-blue-600 font-medium">For same day dinner reservations, please call after 4:00 PM</p>
+              </div>
             </div>
-          </div>        </div>
-      </div>    );
+          </div>
+        </div>
+      </div>
+    );
 };
 
 export default MemberDining;

@@ -296,7 +296,7 @@ const AdminDiningPage = () => {
               All Reservation Time Slots
             </h3>
             <p className="text-sm text-gray-600 mt-1">
-              All available time slots from 11:00 AM to 9:00 PM (every 30 minutes)
+              All available time slots from 5:00 PM to 9:00 PM (every 15 minutes)
             </p>
           </div>
           
