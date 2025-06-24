@@ -28,15 +28,14 @@ const MemberDining = () => {
     partySize: 2,
     specialRequests: ''
   });  const [message, setMessage] = useState('');
-
-  // Generate time slots from 11:00 AM to 9:00 PM (every 30 minutes)
+  // Generate time slots from 5:00 PM to 9:00 PM (every 15 minutes)
   const generateTimeSlots = () => {
     const slots = [];
-    const startHour = 11; // 11 AM
+    const startHour = 17; // 5 PM
     const endHour = 21;   // 9 PM
     
     for (let hour = startHour; hour <= endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
+      for (let minute = 0; minute < 60; minute += 15) {
         if (hour === endHour && minute > 0) break; // Stop at 9:00 PM
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         slots.push(timeStr);
