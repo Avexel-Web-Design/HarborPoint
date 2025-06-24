@@ -126,7 +126,6 @@ const AdminMembers = () => {
       setMessage('Error creating member');
     }
   };
-
   const handleUpdateMember = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -146,14 +145,15 @@ const AdminMembers = () => {
           lastName: memberForm.lastName,
           membershipType: memberForm.membershipType,
           phone: memberForm.phone,
-          isActive: memberForm.isActive
+          isActive: memberForm.isActive,
+          password: memberForm.password // Include password in update request
         })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('Member updated successfully!');
+        setMessage(data.message || 'Member updated successfully!');
         resetForm();
         setEditingMember(null);
         loadMembers();
@@ -274,8 +274,7 @@ const AdminMembers = () => {
                   {isCreating ? 'Create New Member' : 'Edit Member'}
                 </h4>
                 <form onSubmit={isCreating ? handleCreateMember : handleUpdateMember} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">                    <div>
                       <label className="block text-sm font-medium text-primary-900 mb-2">Email</label>
                       <input
                         type="email"
@@ -295,6 +294,21 @@ const AdminMembers = () => {
                           onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })}
                           className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
                           required
+                        />
+                      </div>
+                    )}
+
+                    {editingMember && (
+                      <div>
+                        <label className="block text-sm font-medium text-primary-900 mb-2">
+                          New Password <span className="text-primary-600 font-normal">(leave blank to keep current password)</span>
+                        </label>
+                        <input
+                          type="password"
+                          value={memberForm.password}
+                          onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })}
+                          className="w-full px-4 py-3 border border-primary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 backdrop-blur-sm"
+                          placeholder="Enter new password or leave blank"
                         />
                       </div>
                     )}

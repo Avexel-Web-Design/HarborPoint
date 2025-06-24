@@ -117,7 +117,7 @@ async function handleCreateMember(request: Request, env: Env) {
 
 async function handleUpdateMember(request: Request, env: Env) {
   const body = await request.json();
-  const { id, email, firstName, lastName, membershipType, phone, isActive } = body;
+  const { id, email, firstName, lastName, membershipType, phone, isActive, password } = body;
 
   if (!id) {
     return new Response(JSON.stringify({ error: 'Member ID required' }), {
@@ -126,18 +126,34 @@ async function handleUpdateMember(request: Request, env: Env) {
     });
   }
 
-  const stmt = env.DB.prepare(`
-    UPDATE members 
-    SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `);
+  let stmt: any;
+  let params: any[];
 
-  const result = await stmt.bind(email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, id).run();
+  if (password && password.trim() !== '') {
+    // Update with new password
+    const passwordHash = await hashPassword(password);
+    stmt = env.DB.prepare(`
+      UPDATE members 
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, passwordHash, id];
+  } else {
+    // Update without changing password
+    stmt = env.DB.prepare(`
+      UPDATE members 
+      SET email = ?, first_name = ?, last_name = ?, membership_type = ?, phone = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    params = [email, firstName, lastName, membershipType, phone, isActive ? 1 : 0, id];
+  }
+
+  const result = await stmt.bind(...params).run();
 
   if (result.success && result.meta.changes > 0) {
     return new Response(JSON.stringify({
       success: true,
-      message: 'Member updated successfully'
+      message: password && password.trim() !== '' ? 'Member updated successfully with new password' : 'Member updated successfully'
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
