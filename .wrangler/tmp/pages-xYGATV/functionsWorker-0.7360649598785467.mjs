@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-xvGDqX/checked-fetch.js
+// ../.wrangler/tmp/bundle-nUyjBV/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -1567,12 +1567,20 @@ async function handleCreateTeeTime(request, env) {
   }
   try {
     const memberQuery = env.DB.prepare(`
-      SELECT first_name, last_name FROM members WHERE id = ?
+      SELECT first_name, last_name, membership_type FROM members WHERE id = ?
     `);
     const memberResult = await memberQuery.bind(memberId).first();
     if (!memberResult) {
       return new Response(JSON.stringify({ error: "Member not found" }), {
         status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    if (memberResult.membership_type === "social") {
+      return new Response(JSON.stringify({
+        error: "Cannot book tee times for social members. Social membership does not include golf privileges."
+      }), {
+        status: 403,
         headers: { "Content-Type": "application/json" }
       });
     }
@@ -3050,6 +3058,14 @@ async function handleCreateTeeTime2(request, env) {
       headers: { "Content-Type": "application/json" }
     });
   }
+  if (member.membership_type === "social") {
+    return new Response(JSON.stringify({
+      error: "Social membership does not include golf privileges. Please contact the club to upgrade your membership to book tee times."
+    }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
   const body = await request.json();
   if (!body.courseId || !body.date || !body.time || !body.players) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -3619,7 +3635,7 @@ async function handleDeleteCourtReservation2(request, env) {
 }
 __name(handleDeleteCourtReservation2, "handleDeleteCourtReservation");
 
-// ../.wrangler/tmp/pages-giqlOk/functionsRoutes-0.8394659073689621.mjs
+// ../.wrangler/tmp/pages-xYGATV/functionsRoutes-0.19601394415912776.mjs
 var routes = [
   {
     routePath: "/api/admin/auth/login",
@@ -4264,7 +4280,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-xvGDqX/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-nUyjBV/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -4296,7 +4312,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-xvGDqX/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-nUyjBV/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -4396,4 +4412,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default as default
 };
-//# sourceMappingURL=functionsWorker-0.5078911678400169.mjs.map
+//# sourceMappingURL=functionsWorker-0.7360649598785467.mjs.map

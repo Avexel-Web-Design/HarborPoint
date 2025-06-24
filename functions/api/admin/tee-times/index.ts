@@ -292,17 +292,26 @@ async function handleCreateTeeTime(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
   try {
-    // Get member name for the booking
+    // Get member name and membership type for the booking
     const memberQuery = env.DB.prepare(`
-      SELECT first_name, last_name FROM members WHERE id = ?
+      SELECT first_name, last_name, membership_type FROM members WHERE id = ?
     `);
     const memberResult = await memberQuery.bind(memberId).first();
     
     if (!memberResult) {
       return new Response(JSON.stringify({ error: 'Member not found' }), {
         status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Check if member has social membership - social members cannot book tee times
+    if (memberResult.membership_type === 'social') {
+      return new Response(JSON.stringify({ 
+        error: 'Cannot book tee times for social members. Social membership does not include golf privileges.' 
+      }), {
+        status: 403,
         headers: { 'Content-Type': 'application/json' }
       });
     }

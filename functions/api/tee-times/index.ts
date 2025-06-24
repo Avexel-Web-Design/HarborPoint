@@ -126,6 +126,16 @@ async function handleCreateTeeTime(request: Request, env: Env) {
     });
   }
 
+  // Check if member has social membership - social members cannot book tee times
+  if (member.membership_type === 'social') {
+    return new Response(JSON.stringify({ 
+      error: 'Social membership does not include golf privileges. Please contact the club to upgrade your membership to book tee times.' 
+    }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   const body: TeeTimeRequest = await request.json();
   
   // Validate required fields
