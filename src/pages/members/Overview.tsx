@@ -187,7 +187,7 @@ const MemberOverview = () => {
             Welcome to Your Member Portal
           </h2>
           <p className="text-primary-200 text-lg">
-            Access all your member benefits and manage your Birchwood experience from here.
+            Access all your member benefits and manage your Harbor Point experience from here.
           </p>
         </div>
       </div>      {/* Quick Actions */}

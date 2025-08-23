@@ -154,7 +154,7 @@ const MemberDashboard = () => {
               Welcome, {member?.firstName}!
             </h1>
             <p className="text-xl text-primary-200 font-serif italic">
-              Your Birchwood Farms Experience
+              Your Harbor Point Experience
             </p>
             <p className="text-primary-300 max-w-2xl mx-auto">
               {member?.membershipType} Member • ID: {member?.memberId}

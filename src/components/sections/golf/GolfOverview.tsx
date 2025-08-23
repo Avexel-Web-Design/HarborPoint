@@ -16,42 +16,42 @@ const GolfOverview = () => {
             
             <div className="space-y-6 text-primary-800 leading-relaxed">
               <p className="text-lg">
-                At the heart of the Birchwood community are <strong>27 breathtaking holes</strong> of true 
-                northern Michigan golf. Golfers find themselves surrounded by untouched forest and 
-                gorgeous views of Lake Michigan, while playing on fairways and greens that can only 
-                be described as "meticulous."
+                Harbor Point Golf Club features <strong>18 championship holes</strong> that epitomize 
+                excellence in golf course design. Set along Lake Michigan's stunning shoreline, our course 
+                offers golfers breathtaking water views, meticulously maintained playing surfaces, and 
+                strategic challenges that test every aspect of your game.
               </p>
               
               <p className="text-lg">
-                The original 18-hole layout, <strong>Farms to Birches</strong>, winds through scenic woodlands 
-                of mature hardwoods and is a true test to even the most seasoned of golfers. With 
-                manicured fairways and generous greens, every round on this course is a new challenge.
+                Our championship layout seamlessly integrates with the natural Lake Michigan terrain, 
+                featuring dramatic elevation changes, pristine fairways, and immaculate greens. Each hole 
+                has been thoughtfully designed to showcase the spectacular beauty of the lakefront while 
+                providing an exceptional golfing experience.
               </p>
               
               <p className="text-lg">
-                An additional nine exceptional holes were added on the west side of the property in 1998, 
-                rightly given the name, <strong>The Woods</strong>. Crafted by renowned designer Jerry Mathews, 
-                this masterpiece shows his attention to detail and the ability to utilize the terrain's 
-                natural, undulating topography.
+                From lakeside holes with stunning water views to tree-lined fairways that wind through 
+                the Michigan landscape, Harbor Point offers a premier golfing experience that combines 
+                natural beauty with championship-level design and conditioning.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-6 mt-8">
               <div className="text-center p-6 bg-white rounded-xl shadow-lg">
-                <div className="text-3xl font-bold text-primary-950 font-serif">27</div>
+                <div className="text-3xl font-bold text-primary-950 font-serif">18</div>
                 <div className="text-primary-700 font-medium">Championship Holes</div>
               </div>
               <div className="text-center p-6 bg-white rounded-xl shadow-lg">
-                <div className="text-3xl font-bold text-primary-950 font-serif">6,734</div>
-                <div className="text-primary-700 font-medium">Maximum Yards</div>
+                <div className="text-3xl font-bold text-primary-950 font-serif">6,800</div>
+                <div className="text-primary-700 font-medium">Championship Yards</div>
               </div>
               <div className="text-center p-6 bg-white rounded-xl shadow-lg">
-                <div className="text-3xl font-bold text-primary-950 font-serif">8</div>
-                <div className="text-primary-700 font-medium">Tee Box Options</div>
+                <div className="text-3xl font-bold text-primary-950 font-serif">72</div>
+                <div className="text-primary-700 font-medium">Championship Par</div>
               </div>
               <div className="text-center p-6 bg-white rounded-xl shadow-lg">
-                <div className="text-3xl font-bold text-primary-950 font-serif">3</div>
-                <div className="text-primary-700 font-medium">Distinct Courses</div>
+                <div className="text-3xl font-bold text-primary-950 font-serif">5</div>
+                <div className="text-primary-700 font-medium">Tee Options</div>
               </div>
             </div>
           </div>

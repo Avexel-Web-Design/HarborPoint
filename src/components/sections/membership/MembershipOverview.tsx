@@ -7,7 +7,7 @@ const MembershipOverview = () => {
       <div className="container-width section-padding">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-serif text-primary-950 mb-4">
-            Membership at Birchwood
+            Membership at Harbor Point
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Experience the finest in country club living with access to championship golf, 
@@ -18,14 +18,14 @@ const MembershipOverview = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <h3 className="text-3xl font-serif text-primary-900">
-              Why Choose Birchwood?
+              Why Choose Harbor Point?
             </h3>
             <div className="space-y-4">              <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center mt-1">
                   <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-white" />
                 </div>
                 <p className="text-gray-700">
-                  <strong>Championship Golf:</strong> Play unlimited golf on our three unique 9-hole courses
+                  <strong>Championship Golf:</strong> Play unlimited golf on our 18-hole championship course with Lake Michigan views
                 </p>
               </div>
               <div className="flex items-start space-x-3">
