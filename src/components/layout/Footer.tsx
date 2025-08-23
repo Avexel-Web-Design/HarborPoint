@@ -13,29 +13,29 @@ const Footer = () => {
           <div className="lg:col-span-2">            <Link to="/" className="flex items-center space-x-3 mb-6">
               <img 
                 src={logoWhite} 
-                alt="Birchwood Farms Logo" 
+                alt="Harbor Point Golf Club Logo" 
                 className="h-10 w-10" 
               />
               <img 
                 src={wordmark} 
-                alt="Birchwood Farms Golf & Country Club" 
+                alt="Harbor Point Golf Club" 
                 className="h-9" 
               />
             </Link>
             <p className="text-primary-200 mb-6 max-w-md font-serif leading-relaxed">
-              Experience the perfect blend of championship golf, fine dining, and 
-              exclusive membership privileges in a stunning natural setting.
+              Experience championship golf, exceptional dining, and exclusive amenities 
+              on the beautiful shores of Lake Michigan at Harbor Point Golf Club.
             </p>            <div className="flex space-x-4">
               {/* Social Media Icons */}
-              <a href="https://www.facebook.com/Birchwoodcc" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+              <a href="#" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
                 <span className="sr-only">Facebook</span>
                 <FontAwesomeIcon icon={faFacebookF} className="w-6 h-6" />
               </a>
-              <a href="https://www.instagram.com/birchwoodfarmsgcc/" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+              <a href="#" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
                 <span className="sr-only">Instagram</span>
                 <FontAwesomeIcon icon={faInstagram} className="w-6 h-6" />
               </a>
-              <a href="https://x.com/birchwoodcc" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+              <a href="#" className="text-primary-200 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
                 <span className="sr-only">Twitter</span>
                 <FontAwesomeIcon icon={faXTwitter} className="w-6 h-6" />
               </a>
@@ -56,13 +56,13 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold font-serif mb-4">Contact</h3>
             <div className="space-y-2 text-primary-200">
-              <p>600 Birchwood Drive</p>
-              <p>Harbor Springs, MI 49740</p>
-              <p>(231) 526-2166</p>
+              <p>1 Harbor Point Drive</p>
+              <p>Harbor Point, MI 49740</p>
+              <p>(231) 526-6000</p>
             </div>
           </div>
         </div>        <div className="border-t border-primary-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center text-primary-300">
-          <p>&copy; 2025 Birchwood Farms Golf & Country Club. All rights reserved.</p>
+          <p>&copy; 2025 Harbor Point Golf Club. All rights reserved.</p>
           <Link 
             to="/admin/login" 
             className="text-primary-400 hover:text-primary-200 text-sm transition-colors mt-2 sm:mt-0"

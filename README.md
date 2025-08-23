@@ -1,12 +1,12 @@
-# Birchwood Farms Golf & Country Club
+# Harbor Point Golf Club
 
-A modern, elegant React website for Birchwood Farms Golf & Country Club built with Vite and Tailwind CSS.
+A modern, elegant React website for Harbor Point Golf Club built with Vite and Tailwind CSS.
 
 ## Features
 
 - ⚡ Fast development with Vite
 - 🎨 Beautiful, responsive design with Tailwind CSS
-- 🌳 Custom Birchwood-themed logo and design elements
+- 🌊 Custom Harbor Point-themed logo and design elements
 - 📱 Mobile-first responsive design
 - 🎯 Scalable architecture for multiple pages
 - 🚀 Optimized for performance
@@ -153,4 +153,4 @@ The `dist/` folder will contain the optimized build ready for deployment to any 
 
 ## License
 
-Private project for Birchwood Farms Golf & Country Club.
+Private project for Harbor Point Golf Club.
