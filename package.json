@@ -1,5 +1,5 @@
 {
-  "name": "birchwood-cc",
+  "name": "harborpoint",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -15,10 +15,10 @@
     "dev:local": "wrangler pages dev dist --compatibility-date=2024-01-01",
     "dev:backend": "wrangler pages dev --port 8788 --compatibility-date=2024-01-01",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\"",
-    "db:init": "wrangler d1 execute birchwood-members --file=./schema.sql",
-    "db:init-remote": "wrangler d1 execute birchwood-members --file=./schema.sql --remote",
-    "db:query": "wrangler d1 execute birchwood-members --command",
-    "db:query-remote": "wrangler d1 execute birchwood-members --command --remote",
+  "db:init": "wrangler d1 execute harborpoint-members --file=./schema.sql",
+  "db:init-remote": "wrangler d1 execute harborpoint-members --file=./schema.sql --remote",
+  "db:query": "wrangler d1 execute harborpoint-members --command",
+  "db:query-remote": "wrangler d1 execute harborpoint-members --command --remote",
     "local": "npm run build && npm run db:init && npm run dev:local"
   },
   "dependencies": {

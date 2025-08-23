@@ -1,12 +1,12 @@
-# Birchwood Farms Golf & Country Club
+# HarborPoint
 
-A modern, elegant React website for Birchwood Farms Golf & Country Club built with Vite and Tailwind CSS.
+A modern React + Cloudflare Pages template for the HarborPoint project (frontend placeholder; backend APIs with D1 database).
 
 ## Features
 
 - ⚡ Fast development with Vite
 - 🎨 Beautiful, responsive design with Tailwind CSS
-- 🌳 Custom Birchwood-themed logo and design elements
+- � HarborPoint-themed design elements (placeholder)
 - 📱 Mobile-first responsive design
 - 🎯 Scalable architecture for multiple pages
 - 🚀 Optimized for performance
@@ -23,7 +23,7 @@ A modern, elegant React website for Birchwood Farms Golf & Country Club built wi
 - **Custom Logo** - SVG-based Birchwood logo
 - **Cloudflare Pages** - Static site hosting and deployment
 - **Cloudflare Workers** - Serverless functions for API endpoints
-- **Cloudflare D1** - SQLite-compatible database for member data
+- **Cloudflare D1** - SQLite-compatible database for member data (see `BACKEND_SETUP.md`)
 - **JWT Authentication** - Secure member login system
 
 ## Design System
@@ -109,13 +109,15 @@ The website includes a complete member login and portal system with online ameni
 ### 🔐 **Development Credentials**
 For testing and development, use these login credentials:
 
-**Member Login:** `/members/login`
-- Email: `member@birchwoodcc.com`
-- Password: `member123`
+Example seeded dev credentials (update as needed after schema load):
 
-**Admin Login:** `/admin/login`  
-- Username: `admin` OR `admin@birchwoodcc.com`
-- Password: `admin123`
+Member Login: `/members/login`
+- Email: `member@example.com` (create via registration if not seeded)
+- Password: (set on creation)
+
+Admin Login: `/admin/login`
+- Username: `admin` (default from schema)
+- Password: `admin123` (SHA-256 hash in schema, change in production)
 
 See [DEV_CREDENTIALS.md](./DEV_CREDENTIALS.md) for complete development setup information.
 
@@ -153,4 +155,4 @@ The `dist/` folder will contain the optimized build ready for deployment to any 
 
 ## License
 
-Private project for Birchwood Farms Golf & Country Club.
+Private project for HarborPoint.

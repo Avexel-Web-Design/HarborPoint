@@ -1,22 +1,23 @@
-name = "birchwood-cc"
+name = "harborpoint"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
 
+# -----------------------------
+
+# D1 Databases
+# Run these commands (replace names if desired):
+#   wrangler d1 create harborpoint-members
+#   wrangler d1 create harborpoint-members-preview
+# Then copy the returned UUIDs into database_id fields below.
+# -----------------------------
 [[d1_databases]]
-binding = "DB"
-database_name = "birchwood-members"
-database_id = "9884a7ff-30a3-40bb-9806-d8e9120a4e85"
+binding = "DB"                      # The binding used in code (env.DB)
+database_name = "harborpoint-members"
+database_id = "c741a91c-fdd5-43a4-bdce-341e9473de7a"
 
 [vars]
-JWT_SECRET = "AYYBt+TzmedVBrip8kafdi9FBDDjEs3W65PdVDwrrObGzRys05yo8Q5iknvkI8kEGM6kaJnIvuyf5pYif/YZ+A=="
+# Generate a new 64-byte secret (example: openssl rand -base64 48) and place it here
+JWT_SECRET = "REPLACE_WITH_SECURE_RANDOM_SECRET"
 ENVIRONMENT = "production"
 
-[env.preview]
-[[env.preview.d1_databases]]
-binding = "DB"
-database_name = "birchwood-members-preview"
-database_id = "your-preview-database-id-here"
-
-[env.preview.vars]
-JWT_SECRET = "Pe+8alSB2M89nZ0Mx4ec26bEA/bfhS7aBrTvtzcrQeI3wMLXiUAhk6hT07cUoa9xHGdG6SkfSAS3EpH8c2zSsg=="
-ENVIRONMENT = "preview"
+# (Preview environment removed per project preference)
