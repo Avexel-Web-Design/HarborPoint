@@ -12,37 +12,37 @@ import {
 const Lifestyle = () => {  const activities = [
     {
       title: "Championship Golf",
-      description: "27 holes across three distinct courses",
+      description: "18 holes of championship golf with spectacular Lake Michigan views",
       icon: faGolfBallTee,
       link: "/golf"
     },
     {
-      title: "Swimming Pool",
-      description: "Heated outdoor pool for year-round enjoyment",
-      icon: faPersonSwimming,
-      link: "/lifestyle"
-    },
-    {
-      title: "Walking Trails",
-      description: "Miles of scenic trails through northern Michigan beauty",
-      icon: faPersonHiking,
-      link: "/lifestyle"
-    },
-    {
-      title: "Racquet Sports",
-      description: "Tennis and pickleball courts for active members",
-      icon: faTableTennisPaddleBall,
-      link: "/lifestyle"
-    },
-    {
       title: "Fine Dining",
-      description: "Award-winning cuisine with seasonal menus",
+      description: "Award-winning cuisine with seasonal menus and lake views",
       icon: faUtensils,
       link: "/dining"
     },
     {
-      title: "Cross Country Skiing",
-      description: "Winter trails for cross-country skiing adventures",
+      title: "Lake Michigan Views",
+      description: "Breathtaking vistas from every hole and clubhouse location",
+      icon: faPersonHiking,
+      link: "/lifestyle"
+    },
+    {
+      title: "Private Events",
+      description: "Elegant venues for weddings and corporate gatherings",
+      icon: faTableTennisPaddleBall,
+      link: "/events"
+    },
+    {
+      title: "Luxury Amenities",
+      description: "World-class facilities and exclusive member services",
+      icon: faPersonSwimming,
+      link: "/lifestyle"
+    },
+    {
+      title: "Seasonal Activities",
+      description: "Year-round recreation and entertainment opportunities",
       icon: faPersonSkiing,
       link: "/lifestyle"
     }
@@ -60,8 +60,8 @@ const Lifestyle = () => {  const activities = [
           </div>
           
           <p className="text-xl text-primary-700 max-w-3xl mx-auto leading-relaxed">
-            Four seasons of recreation and activities await you at Birchwood Farms. 
-            From championship golf to winter skiing, there's always something exciting happening.
+            Four seasons of recreation and luxury await you at Harbor Point Golf Club. 
+            From championship golf to exclusive dining, experience the finest amenities Michigan has to offer.
           </p>
         </div>
 

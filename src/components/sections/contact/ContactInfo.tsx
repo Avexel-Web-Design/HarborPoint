@@ -6,34 +6,32 @@ const ContactInfo = () => {
       title: "General Information",
       icon: <Phone className="w-6 h-6" />,
       contacts: [
-        { label: "Clubhouse", phone: "(231) 526-2166", primary: true },
-        { label: "Toll Free", phone: "(800) 915-0829" },
-        { label: "Email Inquiries", email: "info@birchwoodcc.com" },
-        { label: "Fax", phone: "(231) 526-9411" }
+        { label: "Clubhouse", phone: "(231) 526-6000", primary: true },
+        { label: "Email Inquiries", email: "info@harborpointgolf.com" }
       ]
     },
     {
       title: "Golf Services",
       icon: <Users className="w-6 h-6" />,
       contacts: [
-        { label: "Golf Pro Shop", phone: "(231) 526-6245" },
-        { label: "Golf Course Maintenance", phone: "(231) 526-2683" }
+        { label: "Golf Pro Shop", phone: "(231) 526-6001" },
+        { label: "Tee Time Reservations", phone: "(231) 526-6002" }
       ]
     },
     {
-      title: "Recreation & Wellness",
+      title: "Dining & Events",
       icon: <Users className="w-6 h-6" />,
       contacts: [
-        { label: "Racquet Sports Center", phone: "(231) 526-2372" },
-        { label: "Physical Therapy - Amy Ray", phone: "(231) 526-2166" }
+        { label: "Dining Reservations", phone: "(231) 526-6003" },
+        { label: "Private Events", phone: "(231) 526-6004" }
       ]
     },
     {
-      title: "Facilities & Safety",
+      title: "Membership",
       icon: <Shield className="w-6 h-6" />,
       contacts: [
-        { label: "Public Safety/Security", phone: "(231) 526-2751" },
-        { label: "General Maintenance", phone: "(231) 526-7460" }
+        { label: "Membership Director", phone: "(231) 526-6005" },
+        { label: "Member Services", phone: "(231) 526-6006" }
       ]
     }
   ];
@@ -47,7 +45,7 @@ const ContactInfo = () => {
             Contact Information
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Our dedicated team is here to assist you with all your needs at Birchwood Farms
+            Our dedicated team is here to assist you with all your needs at Harbor Point Golf Club
           </p>
         </div>
 
@@ -63,11 +61,11 @@ const ContactInfo = () => {
             </div>
             <div className="space-y-3">
               <p className="text-lg text-gray-700">
-                600 Birchwood Drive<br />
-                Harbor Springs, MI 49740
+                1 Harbor Point Drive<br />
+                Harbor Point, MI 49740
               </p>
               <a 
-                href="https://goo.gl/maps/hyEArE7cCdAdgCNc8"
+                href="#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block btn-secondary mt-4"
@@ -127,18 +125,18 @@ const ContactInfo = () => {
                       <a 
                         href={`tel:${contact.phone.replace(/[^\d]/g, '')}`}
                         className={`text-sm hover:text-primary-700 transition-colors ${
-                          contact.primary ? 'text-primary-950 font-semibold' : 'text-gray-600'
+                          (contact as any).primary ? 'text-primary-950 font-semibold' : 'text-gray-600'
                         }`}
                       >
                         {contact.phone}
                       </a>
                     )}
-                    {contact.email && (
+                    {(contact as any).email && (
                       <a 
-                        href={`mailto:${contact.email}`}
+                        href={`mailto:${(contact as any).email}`}
                         className="text-sm text-gray-600 hover:text-primary-700 transition-colors"
                       >
-                        {contact.email}
+                        {(contact as any).email}
                       </a>
                     )}
                   </div>
@@ -155,9 +153,9 @@ const ContactInfo = () => {
             <div>
               <h3 className="text-lg font-serif font-bold text-red-800">Emergency Contact</h3>
               <p className="text-red-700">
-                For emergencies on property, contact Public Safety immediately at{' '}
-                <a href="tel:231-526-2751" className="font-semibold underline">
-                  (231) 526-2751
+                For emergencies on property, contact Security immediately at{' '}
+                <a href="tel:231-526-6000" className="font-semibold underline">
+                  (231) 526-6000
                 </a>
               </p>
             </div>

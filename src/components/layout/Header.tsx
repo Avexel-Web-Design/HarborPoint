@@ -24,11 +24,11 @@ const Header = () => {
       <Link to="/" className="flex items-center space-x-3 absolute left-4 sm:left-6 lg:left-8 top-1/2 transform -translate-y-1/2 z-10">
         <img 
           src={logoSvg} 
-          alt="Birchwood Farms Golf & Country Club" 
+          alt="Harbor Point Golf Club" 
           className="h-14 w-14"
         />        <img 
           src={nameLogo} 
-          alt="Birchwood Farms Golf & Country Club" 
+          alt="Harbor Point Golf Club" 
           className="hidden sm:block lg:hidden [@media(min-width:1375px)]:block h-8"
         />
       </Link>

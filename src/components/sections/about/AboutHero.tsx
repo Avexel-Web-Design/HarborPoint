@@ -18,7 +18,7 @@ const AboutHero = () => {
       <div className="absolute inset-0">
         <img 
           src={aboutImage} 
-          alt="Birchwood Farms Country Club History" 
+          alt="Harbor Point Golf Club History" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -28,23 +28,23 @@ const AboutHero = () => {
       <div className="relative z-10 text-center text-white container-width section-padding">
         <div className="space-y-6 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight">
-            The History of
-            <span className="block text-primary-300">Birchwood Farms</span>
+            Welcome to
+            <span className="block text-primary-300">Harbor Point</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-200 font-serif italic">
-            A Legacy of Excellence Since 1913
+            A Legacy of Excellence on Lake Michigan
           </p>
           <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-            From its beginnings as a model dairy farm to becoming Northern Michigan's premier 
-            private country club, Birchwood Farms has been dedicated to excellence and 
-            community for over a century.
+            Harbor Point Golf Club represents the finest in private club excellence, combining 
+            championship golf with unparalleled hospitality in one of Michigan's most prestigious 
+            lakefront locations.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <a href="#about-history" className="btn-primary">
-              Discover Our Story
+              Discover Our Excellence
             </a>
             <a href="#about-community" className="btn-secondary bg-white text-primary-950 hover:bg-gray-100">
-              Explore Our Community
+              Explore Membership
             </a>
           </div>
         </div>
