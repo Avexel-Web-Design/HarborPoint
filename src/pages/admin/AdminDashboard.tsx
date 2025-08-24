@@ -7,7 +7,6 @@ import {
   faUsers, 
   faCalendarDays, 
   faUtensils,
-  faTableTennisPaddleBall,
   faExternalLinkAlt,
   faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
@@ -15,9 +14,8 @@ import AdminTeeTimes from './AdminTeeTimes';
 import AdminEvents from './AdminEvents';
 import AdminDining from './AdminDining';
 import AdminMembers from './AdminMembers';
-import AdminTennisCourts from './AdminTennisCourts';
 
-type TabType = 'members' | 'tee-times' | 'tennis-courts' | 'events' | 'dining';
+type TabType = 'members' | 'tee-times' | 'events' | 'dining';
 
 const UsersIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faUsers} className={className} />
@@ -29,10 +27,6 @@ const GolfBallTeeIcon = ({ className }: { className?: string }) => (
 
 const CalendarIcon = ({ className }: { className?: string }) => (
   <FontAwesomeIcon icon={faCalendarDays} className={className} />
-);
-
-const TennisIcon = ({ className }: { className?: string }) => (
-  <FontAwesomeIcon icon={faTableTennisPaddleBall} className={className} />
 );
 
 const DiningIcon = ({ className }: { className?: string }) => (
@@ -53,13 +47,13 @@ const AdminDashboard = () => {
   const getInitialTab = (): TabType => {
     // Check URL params first
     const urlParams = new URLSearchParams(window.location.search);
-    const urlTab = urlParams.get('tab') as TabType;    if (urlTab && ['members', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(urlTab)) {
+    const urlTab = urlParams.get('tab') as TabType;    if (urlTab && ['members', 'tee-times', 'events', 'dining'].includes(urlTab)) {
       return urlTab;
     }
     
     // Check localStorage
     const savedTab = localStorage.getItem('adminDashboardTab') as TabType;
-    if (savedTab && ['members', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(savedTab)) {
+    if (savedTab && ['members', 'tee-times', 'events', 'dining'].includes(savedTab)) {
       return savedTab;
     }
     
@@ -81,7 +75,7 @@ const AdminDashboard = () => {
 
   // Clean up invalid values in localStorage
   useEffect(() => {
-    const savedTab = localStorage.getItem('adminDashboardTab');    if (savedTab && !['members', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(savedTab)) {
+    const savedTab = localStorage.getItem('adminDashboardTab');    if (savedTab && !['members', 'tee-times', 'events', 'dining'].includes(savedTab)) {
       localStorage.removeItem('adminDashboardTab');
     }
   }, []);
@@ -90,7 +84,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const handlePopState = () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const urlTab = urlParams.get('tab') as TabType;      if (urlTab && ['members', 'tee-times', 'tennis-courts', 'events', 'dining'].includes(urlTab)) {
+      const urlTab = urlParams.get('tab') as TabType;      if (urlTab && ['members', 'tee-times', 'events', 'dining'].includes(urlTab)) {
         setActiveTab(urlTab);
         localStorage.setItem('adminDashboardTab', urlTab);
       }
@@ -102,7 +96,6 @@ const AdminDashboard = () => {
   const tabs = [
     { id: 'members' as TabType, name: 'Members', icon: UsersIcon },
     { id: 'tee-times' as TabType, name: 'Tee Times', icon: GolfBallTeeIcon },
-    { id: 'tennis-courts' as TabType, name: 'Courts', icon: TennisIcon },
     { id: 'events' as TabType, name: 'Events', icon: CalendarIcon },
     { id: 'dining' as TabType, name: 'Dining', icon: DiningIcon },
   ];
@@ -112,8 +105,6 @@ const AdminDashboard = () => {
         return <AdminMembers />;
       case 'tee-times':
         return <AdminTeeTimes />;
-      case 'tennis-courts':
-        return <AdminTennisCourts />;
       case 'events':
         return <AdminEvents />;
       case 'dining':
