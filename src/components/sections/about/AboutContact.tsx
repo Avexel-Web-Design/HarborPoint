@@ -6,38 +6,38 @@ const AboutContact = () => {
   const contactInfo = [
     {
       icon: faPhone,
-      title: "Clubhouse & Membership",
-      details: ["(231) 526-2166", "Toll Free: (800) 915-0829"]
-    },
-    {
-      icon: faPhone,
       title: "Golf Pro Shop",
-      details: ["(231) 526-6245"]
+      details: ["(231) 526-2951"]
     },
     {
       icon: faPhone,
-      title: "Racquet Sports Center",
-      details: ["(231) 526-2372"]
+      title: "Clubhouse & Dining",
+      details: ["(231) 526-2511"]
     },
     {
       icon: faPhone,
-      title: "Security/Emergency",
-      details: ["(231) 526-2751"]
+      title: "HPA Office & Billing",
+      details: ["(231) 526-5381"]
+    },
+    {
+      icon: faPhone,
+      title: "Cottage Services",
+      details: ["(231) 526-0671"]
     }
   ];
 
   const additionalContacts = [
     {
-      title: "Golf Course Maintenance",
-      phone: "(231) 526-2683"
+      title: "Golf Shop Fax",
+      phone: "(231) 526-7712"
     },
     {
-      title: "General Maintenance",
-      phone: "(231) 526-7460"
+      title: "Business Office Fax", 
+      phone: "(231) 526-1056"
     },
     {
-      title: "Clubhouse Fax",
-      phone: "(231) 526-9411"
+      title: "PGA Professional",
+      phone: "Shaun Bezilla - (231) 758-0456"
     }
   ];
 
@@ -112,7 +112,9 @@ const AboutContact = () => {
                 <h4 className="text-xl font-serif">Visit Us</h4>
               </div>
               <p className="mb-4 leading-relaxed">
-                600 Birchwood Drive<br />
+                Harbor Point Golf Club<br />
+                8475 S. Lake Shore Drive<br />
+                P.O. Box 438<br />
                 Harbor Springs, MI 49740
               </p>
               <a 

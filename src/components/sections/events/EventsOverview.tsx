@@ -9,36 +9,34 @@ const EventsOverview = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl md:text-5xl font-bold font-serif text-primary-950">
-                Plan Your Special Day With Us
+                Clubhouse Dining & Events
               </h2>
             </div>
             
             <div className="space-y-6 text-gray-700">
               <p className="text-lg leading-relaxed">
-                Birchwood Farms Golf & Country Club is a private, residential golf community 
-                nestled in the rolling hills of Harbor Springs, Michigan. We are a premier wedding 
-                venue showcasing spectacular Lake Michigan views and emphasizing priority on 
-                membership experiences and satisfaction.
+                The Harbor Point Golf Club dining room and 19th Hole Bar provide an elegant setting 
+                for dining and social gatherings. Available for use by Golf Club & Social Members, 
+                Harbor Point Residents, and their guests from June 9th to September 1st.
               </p>
               
               <p className="text-lg leading-relaxed">
-                Our members receive preferred booking and incentivized pricing. We do accept a 
-                limited number of non-member weddings each year, dependent on availability. However, 
-                we offer a wide-range of membership options to fit your unique lifestyle.
+                Our Summer Suppers are a long standing tradition at Harbor Point Golf Club. 
+                We host special dinner events including "Perch on the Porch" - our most popular 
+                dinner experience featuring Pan Fried Perch, Corn Pudding, and Homemade Rolls 
+                served buffet style with spectacular views.
               </p>
               
               <p className="text-lg leading-relaxed">
-                Weddings receive unmatched personalized and professional service from our Catering 
-                Department. Your Vision is our Vision for your special day and it is our sole focus 
-                the day of your event. Unlike venues that host multiple weddings on the same day, 
-                you are it! From the first look to the last dance, you have our full attention.
+                Harbor Point Golf Club Members and Harbor Point Residents have the ability to rent 
+                out the clubhouse facility for private events. We offer personalized service for 
+                weddings, corporate events, and special occasions with our spectacular Lake Michigan views.
               </p>
               
               <p className="text-lg leading-relaxed">
-                We offer upfront pricing and our inclusive packages offer everything you need to have 
-                an amazing day at Birchwood Farms. Our inclusive packages include room rental, food, 
-                bar, service fee, tax, and more. There are no hidden fees! We take your budget 
-                seriously so you can focus on the details.
+                Lunch service is available Monday-Saturday from 11am-3pm during the season. 
+                For reservations and private event inquiries, please contact the Clubhouse Manager 
+                at (231) 526-2511.
               </p>
             </div>
           </div>
@@ -48,7 +46,7 @@ const EventsOverview = () => {
             <div className="relative rounded-lg overflow-hidden shadow-2xl">
               <img 
                 src={weddingImage} 
-                alt="Wedding at Birchwood Farms" 
+                alt="Clubhouse Dining at Harbor Point Golf Club" 
                 className="w-full h-96 lg:h-[500px] object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>

@@ -10,12 +10,9 @@ const Header = () => {
   
   const navigationItems = [
     { name: 'Home', path: '/' },
-    { name: 'Golf', path: '/golf' },
-    { name: 'Lifestyle', path: '/lifestyle' },
-    { name: 'Events', path: '/events' },
+    { name: 'Golf Course', path: '/golf' },
     { name: 'Membership', path: '/membership' },
-    { name: 'Careers', path: '/careers' },
-    { name: 'Community', path: '/community' },
+    { name: 'Clubhouse & Dining', path: '/events' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ]
