@@ -18,7 +18,7 @@ const MembershipHero = () => {
       <div className="absolute inset-0">
         <img 
           src={membershipImage} 
-          alt="Birchwood Membership" 
+          alt="Harbor Point Golf Club Membership" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -29,15 +29,15 @@ const MembershipHero = () => {
         <div className="space-y-6 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight">
             Join the
-            <span className="block text-primary-300">Birchwood Community</span>
+            <span className="block text-primary-300">Harbor Point Golf Club</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-200 font-serif italic">
-            Experience the Birchwood Lifestyle
+            Classic Resort Golf Membership
           </p>
           <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-            Originally conceived as a private, residential community, Birchwood is proud to 
-            announce an expansion of membership opportunities, including a variety of 
-            non-resident membership options. Discover the perfect membership that fits your lifestyle.
+            Harbor Point Golf Club welcomes a limited number of new members to experience 
+            classic resort golf in Harbor Springs, Michigan. Discover membership options 
+            designed to fit your lifestyle and connect you with our golf tradition.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <a href="#membership-types" className="btn-primary">

@@ -44,10 +44,10 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold font-serif mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link to="/golf" className="text-primary-200 hover:text-white transition-colors">Golf</Link></li>
-              <li><Link to="/lifestyle" className="text-primary-200 hover:text-white transition-colors">Lifestyle</Link></li>
-              <li><Link to="/events" className="text-primary-200 hover:text-white transition-colors">Events</Link></li>
+              <li><Link to="/golf" className="text-primary-200 hover:text-white transition-colors">Golf Course</Link></li>
+              <li><Link to="/events" className="text-primary-200 hover:text-white transition-colors">Clubhouse & Dining</Link></li>
               <li><Link to="/membership" className="text-primary-200 hover:text-white transition-colors">Membership</Link></li>
+              <li><Link to="/about" className="text-primary-200 hover:text-white transition-colors">About</Link></li>
               <li><Link to="/members/login" className="text-primary-200 hover:text-white transition-colors">Member Portal</Link></li>
             </ul>
           </div>
@@ -56,9 +56,10 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold font-serif mb-4">Contact</h3>
             <div className="space-y-2 text-primary-200">
-              <p>1 Harbor Point Drive</p>
-              <p>Harbor Point, MI 49740</p>
-              <p>(231) 526-6000</p>
+              <p>8475 S. Lake Shore Drive</p>
+              <p>P.O. Box 438</p>
+              <p>Harbor Springs, MI 49740</p>
+              <p>(231) 526-2951</p>
             </div>
           </div>
         </div>        <div className="border-t border-primary-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center text-primary-300">

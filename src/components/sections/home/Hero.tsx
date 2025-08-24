@@ -29,22 +29,22 @@ const Cover = () => {
       <div className="relative z-10 text-center text-white container-width section-padding">
         <div className="space-y-6 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight">
-            Welcome to
-            <span className="block text-primary-300">Harbor Point</span>
+            Harbor Point
+            <span className="block text-primary-300">Golf Club</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-200 font-serif italic">
-            Where Elegance Meets Excellence
+            Classic Resort Course - Harbor Springs, Michigan
           </p>
           <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-            Experience championship golf and world-class amenities on Lake Michigan's shores. 
-            Discover a private haven where tradition and luxury create unforgettable moments.
+            Enjoy Northern Michigan golf at its classical best. In the finest traditions of resort courses, 
+            Harbor Point Golf Club offers a lasting and refined golf experience with spectacular views of Lake Michigan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Link to="/membership" className="btn-primary">
               Explore Membership
             </Link>
             <Link to="/golf" className="btn-secondary bg-white text-primary-950 hover:bg-gray-100">
-              View Courses
+              About Our Course
             </Link>
           </div>
         </div>

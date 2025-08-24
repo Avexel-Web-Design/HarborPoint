@@ -1,29 +1,29 @@
 const AboutHistory = () => {
   const timelineEvents = [
     {
-      year: "1913",
-      title: "The Beginning",
-      description: "The Birchwood Farm Estate was established by Joseph E. Otis, of Chicago banking fame, as the model dairy and produce farm of Emmet County, and soon became known for the superiority of its farm products."
+      year: "1896",
+      title: "Early Beginnings",
+      description: "Local history indicates a rough golf course was in play at the location of the Harbor Point Golf Course, marking the early beginnings of golf in Harbor Springs."
     },
     {
-      year: "1951",
-      title: "Club Formation",
-      description: "The property transformed from a working farm into a private club, maintaining its commitment to excellence while embracing its new role as a premier recreational destination."
+      year: "1899",
+      title: "Course Development",
+      description: "Alexander F. Stevenson of Chicago, along with others from the Midwest, formed a stock company to purchase the land and develop the course."
     },
     {
-      year: "1959",
-      title: "Golf Course Development",
-      description: "The first golf course was established, taking advantage of the property's natural beauty and rolling terrain to create a challenging and scenic playing experience."
+      year: "1899",
+      title: "Design by David Foulis",
+      description: "The course was designed by David Foulis, who was from the famous St. Andrews family of golfers, bringing Scottish golf tradition to Northern Michigan."
     },
     {
-      year: "1962",
-      title: "Clubhouse Construction",
-      description: "The main clubhouse was built, featuring elegant dining facilities and gathering spaces that would become the heart of the Birchwood community."
+      year: "1941",
+      title: "Harbor Point Association",
+      description: "The course was taken over by the Harbor Point Association, which continues to manage the course today, ensuring its continued excellence and preservation."
     },
     {
-      year: "1971",
-      title: "Course Expansion",
-      description: "Additional golf holes were added, creating the three distinct 9-hole courses that define Birchwood today: The Birches, The Woods, and The Farms."
+      year: "2019",
+      title: "Tournament Recognition",
+      description: "Harbor Point hosted the GAM Women's Senior Championships, continuing its tradition of hosting prestigious golf events and tournaments."
     }
   ];
 
@@ -32,11 +32,11 @@ const AboutHistory = () => {
       <div className="container-width section-padding">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-serif text-primary-950 mb-4">
-            Our Rich Heritage
+            Harbor Point Golf Club History
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Over a century of dedication to excellence, community, and the preservation 
-            of Northern Michigan's natural beauty.
+            One of Northern Michigan's oldest golf courses, with over 125 years of 
+            golf tradition in Harbor Springs.
           </p>
         </div>
 
@@ -76,13 +76,13 @@ const AboutHistory = () => {
         <div className="text-center mt-16">
           <div className="bg-primary-50 rounded-lg p-8 max-w-4xl mx-auto">
             <h3 className="text-3xl font-serif text-primary-950 mb-4">
-              Continuing the Legacy
+              Classic Resort Golf Today
             </h3>
             <p className="text-lg text-gray-700 leading-relaxed">
-              Today, Birchwood Farms Golf & Country Club continues to honor its heritage while 
-              embracing the future. We remain committed to providing an exceptional experience 
-              for our members and guests, maintaining the highest standards of service, and 
-              preserving the natural beauty that makes Northern Michigan so special.
+              Harbor Point Golf Club is one of the oldest courses in Northern Michigan. Most well known 
+              for having superb greens, enjoyable routing and spectacular views of Lake Michigan, the club 
+              was recognized as a great walker's course by Golf Digest Places to Play. We continue to honor 
+              the traditions established by David Foulis while providing an exceptional golf experience.
             </p>
           </div>
         </div>

@@ -10,8 +10,8 @@ const MembershipOverview = () => {
             Membership at Harbor Point
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Experience the finest in country club living with access to championship golf, 
-            world-class amenities, and an active community of like-minded individuals.
+            Experience the finest in classic resort golf with access to our championship course, 
+            elegant clubhouse dining, and an active golf community in Harbor Springs, Michigan.
           </p>
         </div>
 
@@ -25,7 +25,7 @@ const MembershipOverview = () => {
                   <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-white" />
                 </div>
                 <p className="text-gray-700">
-                  <strong>Championship Golf:</strong> Play unlimited golf on our 18-hole championship course with Lake Michigan views
+                  <strong>Classic Resort Course:</strong> Play on our championship 18-hole course with spectacular Lake Michigan views
                 </p>
               </div>
               <div className="flex items-start space-x-3">
@@ -33,7 +33,7 @@ const MembershipOverview = () => {
                   <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-white" />
                 </div>
                 <p className="text-gray-700">
-                  <strong>World-Class Amenities:</strong> Access to fitness center, racquet sports, and pool facilities
+                  <strong>Elegant Clubhouse:</strong> Enjoy fine dining, social events, and the 19th Hole Bar
                 </p>
               </div>
               <div className="flex items-start space-x-3">
@@ -41,7 +41,7 @@ const MembershipOverview = () => {
                   <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-white" />
                 </div>
                 <p className="text-gray-700">
-                  <strong>Exceptional Dining:</strong> Enjoy fine dining and social gatherings year-round
+                  <strong>Professional Instruction:</strong> Learn from PGA Professional Shaun Bezilla
                 </p>
               </div>
               <div className="flex items-start space-x-3">
@@ -49,7 +49,7 @@ const MembershipOverview = () => {
                   <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-white" />
                 </div>
                 <p className="text-gray-700">
-                  <strong>Community Events:</strong> Participate in tournaments, holiday celebrations, and social activities
+                  <strong>Tradition & History:</strong> Play one of Northern Michigan's oldest courses, established in 1896
                 </p>
               </div>
             </div>
@@ -61,27 +61,27 @@ const MembershipOverview = () => {
             </h4>            <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faCheck} className="w-5 h-5 text-primary-600" />
-                <span className="text-gray-700">Unlimited golf privileges</span>
+                <span className="text-gray-700">Golf privileges (cart fees apply)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faCheck} className="w-5 h-5 text-primary-600" />
-                <span className="text-gray-700">Access to all club facilities</span>
+                <span className="text-gray-700">Clubhouse dining access</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faCheck} className="w-5 h-5 text-primary-600" />
-                <span className="text-gray-700">Participation in club tournaments</span>
+                <span className="text-gray-700">Golf tournaments and events</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faCheck} className="w-5 h-5 text-primary-600" />
-                <span className="text-gray-700">Clubhouse dining privileges</span>
+                <span className="text-gray-700">Summer Suppers tradition</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faCheck} className="w-5 h-5 text-primary-600" />
-                <span className="text-gray-700">Special events and celebrations</span>
+                <span className="text-gray-700">Private event hosting</span>
               </div>
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faCheck} className="w-5 h-5 text-primary-600" />
-                <span className="text-gray-700">Reciprocal privileges with other clubs</span>
+                <span className="text-gray-700">Pro shop shopping privileges</span>
               </div>
             </div>
           </div>
