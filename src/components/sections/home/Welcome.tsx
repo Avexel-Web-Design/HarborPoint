@@ -13,35 +13,35 @@ const Welcome = () => {
           <div className="lg:order-1 space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
-                Welcome Home
+                Welcome to Excellence
               </h2>
               <div className="w-24 h-1 bg-primary-700"></div>
             </div>
             
             <p className="text-lg text-primary-700 leading-relaxed">
-              Birchwood is a private, residential community featuring over 400 unique homes 
-              and condominiums, with spectacular views of Little Traverse Bay, along the famed 
-              Tunnel of Trees. Just five miles north of downtown Harbor Springs, the community 
-              offers four seasons of recreation and fun.
+              Harbor Point Golf Club is a prestigious private club nestled along Lake Michigan's 
+              stunning shoreline. Our exclusive membership community offers unparalleled access 
+              to championship golf, luxury amenities, and breathtaking waterfront views in one 
+              of Michigan's most coveted locations.
             </p>
             
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-primary-700 rounded-full"></div>
-                <span className="text-primary-800">Heated outdoor swimming pool</span>
+                <span className="text-primary-800">Championship 18-hole golf course</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-primary-700 rounded-full"></div>
-                <span className="text-primary-800">Miles of walking and ski trails</span>
+                <span className="text-primary-800">Stunning Lake Michigan views</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-primary-700 rounded-full"></div>
-                <span className="text-primary-800">Outdoor racquets facilities</span>
+                <span className="text-primary-800">Elegant clubhouse and dining</span>
               </div>
             </div>
             
-            <Link to="/community" className="btn-primary inline-block">
-              Live Here
+            <Link to="/membership" className="btn-primary inline-block">
+              Discover Membership
             </Link>
           </div>
             <div className="lg:order-2 relative">
@@ -72,16 +72,16 @@ const Welcome = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl md:text-5xl font-bold text-primary-950 font-serif">
-                A Sense of Community and Friendship
+                An Exclusive Golf Experience
               </h2>
               <div className="w-24 h-1 bg-primary-700"></div>
             </div>
             
             <p className="text-lg text-primary-700 leading-relaxed">
-              If you're looking for your own private, resort-style community in the heart of 
-              northern Michigan, Birchwood is just the Club for you. Our 1,600 acre community 
-              includes some of the finest real estate in northern Michigan as well as an exceptional 
-              clubhouse and recreational campus.
+              Harbor Point Golf Club offers an unmatched golfing experience with our 
+              championship course designed to challenge and inspire. Set against the 
+              backdrop of Lake Michigan, every round delivers both beauty and exceptional 
+              play for our distinguished members.
             </p>
             
             <Link to="/membership" className="btn-secondary inline-block">
@@ -101,9 +101,10 @@ const Welcome = () => {
               </div>
               
               <p className="text-lg text-primary-700 leading-relaxed">
-                The expansive Birchwood property features a classic Lake Michigan backdrop, 
-                which makes for an exquisite setting for any wedding or special event. 
-                Create memories that will last a lifetime in our stunning venues.
+                Harbor Point Golf Club provides the perfect setting for your most important 
+                celebrations. Our elegant facilities and spectacular Lake Michigan views 
+                create an unforgettable atmosphere for weddings, corporate events, and 
+                special occasions.
               </p>
               
               <Link to="/events" className="btn-primary inline-block">

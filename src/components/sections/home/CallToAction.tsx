@@ -24,21 +24,21 @@ const CallToAction = () => {
             </div>
             
             <p className="text-xl leading-relaxed text-primary-100 font-serif max-w-3xl mx-auto">
-              Join the distinguished members of Birchwood Farms and become part of 
-              a legacy that celebrates the finest traditions of northern Michigan hospitality, 
-              championship golf, and lifelong friendships.
+              Join the distinguished members of Harbor Point Golf Club and become part of 
+              an exclusive community that celebrates the finest traditions of Lake Michigan luxury, 
+              championship golf, and unparalleled hospitality.
             </p>
             
             <div className="space-y-8">
               <Link to="/membership" className="btn-primary inline-block text-lg px-8 py-4">
-                Learn More About Membership At Birchwood
+                Learn More About Membership At Harbor Point
               </Link>
               
               <div className="text-primary-200">
-                <p className="mb-4">Ready to experience the Birchwood difference?</p>
+                <p className="mb-4">Ready to experience the Harbor Point difference?</p>
                 <div className="space-y-2">
-                  <p>600 Birchwood Drive, Harbor Springs, MI 49740</p>
-                  <p>(231) 526-2166</p>
+                  <p>1 Harbor Point Drive, Harbor Point, MI 49740</p>
+                  <p>(231) 526-6000</p>
                 </div>
               </div>
             </div>

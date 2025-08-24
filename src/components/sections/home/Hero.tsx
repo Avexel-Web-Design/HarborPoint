@@ -19,7 +19,7 @@ const Cover = () => {
       <div className="absolute inset-0">
         <img 
           src={coverImage} 
-          alt="Birchwood Farms Country Club" 
+          alt="Harbor Point Golf Club" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -30,15 +30,14 @@ const Cover = () => {
         <div className="space-y-6 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight">
             Welcome to
-            <span className="block text-primary-300">Birchwood Farms</span>
+            <span className="block text-primary-300">Harbor Point</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-200 font-serif italic">
-            Where Tradition Meets Excellence
+            Where Elegance Meets Excellence
           </p>
           <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-            Experience the perfect harmony of championship golf, exquisite dining, 
-            and unparalleled hospitality in our pristine countryside setting. 
-            Join a legacy of excellence that spans generations.
+            Experience championship golf and world-class amenities on Lake Michigan's shores. 
+            Discover a private haven where tradition and luxury create unforgettable moments.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Link to="/membership" className="btn-primary">

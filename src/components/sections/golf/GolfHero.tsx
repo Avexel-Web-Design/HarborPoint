@@ -18,7 +18,7 @@ const GolfHero = () => {
       <div className="absolute inset-0">
         <img 
           src={golfImage} 
-          alt="Birchwood Golf Course" 
+          alt="Harbor Point Golf Course" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -29,19 +29,19 @@ const GolfHero = () => {
         <div className="space-y-6 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight">
             Championship Golf
-            <span className="block text-primary-300">in Northern Michigan</span>
+            <span className="block text-primary-300">at Harbor Point</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-200 font-serif italic">
-            27 Holes of Unparalleled Golf Excellence
+            18 Holes of Lake Michigan Excellence
           </p>
           <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-            Experience three distinct 9-hole courses that showcase the natural beauty of northern Michigan. 
-            From dramatic Lake Michigan views to challenging woodland terrain, each course offers its own 
-            unique character and strategic challenges.
+            Experience our championship 18-hole course that showcases the stunning beauty of Lake Michigan. 
+            Every hole offers spectacular views and challenging play, creating an unforgettable golfing 
+            experience on Michigan's pristine shoreline.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <a href="#courses" className="btn-primary">
-              Explore Our Courses
+              Explore Our Course
             </a>
             <a href="#membership" className="btn-secondary bg-white text-primary-950 hover:bg-gray-100">
               Learn About Membership

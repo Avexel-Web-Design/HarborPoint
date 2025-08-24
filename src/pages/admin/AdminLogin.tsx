@@ -47,7 +47,7 @@ const AdminLogin = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
             <h2 className="text-4xl font-serif font-bold text-white mb-2">
-              Birchwood Farms
+              Harbor Point Golf Club
             </h2>
             <p className="text-xl text-primary-200 font-serif italic mb-1">Golf & Country Club</p>
             <p className="text-primary-300">Admin Portal</p>
