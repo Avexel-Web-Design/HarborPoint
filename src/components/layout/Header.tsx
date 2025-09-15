@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import logoSvg from '../../images/logowhite.svg'
-import nameLogo from '../../images/name.png'
+import logo from '../../images/hpwhite.png'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -20,13 +19,9 @@ const Header = () => {
       {/* Logo - Absolute positioned to screen corner */}
       <Link to="/" className="flex items-center space-x-3 absolute left-4 sm:left-6 lg:left-8 top-1/2 transform -translate-y-1/2 z-10">
         <img 
-          src={logoSvg} 
+          src={logo} 
           alt="Harbor Point Golf Club" 
           className="h-14 w-14"
-        />        <img 
-          src={nameLogo} 
-          alt="Harbor Point Golf Club" 
-          className="hidden sm:block lg:hidden [@media(min-width:1375px)]:block h-8"
         />
       </Link>
         <div className="max-w-7xl mx-auto relative">

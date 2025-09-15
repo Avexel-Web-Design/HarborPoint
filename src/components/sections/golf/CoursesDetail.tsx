@@ -100,16 +100,16 @@ const CoursesDetail = () => {
         </div>
 
         {/* Important Notes */}
-        <div className="mt-16 bg-primary-600 text-white rounded-lg p-8 text-center">
+        <div className="mt-16 bg-primary-50 text-black rounded-lg p-8 text-center">
           <h3 className="text-2xl font-serif mb-4">Important Information</h3>
           <div className="grid md:grid-cols-2 gap-6 text-left">
             <div>
               <h4 className="font-semibold mb-2">Dress Code</h4>
-              <p className="text-primary-100">Golf attire is required. Jeans are not permitted on the course, and all golfers must wear a collared shirt.</p>
+              <p className="text-primary-900">Golf attire is required. Jeans are not permitted on the course, and all golfers must wear a collared shirt.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-2">Reservations</h4>
-              <p className="text-primary-100">Please call the Pro Shop at (231) 526-2951 for advance tee time reservations.</p>
+              <p className="text-primary-900">Please call the Pro Shop at (231) 526-2951 for advance tee time reservations.</p>
             </div>
           </div>
         </div>
